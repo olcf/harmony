@@ -3,13 +3,6 @@
 harmony is a HARness MONitoring sYstem that is used to monitor the OLCF harness
 during acceptance.
 
-## Wish List:
-* Check to make sure that there is at least one job for each app+test 
-  combination.
-* Report true failures: check the scheduler
-* Compute pass rate (accurately).
-* Send reports on demand
-
 ## Ideas:
 * Develop in Python, easier to extend if needed.
 * We can query the rgt_status database
