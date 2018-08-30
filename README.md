@@ -1,6 +1,6 @@
 # harmony
 
-harmony is a HARness MONitor sYstem that is used to monitor the OLCF harness
+harmony is a HARness MONitoring sYstem that is used to monitor the OLCF harness
 during acceptance.
 
 ## Wish List:
