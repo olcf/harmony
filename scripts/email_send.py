@@ -2,19 +2,25 @@
 import smtplib
 
 # Email modules
-from email.mime.text import MIMEText
+from email.message import EmailMessage
 
 # Send a message of some text document with some subject
 def send_message(text_doc, subject="Notification",
                  sender="notice", reciever="supervisor"):
     with open(text_doc) as tx:
-        msg = MIMEText(tx.read())
+        msg = EmailMessage()
+        msg.set_content(tx.read())
 
     msg['Subject'] = subject
     msg['From'] = sender
     msg['To'] = reciever
 
-    # TODO: Setup email server on ornl host.
     s = smtplib.SMTP('localhost')
+    print('Host found.')
     s.send_message(msg)
+    print('Message sent.')
     s.quit()
+
+if __name__ == "__main__":
+    send_message('./test_email.txt', reciever='kuchtact@beloit.edu')
+
