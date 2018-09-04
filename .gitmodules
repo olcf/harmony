@@ -1,0 +1,3 @@
+[submodule "lsf_python_api"]
+	path = lsf_python_api
+	url = https://github.com/IBMSpectrumComputing/lsf-python-api.git
