@@ -1,3 +1,10 @@
+import sys
+print(sys.path)
+import os
+print(os.getcwd())
+sys.path.append(os.getcwd())
+print(sys.path)
+
 from lsf_python_api.pythonlsf import lsf
 
 if lsf.lsb_init("test") > 0:

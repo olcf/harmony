@@ -1,2 +1,5 @@
 # Ignore any idea files (from Pycharm)
 .idea/*
+
+# Anything from lsflocal
+*lsflocal/*
