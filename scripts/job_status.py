@@ -5,7 +5,11 @@ from scripts import connect
 import sys
 
 
-def get_job_set(jobid=0, jobName=None, user=None, queue=None, hostname=None, options=(lsf.CUR_JOB|lsf.APS_JOB), verbose=False):
+def get_job_status(jobid):
+    job = get_job_set(jobid)
+    return job.status
+
+def get_job_set(jobid=0, jobName=None, user="all", queue=None, hostname=None, options=lsf.ALL_JOB, verbose=False):
     jobs = []
     if verbose:
         print("jobid:", jobid, "jobName:", jobName, "user:", user, "queue:", queue, "hostname:", hostname, "options:", options)
