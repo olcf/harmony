@@ -1,0 +1,55 @@
+################################################################################
+#  Set the path to the top level of the application directory.                 #
+################################################################################
+
+Path_to_tests = /gpfs/alpinetds/stf007/scratch/vgv/peak_tshot/20180901/App
+
+###############################################
+#      Application           Test             #
+###############################################
+
+Chroma
+Test = Chroma JIT_Test40_8nodes
+
+# GTC4
+Test = GTC4 test_0001node
+Test = GTC4 test_0001node_amgx
+Test = GTC4 test_0002node
+Test = GTC4 test_0004node
+Test = GTC4 test_0008node_adios
+Test = GTC4 test_0008node_noio
+Test = GTC4 test_0008node_amgx
+Test = GTC4 test_0012node
+Test = GTC4 test_0016node
+
+# LAMMPS
+Test = LAMMPS LJF_Summit_6000_particles__MPI__GNU_1node_6ppn
+Test = LAMMPS LJF_Summit_12000_particles__MPI__GNU_2node_6ppn
+Test = LAMMPS LJF_Summit_6000_particles__MPI__GPUPacakge__GNU_1node_6ppn_6gpupn
+Test = LAMMPS LJF_Summit_12000_particles__MPI__GPUPacakge__GNU_2node_6ppn_6gpupn
+Test = LAMMPS LJF_Summit_6000_particles__MPI__KOKKOS-GPU__GNU_1node_6ppn_6gpupn
+Test = LAMMPS LJF_Summit_12000_particles__MPI__KOKKOS-GPU__GNU_2node_6ppn_6gpupn
+
+# LSMS
+Test = LSMS3 Fe
+
+# minisweep
+Test = minisweep smpi_gcc_cuda_p12_ppn6_v2
+Test = minisweep smpi_gcc_cuda_p48_ppn6_v2
+
+# NVLink
+#Test = nvlink                test_DeviceDevice_memcpy
+#Test = nvlink                test_DeviceDevice_uva
+#Test = nvlink                test_HostDevice_memcpy
+#Test = nvlink                test_HostDevice_uva
+
+# NWCHEM
+Test = NWCHEM_6.8 simpleGPU
+
+################################################
+# Harness tasks                                #
+################################################
+Harness_task = check_out_tests
+Harness_task = start_tests
+Harness_task = stop_tests
+#Harness_task = display_status
