@@ -3,11 +3,31 @@
 from pythonlsf import lsf
 from scripts import connect
 import sys
+from collections import Counter
 
+
+def get_username_types(user):
+    jobs = get_username_jobs(user)
+    return count_type(jobs)
+
+def count_type(jobs):
+    stats = []
+    for j in jobs:
+        stats.append(j.status)
+    cnt = Counter(stats)
+    return cnt
+
+def get_username_jobs(user):
+    jobs = get_job_set(user=user)
+    return jobs
 
 def get_job_status(jobid):
-    job = get_job_set(jobid)
-    return job.status
+    jobs = get_job_set(jobid)
+    if len(jobs) == 0:
+        raise Exception("There is no job with ID", jobid)
+    elif len(jobs) > 1:
+        raise Exception("Too many jobs with ID", jobid)
+    return jobs[0].status
 
 def get_job_set(jobid=0, jobName=None, user="all", queue=None, hostname=None, options=lsf.ALL_JOB, verbose=False):
     jobs = []
