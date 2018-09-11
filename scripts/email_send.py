@@ -3,6 +3,7 @@ import smtplib
 
 # Email modules
 from email.message import EmailMessage
+import os
 
 # Send a message of some text document with some subject
 def send_message(text_doc, subject, sender, reciever):
@@ -22,5 +23,6 @@ def send_message(text_doc, subject, sender, reciever):
     s.quit()
 
 if __name__ == "__main__":
-    send_message(text_doc='./test_email.txt', subject='Notification', sender='OLCF-notice', reciever='kuchtact@beloit.edu')
+    email_path = os.path.dirname(__file__) + "/test_email.txt"
+    send_message(text_doc=email_path, subject='Notification', sender='OLCF-notice', reciever='human_being')
 
