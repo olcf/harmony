@@ -30,6 +30,7 @@ class Job(object):
     def __init__(self, j):
         # Record jobID
         self.jobId = j.jobId
+        self.walltime = j.submit.rLimits[lsf.LSF_RLIMIT_RUN]
 
         # Get the status of the job.
         # print("jobId:", self.jobId, "RUN:", lsf.JOB_STAT_RUN, "DONE:", lsf.JOB_STAT_DONE,"EXIT:", lsf.JOB_STAT_EXIT, "USUSP:", lsf.JOB_STAT_USUSP, "SSUSP:", lsf.JOB_STAT_SSUSP, "PEND:", lsf.JOB_STAT_PEND)
@@ -38,7 +39,10 @@ class Job(object):
         elif j.status & lsf.JOB_STAT_DONE:
             self.status = "Complete"
         elif j.status & lsf.JOB_STAT_EXIT:
-            self.status = "Killed"
+            if (j.startTime - j.endTime) >= self.walltime:
+                self.status = "Walltimed"
+            else:
+                self.status = "Killed"
         elif j.status & lsf.JOB_STAT_USUSP:
             self.status = "Susp_person"
         elif j.status & lsf.JOB_STAT_SSUSP:
