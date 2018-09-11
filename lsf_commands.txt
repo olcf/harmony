@@ -1,0 +1,5 @@
+Might be important for finding the job info?
+pythonlsf.lsf.symJobInfo
+
+Get all jobs, completed as well
+bjobs -u all -a

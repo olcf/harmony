@@ -1,8 +1,9 @@
 """ Find the status of some set of jobs."""
 
 from pythonlsf import lsf
-import connect
+from scripts import connect
 import sys
+
 
 def get_job_set(jobid=0, jobName=None, user=None, queue=None, hostname=None, options=(lsf.CUR_JOB|lsf.APS_JOB), verbose=False):
 	jobs = []
