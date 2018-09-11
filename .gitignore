@@ -3,3 +3,6 @@
 
 # Anything from lsflocal
 *lsflocal/*
+
+# pycache stuff
+*__pycache__*

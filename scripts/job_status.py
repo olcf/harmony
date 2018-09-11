@@ -52,7 +52,6 @@ class Job(object):
             self.status = "Blocked_person"
         else:
             self.status = "Unknown"
-        print("jobId:", self.jobId, "status:", self.status)
 
 
 if __name__ == "__main__":
