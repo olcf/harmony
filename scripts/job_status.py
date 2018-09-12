@@ -6,51 +6,68 @@ import sys
 from collections import Counter
 
 
-def get_username_types(user):
-    jobs = get_username_jobs(user)
-    return count_type(jobs)
+class JobStatus:
+    def init(self, queue='batch', verbose=False):
+        connect.connect(queue)
+        self.verbose = verbose
 
-def count_type(jobs):
-    stats = []
-    for j in jobs:
-        stats.append(j.status)
-    cnt = Counter(stats)
-    return cnt
+    def get_jobs_by_user(self, user):
+        return self.get_jobs(user=user)
 
-def get_username_jobs(user):
-    jobs = get_job_set(user=user)
-    return jobs
+    def get_jobs_by_jobid(self, jobid):
+        return self.get_jobs(jobid=jobid)
 
-def get_job_status(jobid):
-    jobs = get_job_set(jobid)
-    if len(jobs) == 0:
-        raise Exception("There is no job with ID", jobid)
-    elif len(jobs) > 1:
-        raise Exception("Too many jobs with ID", jobid)
-    return jobs[0].status
+    def get_jobs_by_name(self, jobName):
+        return self.get_jobs(jobName=jobName)
 
-def get_job_set(jobid=0, jobName=None, user="all", queue=None, hostname=None, options=lsf.ALL_JOB, verbose=False):
-    jobs = []
-    if verbose:
-        print("jobid:", jobid, "jobName:", jobName, "user:", user, "queue:", queue, "hostname:", hostname, "options:", options)
-    jobinfohead = lsf.lsb_openjobinfo_a(jobid, jobName, user, queue, hostname, options)
+    def get_jobs_by_status(self, status):
+        job_status = {'all': lsf.ALL_JOB, 'done': lsf.DONE_JOB, 'pending': lsf.PEND_JOB, 'suspended': lsf.SUSP_JOB}
+        options = 0
+        if type(status) is list:
+            for s in status:
+                options |= job_status[s]
+        elif type(status) is str:
+            options = job_status[status]
 
-    if jobinfohead is not None:
-        num_jobs = jobinfohead.numJobs
-    else:
-        num_jobs = 0
+        return self.get_jobs(options=options)
 
-    if verbose:
-        print("Found " + str(num_jobs) + " job(s)")
+    def count_type(self, jobs):
+        stats = []
+        for j in jobs:
+            stats.append(j.status)
+        cnt = Counter(stats)
+        return cnt
 
-    for _ in range(num_jobs):
-        jobs.append(Job(lsf.lsb_readjobinfo(None)))
-    lsf.lsb_closejobinfo()
+    def get_job_status(self, jobid):
+        jobs = self.get_jobs(jobid=jobid)
+        if len(jobs) == 0:
+            raise Exception("There is no job with ID", jobid)
+        elif len(jobs) > 1:
+            raise Exception("Too many jobs with ID", jobid)
+        return jobs[0].status
 
-    return jobs
+    def get_jobs(self, jobid=0, jobName=None, user="all", queue=None, hostname=None, options=lsf.ALL_JOB):
+        jobs = []
+        if self.verbose:
+            print("jobid:", jobid, "jobName:", jobName, "user:", user, "queue:", queue, "hostname:", hostname, "options:", options)
+        jobinfohead = lsf.lsb_openjobinfo_a(jobid, jobName, user, queue, hostname, options)
+
+        if jobinfohead is not None:
+            num_jobs = jobinfohead.numJobs
+        else:
+            num_jobs = 0
+
+        if self.verbose:
+            print("Found " + str(num_jobs) + " job(s)")
+
+        for _ in range(num_jobs):
+            jobs.append(Job(lsf.lsb_readjobinfo(None)))
+        lsf.lsb_closejobinfo()
+
+        return jobs
 
 
-class Job(object):
+class Job:
     def __init__(self, j):
         # Record jobID
         self.jobId = j.jobId
@@ -83,12 +100,13 @@ class Job(object):
 
 
 if __name__ == "__main__":
-    connect.connect(queue="batch")
     if len(sys.argv) > 1:
         jobid = int(sys.argv[1])
     else:
         jobid = 0
-    jobs = get_job_set(jobid=jobid, user="all", verbose=True, options=lsf.ALL_JOB)
+    js = JobStatus()
+    js.init(queue='batch')
+    jobs = js.get_jobs()
     for j in jobs:
         stat = j.status
         jobid = j.jobId

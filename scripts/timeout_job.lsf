@@ -1,0 +1,5 @@
+#!/bin/bash
+#BSUB -P GEN007
+#BSUB -W 0:01
+#BSUB -nnodes 1
+#BSUB -J timeout_test
