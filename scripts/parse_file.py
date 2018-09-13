@@ -47,34 +47,6 @@ class ParseRGTInput:
         return path_to_tests, test_list
 
 
-    def parse_vars(self, file_contents):
-        test_list = []
-        path_to_tests = None
-        for line_tup in file_contents:
-            line_num = line_tup[0]
-            var = line_tup[1]["var"]
-            vals = line_tup[1]["vals"]
-
-            if var.lower() == "path_to_tests":
-                if len(vals) == 0:
-                    raise SyntaxError(message="No path to tests.", line_num=line_num)
-                elif len(vals) > 1:
-                    raise SyntaxError(message="Too many paths to tests.", line_num=line_num)
-                path_to_tests = vals[0]
-            elif var.lower() == "test":
-                if len(vals) < 2:
-                    raise SyntaxError(message="Need both program name and test name.", line_num=line_num)
-                elif len(vals) > 2:
-                    raise SyntaxError(message="Too many values after test. Only need program name and test name.", line_num=line_num)
-                test_list.append({"program": vals[0], "test": vals[1]})
-            else:
-                raise SyntaxError(message="Incorrect variable to set. Should be either 'path_to_tests' or 'test'.", line_num=line_num)
-
-        if path_to_tests == None:
-            raise Exception("No path to tests found.")
-        return path_to_tests, test_list
-
-
     def remove_commented(self, file_contents):
         contents = []
         for line_tup in file_contents:
@@ -110,6 +82,34 @@ class ParseRGTInput:
             line_dic = {"var": line[0][0], "vals": line[1]}
             contents.append((line_num, line_dic))
         return contents
+
+
+    def parse_vars(self, file_contents):
+        test_list = []
+        path_to_tests = None
+        for line_tup in file_contents:
+            line_num = line_tup[0]
+            var = line_tup[1]["var"]
+            vals = line_tup[1]["vals"]
+
+            if var.lower() == "path_to_tests":
+                if len(vals) == 0:
+                    raise SyntaxError(message="No path to tests.", line_num=line_num)
+                elif len(vals) > 1:
+                    raise SyntaxError(message="Too many paths to tests.", line_num=line_num)
+                path_to_tests = vals[0]
+            elif var.lower() == "test":
+                if len(vals) < 2:
+                    raise SyntaxError(message="Need both program name and test name.", line_num=line_num)
+                elif len(vals) > 2:
+                    raise SyntaxError(message="Too many values after test. Only need program name and test name.", line_num=line_num)
+                test_list.append({"program": vals[0], "test": vals[1]})
+            else:
+                raise SyntaxError(message="Incorrect variable to set. Should be either 'path_to_tests' or 'test'.", line_num=line_num)
+
+        if path_to_tests == None:
+            raise Exception("No path to tests found.")
+        return path_to_tests, test_list
 
 
 class SyntaxError(Exception):

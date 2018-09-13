@@ -21,15 +21,7 @@ class JobStatus:
         return self.get_jobs(jobName=jobName)
 
     def get_jobs_by_status(self, status):
-        job_status = {'all': lsf.ALL_JOB, 'done': lsf.DONE_JOB, 'pending': lsf.PEND_JOB, 'suspended': lsf.SUSP_JOB}
-        options = 0
-        if type(status) is list:
-            for s in status:
-                options |= job_status[s]
-        elif type(status) is str:
-            options = job_status[status]
-
-        return self.get_jobs(options=options)
+        return self.get_jobs(status=status)
 
     def count_type(self, jobs):
         stats = []
@@ -46,7 +38,23 @@ class JobStatus:
             raise Exception("Too many jobs with ID", jobid)
         return jobs[0].status
 
-    def get_jobs(self, jobid=0, jobName=None, user="all", queue=None, hostname=None, options=lsf.ALL_JOB):
+    def get_jobs(self, jobid=0, jobName=None, user="all", queue=None, hostname=None, status='all'):
+        job_status = {'all': lsf.ALL_JOB, 'done': lsf.DONE_JOB, 'pending': lsf.PEND_JOB,
+                      'suspended': lsf.SUSP_JOB, 'running': lsf.RUN_JOB, 'current': lsf.CUR_JOB,
+                      'eligible': lsf.APS_JOB}
+        options = 0
+        try:
+            if type(status) is list:
+                for s in status:
+                    options |= job_status[s]
+            elif type(status) is str:
+                options = job_status[status]
+        except KeyError:
+            status_str = ""
+            for key in job_status.keys():
+                status_str += key + " "
+            raise KeyError("Invalid status. Options are " + status_str)
+
         jobs = []
         if self.verbose:
             print("jobid:", jobid, "jobName:", jobName, "user:", user, "queue:", queue, "hostname:", hostname, "options:", options)
