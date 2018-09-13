@@ -1,6 +1,8 @@
 from scripts.job_status import JobStatus
 from scripts import parse_file
+from scripts.notifications import slack_send
 import os
+import sys
 
 def check_tests(rgt_in_path):
     rgt_parser = parse_file.ParseRGTInput()
@@ -23,7 +25,8 @@ def check_tests(rgt_in_path):
         error_str += "\t" + nq['program'] + "\t" + nq['test'] + "\n"
 
     if len(not_queued) != 0:
-        raise Exception(error_str)
+        slack_send.send_message(error_str)
+        print(error_str)
     else:
         print("All tests running.")
 
@@ -47,6 +50,5 @@ def in_queue(jobid):
 
 
 if __name__ == '__main__':
-    path = 'abracadabra'
-    test_list = [{'program': 'tomato', 'test': 'potato'}]
-    print(get_test_directories(path, test_list))
+    rgt_in_path = sys.argv[1]
+    check_tests(rgt_in_path)
