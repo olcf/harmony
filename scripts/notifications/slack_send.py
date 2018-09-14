@@ -18,4 +18,4 @@ def send_message(message):
 
 
 if __name__ == '__main__':
-    send_message()
+    send_message("Another test message. This time from summitdev!")

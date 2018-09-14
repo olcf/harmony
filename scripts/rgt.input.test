@@ -1,0 +1,4 @@
+path_to_tests = /ccs/home/c2k/harmony/sample_inputs/sample_run
+
+test = GTC4 test_0001node
+

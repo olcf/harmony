@@ -88,7 +88,9 @@ class Job:
         elif j.status & lsf.JOB_STAT_DONE:
             self.status = "Complete"
         elif j.status & lsf.JOB_STAT_EXIT:
-            if (j.startTime - j.endTime) >= self.walltime:
+            # I think that error code 140 always means runlimit exceeded and there is no other code. I'm not totally sure about that though.
+            print(self.jobId, j.exitStatus)
+            if (int(j.exitStatus) % 255) == 140:
                 self.status = "Walltimed"
             else:
                 self.status = "Killed"
@@ -101,7 +103,7 @@ class Job:
                 self.status = "Eligible"
             else:
                 self.status = "Blocked_system"
-        elif j.status & lsf.JOB_STATE_PEND:
+        elif j.status & lsf.JOB_STAT_PEND:
             self.status = "Blocked_person"
         else:
             self.status = "Unknown"
@@ -118,5 +120,5 @@ if __name__ == "__main__":
     for j in jobs:
         stat = j.status
         jobid = j.jobId
-        print(jobid, '\t', stat)
+        # print(jobid, '\t', stat)
 
