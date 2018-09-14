@@ -89,7 +89,6 @@ class Job:
             self.status = "Complete"
         elif j.status & lsf.JOB_STAT_EXIT:
             # I think that error code 140 always means runlimit exceeded and there is no other code. I'm not totally sure about that though.
-            print(self.jobId, j.exitStatus)
             if (int(j.exitStatus) % 255) == 140:
                 self.status = "Walltimed"
             else:
