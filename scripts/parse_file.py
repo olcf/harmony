@@ -129,4 +129,5 @@ if __name__ == '__main__':
     rgtin_path = "/Users/cameronkuchta/Documents/GitHub/harmony/sample_inputs/rgt.input.master"
     job_id_path = "/Users/cameronkuchta/Documents/GitHub/harmony/sample_inputs/sample_run/GTC4/test_0001node/Status/123456789.0123/job_id.txt"
     parseID = ParseJobID()
-    print(parseID.parse_file(job_id_path))
+    parsergt = ParseRGTInput()
+    print(parsergt.parse_file(rgtin_path))

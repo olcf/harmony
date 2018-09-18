@@ -7,7 +7,7 @@ from collections import Counter
 
 
 class JobStatus:
-    def init(self, queue='batch', verbose=False):
+    def __init__(self, queue='batch', verbose=False):
         connect.connect(queue)
         self.verbose = verbose
 
@@ -89,7 +89,7 @@ class Job:
             self.status = "Complete"
         elif j.status & lsf.JOB_STAT_EXIT:
             # I think that error code 140 always means runlimit exceeded and there is no other code. I'm not totally sure about that though.
-            if (int(j.exitStatus) % 255) == 140:
+            if (int(j.exitStatus) % 256) == 140:
                 self.status = "Walltimed"
             else:
                 self.status = "Killed"
@@ -113,8 +113,7 @@ if __name__ == "__main__":
         jobid = int(sys.argv[1])
     else:
         jobid = 0
-    js = JobStatus()
-    js.init(queue='batch')
+    js = JobStatus(queue='batch')
     jobs = js.get_jobs()
     for j in jobs:
         stat = j.status
