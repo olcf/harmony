@@ -1,0 +1,101 @@
+\documentclass{article}
+
+\newcommand{\example}[1]{
+\begin{tabular}{ l p{\textwidth} }
+	\textbf{Example:} & \texttt{#1}
+\end{tabular}
+}
+\newcommand{\un}[0]{\_}
+
+\title{Harmony Documentation}
+
+\begin{document}
+\maketitle
+
+\section{sample\un inputs}
+
+\subsection{\texttt{rgt.input.master}}
+
+This file contains an example input file for starting tests. Harmony parses this file to get:
+
+\begin{itemize}
+	\item \texttt{path\un to\un tests}: The path to where tests are stored.
+
+	\example{path\un to\un tests = /usr/guest/home/sample\un run}
+
+	\item \texttt{test}: A test containing the program name and the test name.
+
+	\example{test = GTC4 test\un 0001node}
+\end{itemize}
+
+\subsection{\texttt{sample\un run/GTC4/test\un 0001node/}}
+
+Directory containing example code for what a test might look like.\\ \texttt{/Run\un Archive/123456789.0123/stdout.txt} contains the output from the test while running. The numbers are unique identifiers pertaining to that specific job. \texttt{Scripts/} contains files necessary for running the test. \texttt{Status/rgt\un status.txt} contains start time, uniqueID, jobID, and the status for building, submitting, and running. Subdirectories of the \texttt{Status/} directory contain information pertaining to how the job is running. \texttt{job\un id.txt} contains the job's id on LSF and \texttt{job\un status.txt} contains the jobs current status. 
+
+\section{scripts}
+
+\subsection{\texttt{connect.py}}
+
+Contains method for connecting to lsf.
+
+\example{from connect import connect \newline
+		 connect.connect()}
+
+\subsection{\texttt{job\un status.py}}
+
+Check the status of any set of jobs.
+
+\example{from job\un status import JobStatus \newline
+		 js = JobStatus(queue='batch') \newline
+		 jobs = js.get\un jobs(user="guest", job\un status=["pending", "running"])}
+
+\subsection{\texttt{parse\un file.py}}
+
+This file parses text files. Wow. Not self explanatory at all! It can parse the \texttt{job\un id.txt} file from a test directory and can also parse an \texttt{rgt.input} file with some nice error throwing.
+
+\example{from parse\un file import ParseJobID \newline
+		 id = ParseJobID.pars\un file("/usr/guest/home/sample\un run/GTC4/\newline
+		 test\un 0001node/Status/latest/job\un id.txt") \newline
+		 \newline
+		 from parse\un file import ParseRGTInput \newline
+		 path\un to\un tests, test\un list = ParseRGTInput.parse\un file(\newline
+		 "/usr/guest/home/rgt.input.master")
+		 }
+
+\subsection{\texttt{test\un status.py}}
+
+This file checks whether each test from an \texttt{rgt.input} file is running and will return a string for notification.
+
+\example{from test\un status import check\un tests \newline
+		 error = check\un tests("/path/to/rgt.input")}
+
+\subsection{notifications}
+
+\subsubsection{\texttt{email/email\un send.py}}
+
+This method will send an email using SMTP through the localhost.
+
+\example{from email\un send import send\un message \newline
+		 send\un message(text\un doc="/path/to/email.txt", \newline
+		 subject="Notification", sender="OLCF-notice", \newline
+		 reciever="guest\makeatletter @\makeatother example.com")}
+
+\section{Slack}
+
+We can use either email or slack to notify people. When using Slack there are a couple ways to run such an application.
+
+\subsection{Flask}
+
+Flask a very simple web framework usable through python. It is a "Non Full-Stack" framework meaning that it is nice and simple to use but does not have all the capabilities that a full-stack framework like Django might have. A full-stack framework contains everything from the data storage up to the user interface. Since Slack is our interface, a nice simple library like Flask does the trick!
+
+\subsection{Running}
+
+At the moment, the server is started as a process and sits open continuously. We can offload this to a server but trying to interface with Summit from a separate server while authenticating through Slack seems like trouble indeed. An example of this might be running it on AWS. The server needs to be continuously up so that it can recieve and initiate requests whenever. I have no clue about how to secure any such beast. Currently it appears as though the server must always be up and running to use the application and unless we get a permanent host address, the app will need to be reinstalled whenever the server restarts.
+
+It can be run using the following command with the correct ids.
+
+\example{SLACK\un VERIFICATION\un TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxx SLACK\un TEAM\un ID=xxxxxxxx FLASK\un APP=path/to/flask\un app.py flask run}
+
+To watch the server and make sure it is doing ok just use \texttt{ngrok http port\un num} where \texttt{port\un num} is the what port the server is running from (default: 5000).
+
+\end{document}

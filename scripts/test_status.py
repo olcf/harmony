@@ -4,13 +4,21 @@ from scripts.notifications.slack_app import slack_send
 import os
 import sys
 
+
+# Check that each test in the rgt.input is running correctly.
 def check_tests(rgt_in_path):
+    # Create the parser for the rgt input.
     rgt_parser = parse_file.ParseRGTInput()
+    # Get the test path and the list of tests.
     path_to_tests, test_list = rgt_parser.parse_file(rgt_in_path)
+    # Get the directories for each test.
     test_directories = get_test_directories(path_to_tests, test_list)
 
+    # Create an error string for each test that is not going to be run or is running.
     error_not_queued = "Tests not currently in queue or running:\n"
+    # Create an error string for each test that does not exist.
     error_not_exist = "Tests that do not exist:\n"
+
     problems = False
     jobID_parser = parse_file.ParseJobID()
     for i in range(len(test_directories)):

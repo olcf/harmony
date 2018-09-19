@@ -6,3 +6,6 @@
 
 # pycache stuff
 *__pycache__*
+
+# slack ids
+*/ids.txt

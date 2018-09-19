@@ -1,42 +1,60 @@
 import copy
 
+
+# Parse the job_id.txt file that each test has when run.
 class ParseJobID:
     def parse_file(self, file_path):
+        # Open the file and get the text.
         with open(file_path) as file:
             file_contents = [line for line in file]
 
+        # Initially no jobID.
         jobID = None
+        # For each line in the file, test if it is an int once the spaces on both sides are removed.
         for l in file_contents:
+            # If int then found the jobID.
             try:
                 jobID = int(l.strip())
                 break
+            # Otherwise move to the next line.
             except:
                 continue
+        # If jobID exists, return it.
         if jobID is not None:
             return jobID
+        # Otherwise error.
         else:
             raise Exception("No jobid found in " + file_path)
 
 
+# Class to parse the rgt master input file.
 class ParseRGTInput:
+    # Enter the file_path and get the path to all tests and a list of dictionaries that contain the info for each test.
     def parse_file(self, file_path, verbose=False):
+        # Open the file and get the text.
         with open(file_path) as file:
             file_contents = [line for line in file]
 
+        # Copy the contents so that it is easier to debug problems in the file.
         unchanged_contents = copy.deepcopy(file_contents)
-        # This is used to raise errors and find what line is the problem.
+        # Enumerate the file_contents so that the problem lines can be referenced to when throwing an error.
         file_contents = list(enumerate(file_contents))
+
+        # Remove all lines that are comments.
         if verbose:
             print("Removing commented lines.")
         file_contents = self.remove_commented(file_contents)
 
+        # Split each line into the variable to be set and the value it is set as.
         if verbose:
             print("Splitting lines.")
         try:
             file_contents = self.split_lines(file_contents)
+        # Raise a nicer exception that highlights the problem line.
         except SyntaxError as e:
             raise Exception(e.toString(unchanged_contents))
 
+        # Get the values out of the split lines.
         if verbose:
             print("Parsing variables.")
         try:
@@ -44,90 +62,135 @@ class ParseRGTInput:
         except SyntaxError as e:
             raise Exception(e.toString(unchanged_contents))
 
+        # Return the path to the tests and the list of dictionaries that contain test info.
         return path_to_tests, test_list
 
-
+    # Remove all lines from the file that start with a '#'.
     def remove_commented(self, file_contents):
+        # Initially no lines to keep.
         contents = []
+        # For each line in file contents check if it has a '#' as it's leftmost non-space character.
         for line_tup in file_contents:
+            # Since file contents contains tuples with the line number and the actual contents we need to get the contents.
             line = line_tup[1]
+            # If the line actually has something in it then check. If it has nothing then do not add it to the contents.
             if len(line.lstrip()) > 0:
+                # Check if the first character after stripping all spaces from the left side is '#'.
                 if line.lstrip()[0] != "#":
+                    # If not then it is a useful line.
                     contents.append((line_tup[0], line.lstrip()))
+        # Return the important contents.
         return contents
 
-
+    # Split each line into the variable to be set and the values.
     def split_lines(self, file_contents):
+        # Initially no contents.
         contents = []
+        # For each (line_num, contents) in the file_contents, try to split it.
         for line_tup in file_contents:
+            # Get the actual contents.
             line = line_tup[1]
+            # Get the corresponding line number.
             line_num = line_tup[0]
+
+            # Split the line by the '=' sign. There should only be one and each line needs one.
             line = line.split('=')
             if len(line) < 2:
                 raise SyntaxError(message="Not enough '='.", line_num=line_num)
             elif len(line) > 2:
                 raise SyntaxError(message="Too many '='.", line_num=line_num)
 
+            # Now split it by the spaces.
             line = [l.split() for l in line]
+            # If there is nothing befor the '=' then there is a problem.
             if len(line[0]) == 0:
                 raise SyntaxError(message="Nothing before '='.", line_num=line_num)
+            # If there are multiple things before the '=' then we have a problem.
             elif len(line[0]) > 1:
                 raise SyntaxError(message="Too many space separated items before '='.", line_num=line_num)
 
+            # There needs to be something after the '='.
             if len(line[1]) == 0:
                 raise SyntaxError(message="Nothing after '='.", line_num=line_num)
+            # Anything more than two is too much.
             elif len(line[1]) > 2:
                 raise SyntaxError(message="Too many space separated items after '='.", line_num=line_num)
 
+            # Create a dictionary containing the string for the variable and a list containing the value(s).
             line_dic = {"var": line[0][0], "vals": line[1]}
+            # Add it to the list along with it's line number.
             contents.append((line_num, line_dic))
+        # Return the list of dictionaries.
         return contents
 
-
+    # Parse the variables from a list of {variable, values} dictionaries.
     def parse_vars(self, file_contents):
+        # Initially there are no tests.
         test_list = []
+        # Initially no path.
         path_to_tests = None
+        # For each enumerated tuple in the file contents.
         for line_tup in file_contents:
+            # Get the line number from the tuple.
             line_num = line_tup[0]
+            # Get the variable name from the dictionary in the tuple.
             var = line_tup[1]["var"]
+            # Get the values from the dictionary in the tuple.
             vals = line_tup[1]["vals"]
 
+            # If the lowercase variable is 'path_to_tests' then we have found the path.
             if var.lower() == "path_to_tests":
                 if len(vals) == 0:
                     raise SyntaxError(message="No path to tests.", line_num=line_num)
-                elif len(vals) > 1:
+                elif len(vals) > 1 or path_to_tests is not None:
                     raise SyntaxError(message="Too many paths to tests.", line_num=line_num)
                 path_to_tests = vals[0]
+            # If the lowercase variable is 'test' then we have found a test.
             elif var.lower() == "test":
                 if len(vals) < 2:
                     raise SyntaxError(message="Need both program name and test name.", line_num=line_num)
                 elif len(vals) > 2:
                     raise SyntaxError(message="Too many values after test. Only need program name and test name.", line_num=line_num)
+                # Append a dictionary to the list of tests.
                 test_list.append({"program": vals[0], "test": vals[1]})
+            # If it is neither of the above then there is a problem.
             else:
                 raise SyntaxError(message="Incorrect variable to set. Should be either 'path_to_tests' or 'test'.", line_num=line_num)
 
-        if path_to_tests == None:
+        # If we did not find a path then there is a problem.
+        if path_to_tests is None:
             raise Exception("No path to tests found.")
+
+        # Return the path and the list of tests.
         return path_to_tests, test_list
 
 
+# This class contains the required info for any syntax error in the rgt input file.
 class SyntaxError(Exception):
     def __init__(self, message, line_num=-1):
+        # Initialize this as an Exception.
         super().__init__(message)
+        # Set the message.
         self.message = message
+        # Set the line number.
         self.line_num = line_num
 
+    # Change the class into a string that also shows the problem line.
     def toString(self, unchanged_contents):
+        # Create a new message with the original string.
         new_message = self.message
+        # If there is a line number then add information about the line.
         if self.line_num != -1:
             new_message += "\nline " + str(self.line_num) + ":\t" + unchanged_contents[self.line_num]
         return new_message
 
 
 if __name__ == '__main__':
+    # Set the paths.
     rgtin_path = "/Users/cameronkuchta/Documents/GitHub/harmony/sample_inputs/rgt.input.master"
     job_id_path = "/Users/cameronkuchta/Documents/GitHub/harmony/sample_inputs/sample_run/GTC4/test_0001node/Status/123456789.0123/job_id.txt"
+    # Create the classes.
     parseID = ParseJobID()
     parsergt = ParseRGTInput()
+    # Print the parsed file.
     print(parsergt.parse_file(rgtin_path))
