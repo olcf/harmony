@@ -6,6 +6,7 @@
 
 cd /lustre/atlas/scratch/$USER/gen007/
 cp $HOME/harmony/scripts/timeout_job.sh ./timeout_job.sh
+chmod +x ./timeout_job.sh
 date
 
 jsrun -n1 -g1 -a1 -c1 timeout_job.sh

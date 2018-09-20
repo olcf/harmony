@@ -112,8 +112,6 @@ class Job:
     def __init__(self, j):
         # Record jobID.
         self.jobId = j.jobId
-        # Record the total allocated wall time for the job.
-        self.walltime = j.submit.rLimits[lsf.LSF_RLIMIT_RUN]
 
         # Get the status of the job.
         # print("jobId:", self.jobId, "RUN:", lsf.JOB_STAT_RUN, "DONE:", lsf.JOB_STAT_DONE,"EXIT:", lsf.JOB_STAT_EXIT,
@@ -137,9 +135,7 @@ class Job:
             if j.pendStateJ == 0:
                 self.status = "Eligible"
             else:
-                self.status = "Blocked_system"
-        elif j.status & lsf.JOB_STAT_PEND:
-            self.status = "Blocked_person"
+                self.status = "Blocked"
         else:
             self.status = "Unknown"
 

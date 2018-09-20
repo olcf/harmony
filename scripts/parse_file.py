@@ -19,12 +19,14 @@ class ParseJobID:
             # Otherwise move to the next line.
             except:
                 continue
-        # If jobID exists, return it.
-        if jobID is not None:
+        # If jobID exists and not negative, return it.
+        if jobID is not None and jobID >= 0:
             return jobID
         # Otherwise error.
+        elif jobID is None:
+            raise SyntaxException("No jobid found in " + file_path)
         else:
-            raise Exception("No jobid found in " + file_path)
+            raise SyntaxException("Negative jobid found in " + file_path)
 
 
 # Class to parse the rgt master input file.
@@ -51,16 +53,16 @@ class ParseRGTInput:
         try:
             file_contents = self.split_lines(file_contents)
         # Raise a nicer exception that highlights the problem line.
-        except SyntaxError as e:
-            raise Exception(e.toString(unchanged_contents))
+        except SyntaxProblem as e:
+            raise SyntaxException(e.toString(unchanged_contents))
 
         # Get the values out of the split lines.
         if verbose:
             print("Parsing variables.")
         try:
             path_to_tests, test_list = self.parse_vars(file_contents)
-        except SyntaxError as e:
-            raise Exception(e.toString(unchanged_contents))
+        except SyntaxProblem as e:
+            raise SyntaxException(e.toString(unchanged_contents))
 
         # Return the path to the tests and the list of dictionaries that contain test info.
         return path_to_tests, test_list
@@ -71,14 +73,16 @@ class ParseRGTInput:
         contents = []
         # For each line in file contents check if it has a '#' as it's leftmost non-space character.
         for line_tup in file_contents:
-            # Since file contents contains tuples with the line number and the actual contents we need to get the contents.
+            # Since file contents contains tuples with the line number
+            # and the actual contents we need to get the contents.
             line = line_tup[1]
-            # If the line actually has something in it then check. If it has nothing then do not add it to the contents.
-            if len(line.lstrip()) > 0:
-                # Check if the first character after stripping all spaces from the left side is '#'.
-                if line.lstrip()[0] != "#":
-                    # If not then it is a useful line.
-                    contents.append((line_tup[0], line.lstrip()))
+            # Remove everything after first '#'.
+            if line.find('#') != -1:
+                line = line[:line.find('#')]
+            # If the line actually has something in it then there exists important text.
+            # If it has nothing then do not add it to the contents.
+            if len(line.strip()) > 0:
+                contents.append((line_tup[0], line.strip()))
         # Return the important contents.
         return contents
 
@@ -88,40 +92,40 @@ class ParseRGTInput:
         contents = []
         # For each (line_num, contents) in the file_contents, try to split it.
         for line_tup in file_contents:
-            # Get the actual contents.
-            line = line_tup[1]
-            # Get the corresponding line number.
-            line_num = line_tup[0]
-
-            # Split the line by the '=' sign. There should only be one and each line needs one.
-            line = line.split('=')
-            if len(line) < 2:
-                raise SyntaxError(message="Not enough '='.", line_num=line_num)
-            elif len(line) > 2:
-                raise SyntaxError(message="Too many '='.", line_num=line_num)
-
-            # Now split it by the spaces.
-            line = [l.split() for l in line]
-            # If there is nothing befor the '=' then there is a problem.
-            if len(line[0]) == 0:
-                raise SyntaxError(message="Nothing before '='.", line_num=line_num)
-            # If there are multiple things before the '=' then we have a problem.
-            elif len(line[0]) > 1:
-                raise SyntaxError(message="Too many space separated items before '='.", line_num=line_num)
-
-            # There needs to be something after the '='.
-            if len(line[1]) == 0:
-                raise SyntaxError(message="Nothing after '='.", line_num=line_num)
-            # Anything more than two is too much.
-            elif len(line[1]) > 2:
-                raise SyntaxError(message="Too many space separated items after '='.", line_num=line_num)
-
-            # Create a dictionary containing the string for the variable and a list containing the value(s).
-            line_dic = {"var": line[0][0], "vals": line[1]}
+            line_num, line_dic = self.split_line(line_tup)
             # Add it to the list along with it's line number.
             contents.append((line_num, line_dic))
         # Return the list of dictionaries.
         return contents
+
+    def split_line(self, line_tup):
+        # Get the actual contents.
+        line = line_tup[1]
+        # Get the corresponding line number.
+        line_num = line_tup[0]
+        # Split the line by the '=' sign. There should only be one and each line needs one.
+        line = line.split('=')
+        if len(line) < 2:
+            raise SyntaxProblem(message="Not enough '='.", line_num=line_num)
+        elif len(line) > 2:
+            raise SyntaxProblem(message="Too many '='.", line_num=line_num)
+        # Now split it by the spaces.
+        line = [l.split() for l in line]
+        # If there is nothing befor the '=' then there is a problem.
+        if len(line[0]) == 0:
+            raise SyntaxProblem(message="Nothing before '='.", line_num=line_num)
+        # If there are multiple things before the '=' then we have a problem.
+        elif len(line[0]) > 1:
+            raise SyntaxProblem(message="Too many space separated items before '='.", line_num=line_num)
+        # There needs to be something after the '='.
+        if len(line[1]) == 0:
+            raise SyntaxProblem(message="Nothing after '='.", line_num=line_num)
+        # Anything more than two is too much.
+        elif len(line[1]) > 2:
+            raise SyntaxProblem(message="Too many space separated items after '='.", line_num=line_num)
+        # Create a dictionary containing the string for the variable and a list containing the value(s).
+        line_dic = {"var": line[0][0], "vals": line[1]}
+        return line_num, line_dic
 
     # Parse the variables from a list of {variable, values} dictionaries.
     def parse_vars(self, file_contents):
@@ -141,21 +145,21 @@ class ParseRGTInput:
             # If the lowercase variable is 'path_to_tests' then we have found the path.
             if var.lower() == "path_to_tests":
                 if len(vals) == 0:
-                    raise SyntaxError(message="No path to tests.", line_num=line_num)
+                    raise SyntaxProblem(message="No path to tests.", line_num=line_num)
                 elif len(vals) > 1 or path_to_tests is not None:
-                    raise SyntaxError(message="Too many paths to tests.", line_num=line_num)
+                    raise SyntaxProblem(message="Too many paths to tests.", line_num=line_num)
                 path_to_tests = vals[0]
             # If the lowercase variable is 'test' then we have found a test.
             elif var.lower() == "test":
                 if len(vals) < 2:
-                    raise SyntaxError(message="Need both program name and test name.", line_num=line_num)
+                    raise SyntaxProblem(message="Need both program name and test name.", line_num=line_num)
                 elif len(vals) > 2:
-                    raise SyntaxError(message="Too many values after test. Only need program name and test name.", line_num=line_num)
+                    raise SyntaxProblem(message="Too many values after test. Only need program name and test name.", line_num=line_num)
                 # Append a dictionary to the list of tests.
                 test_list.append({"program": vals[0], "test": vals[1]})
             # If it is neither of the above then there is a problem.
             else:
-                raise SyntaxError(message="Incorrect variable to set. Should be either 'path_to_tests' or 'test'.", line_num=line_num)
+                raise SyntaxProblem(message="Incorrect variable to set. Should be either 'path_to_tests' or 'test'.", line_num=line_num)
 
         # If we did not find a path then there is a problem.
         if path_to_tests is None:
@@ -166,7 +170,7 @@ class ParseRGTInput:
 
 
 # This class contains the required info for any syntax error in the rgt input file.
-class SyntaxError(Exception):
+class SyntaxProblem(Exception):
     def __init__(self, message, line_num=-1):
         # Initialize this as an Exception.
         super().__init__(message)
@@ -183,6 +187,11 @@ class SyntaxError(Exception):
         if self.line_num != -1:
             new_message += "\nline " + str(self.line_num) + ":\t" + unchanged_contents[self.line_num]
         return new_message
+
+
+# This class is used to transform a SyntaxError into a single exception.
+class SyntaxException(Exception):
+    pass
 
 
 if __name__ == '__main__':
