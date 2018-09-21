@@ -7,7 +7,11 @@ import time
 
 
 # Check that each test in the rgt.input is running correctly.
-def check_tests(rgt_in_path):
+# The optional argument is_in_queue is used for testing purposes.
+def check_tests(rgt_in_path, is_in_queue=None):
+    if is_in_queue is None:
+        is_in_queue = in_queue
+
     # Create the parser for the rgt input.
     rgt_parser = parse_file.ParseRGTInput()
     # Get the test path and the list of tests.
@@ -42,7 +46,7 @@ def check_tests(rgt_in_path):
             continue
 
         # If the job is not in the queue/running then add it to the error string.
-        if not in_queue(id):
+        if not is_in_queue(id):
             error_not_queued += "\t" + test_list[i]['program'] + "\t" + test_list[i]['test'] + "\n"
             # Another problem.
             queued_problems = True

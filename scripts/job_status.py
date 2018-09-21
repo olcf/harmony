@@ -55,7 +55,7 @@ class JobStatus:
     def get_jobs(self, jobid=0, jobName=None, user="all", queue=None, hostname=None, status='all'):
         job_status = {'all': lsf.ALL_JOB, 'done': lsf.DONE_JOB, 'pending': lsf.PEND_JOB,
                       'suspended': lsf.SUSP_JOB, 'running': lsf.RUN_JOB, 'current': lsf.CUR_JOB,
-                      'eligible': lsf.APS_JOB}
+                      'eligible': lsf.APS_JOB, 'exited': lsf.EXIT_JOB}
 
         # LSF uses numbers for each type of job so initialize the options as 0.
         options = 0
@@ -108,6 +108,23 @@ class JobStatus:
 
 # Hold the information of some job. This is useful since the job info from lsf.<job info> is only temporary.
 class Job:
+    possible_status = {'running':'Running',
+                       'complete':'Complete',
+                       'walltimed': 'Walltimed',
+                       'killed': 'Killed',
+                       'susp_person': 'Susp_person',
+                       'susp_system': 'Susp_system',
+                       'eligible': 'Eligible',
+                       'blocked': 'Blocked',
+                       'unknown': 'Unknown'}
+
+    @staticmethod
+    def get_viable_status():
+        stats = []
+        for key in Job.possible_status.keys():
+            stats.append(Job.possible_status[key])
+        return stats
+
     # Initialize the job with its id, total allowed run time., and status.
     def __init__(self, j):
         # Record jobID.
@@ -117,27 +134,27 @@ class Job:
         # print("jobId:", self.jobId, "RUN:", lsf.JOB_STAT_RUN, "DONE:", lsf.JOB_STAT_DONE,"EXIT:", lsf.JOB_STAT_EXIT,
         #       "USUSP:", lsf.JOB_STAT_USUSP, "SSUSP:", lsf.JOB_STAT_SSUSP, "PEND:", lsf.JOB_STAT_PEND)
         if j.status & lsf.JOB_STAT_RUN:
-            self.status = "Running"
+            self.status = self.possible_status["running"]
         elif j.status & lsf.JOB_STAT_DONE:
-            self.status = "Complete"
+            self.status = self.possible_status["complete"]
         elif j.status & lsf.JOB_STAT_EXIT:
             # I think that error code 140 always means runlimit exceeded and there is no other code.
             # I'm not totally sure about that though.
             if (int(j.exitStatus) % 256) == 140:
-                self.status = "Walltimed"
+                self.status = self.possible_status["walltimed"]
             else:
-                self.status = "Killed"
+                self.status = self.possible_status["killed"]
         elif j.status & lsf.JOB_STAT_USUSP:
-            self.status = "Susp_person"
+            self.status = self.possible_status["susp_person"]
         elif j.status & lsf.JOB_STAT_SSUSP:
-            self.status = "Susp_system"
+            self.status = self.possible_status["susp_system"]
         elif j.status & lsf.JOB_STAT_PEND:
             if j.pendStateJ == 0:
-                self.status = "Eligible"
+                self.status = self.possible_status["eligible"]
             else:
-                self.status = "Blocked"
+                self.status = self.possible_status["blocked"]
         else:
-            self.status = "Unknown"
+            self.status = self.possible_status["unknown"]
 
 
 if __name__ == "__main__":

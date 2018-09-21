@@ -1,6 +1,6 @@
 #!/bin/bash
 #BSUB -P GEN007
-#BSUB -W 00:01
+#BSUB -W $2
 #BSUB -nnodes 1
 #BSUB -J timeout_test
 
@@ -11,4 +11,3 @@ chmod +x ./timeout_job.sh
 date
 
 jsrun -n1 -g1 -a1 -c1 ./timeout_job.sh
-
