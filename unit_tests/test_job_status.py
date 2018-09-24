@@ -152,4 +152,4 @@ class TestJobStatus(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    parse_bjobs('a', '/Users/cameronkuchta/Documents/Github/harmony/unit_tests/test_inputs/example_bjobs.txt')
+    unittest.main()

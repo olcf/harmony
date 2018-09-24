@@ -61,3 +61,6 @@ class TestTestStatus(unittest.TestCase):
         self.assertNotIn('exist', notification)
         self.assertIn('program_name', notification)
         self.assertIn('test_name', notification)
+
+    if __name__ == '__main__':
+        unittest.main()
