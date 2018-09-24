@@ -28,13 +28,13 @@ class TestErrors(unittest.TestCase):
 
 
 def write_to_file(file_path, text):
-    with open(file_path, mode='w') as f:
+    with open(file_path, mode='w+') as f:
         f.write(text)
 
 
 class TestParseJobID(unittest.TestCase):
     def setUp(self):
-        self.path_to_job_ids = os.path.join(os.getcwd(), 'test_inputs', 'test_job_ids')
+        self.path_to_job_ids = os.path.join(os.path.dirname(__file__), 'test_inputs', 'test_job_ids')
         self.parse_job_id = parse_file.ParseJobID().parse_file
 
     def test_absent_job_id(self):
@@ -68,7 +68,7 @@ class TestParseJobID(unittest.TestCase):
 
 class TestParseRGTInput(unittest.TestCase):
     def setUp(self):
-        self.path_to_rgts = os.path.join(os.getcwd(), 'test_inputs', 'test_rgts')
+        self.path_to_rgts = os.path.join(os.path.dirname(__file__), 'test_inputs', 'test_rgts')
         self.parse_rgt_input = parse_file.ParseRGTInput().parse_file
         self.PR = parse_file.ParseRGTInput()
         self.path_to_example_tests = os.path.join(os.getcwd(), 'example_test')

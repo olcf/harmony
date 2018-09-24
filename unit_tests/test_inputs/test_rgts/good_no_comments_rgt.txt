@@ -1,2 +1,2 @@
-path_to_tests = /Users/cameronkuchta/Documents/GitHub/harmony/unit_tests/example_test
+path_to_tests = /autofs/nccs-svm1_home1/c2k/harmony/example_test
 test = program_name test_name

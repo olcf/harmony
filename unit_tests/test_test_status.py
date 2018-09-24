@@ -5,12 +5,12 @@ from scripts import test_status
 class TestTestStatus(unittest.TestCase):
     def setUp(self):
         self.notifier = lambda message: message
-        self.path_to_tests = os.path.join(__file__, 'test_inputs', 'example_test')
+        self.path_to_tests = os.path.join(os.path.dirname(__file__), 'test_inputs', 'example_test')
+        self.path_to_rgts = os.path.join(os.path.dirname(__file__), 'test_inputs', 'rgts_for_test_status')
 
     def test_get_test_directories(self):
-        tests_path = os.path.join(__file__, 'test_inputs')
         test_list = [{'program': 'program_name', 'test':'test_name'}]
-        test_path_list = test_status.get_test_directories(tests_path, test_list)
+        test_path_list = test_status.get_test_directories(self.path_to_tests, test_list)
 
         self.assertEqual(1, len(test_path_list))
         self.assertTrue(os.path.exists(test_path_list[0]))
@@ -21,7 +21,7 @@ class TestTestStatus(unittest.TestCase):
 
     def test_check_no_jobs(self):
         text = 'path_to_tests = ' + self.path_to_tests
-        file_path = os.path.join(__file__, 'test_inputs', 'rgts_for_test_status', 'no_jobs_rgt.txt')
+        file_path = os.path.join(self.path_to_rgts, 'no_jobs_rgt.txt')
         self.write_to_file(file_path, text)
 
         notification = test_status.check_tests(file_path, notifier=self.notifier)
@@ -30,7 +30,7 @@ class TestTestStatus(unittest.TestCase):
 
     def test_check_nonexistant_job(self):
         text = 'path_to_tests = ' + self.path_to_tests + "\n test = imaginary_program fantasy_test"
-        file_path = os.path.join(__file__, 'test_inputs', 'rgts_for_test_status', 'fake_job_rgt.txt')
+        file_path = os.path.join(self.path_to_rgts, 'fake_job_rgt.txt')
         self.write_to_file(file_path, text)
 
         notification = test_status.check_tests(file_path, notifier=self.notifier)
@@ -42,7 +42,7 @@ class TestTestStatus(unittest.TestCase):
     def test_check_nonexistant_jobs(self):
         text = 'path_to_tests = ' + self.path_to_tests + "\n test = imaginary_program fantasy_test" + "\n" \
                + "test = unicorn_program chimera_test"
-        file_path = os.path.join(__file__, 'test_inputs', 'rgts_for_test_status', 'fake_jobs_rgt.txt')
+        file_path = os.path.join(self.path_to_rgts, 'fake_jobs_rgt.txt')
         self.write_to_file(file_path, text)
 
         notification = test_status.check_tests(file_path, notifier=self.notifier)
@@ -53,7 +53,7 @@ class TestTestStatus(unittest.TestCase):
 
     def test_check_unqueued_job(self):
         text = 'path_to_tests = ' + self.path_to_tests + "\n test = program_name test_name"
-        file_path = os.path.join(__file__, 'test_inputs', 'rgts_for_test_status', 'unqueued_job_rgt.txt')
+        file_path = os.path.join(self.path_to_rgts, 'unqueued_job_rgt.txt')
         self.write_to_file(file_path, text)
 
         notification = test_status.check_tests(file_path, notifier=self.notifier)
@@ -62,5 +62,5 @@ class TestTestStatus(unittest.TestCase):
         self.assertIn('program_name', notification)
         self.assertIn('test_name', notification)
 
-    if __name__ == '__main__':
-        unittest.main()
+if __name__ == '__main__':
+    unittest.main()

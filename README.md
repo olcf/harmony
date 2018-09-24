@@ -54,4 +54,7 @@ to the same database and there is a conflict, does it get corrupted?
   - Schema for the database
   - Status file parsing
   - Monitor queue script
+
+## Unit Tests
+- Run unittests using 'python -m unittest discover unit_tests "test_*.py"
   

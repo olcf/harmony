@@ -15,8 +15,9 @@ class JobStatus:
 
     # Test if a certain jobID is in the queue/running.
     def in_queue(self, jobID):
-        # Get all the jobs that match that jobID and are either eligible or current.
-        jobs = self.get_jobs(jobid=jobID, status=['eligible', 'current'])
+        # Get all the jobs that match that jobID and are either eligible, current, or blocked.
+        # Not sure if blocked is ok but whatever.
+        jobs = self.get_jobs(jobid=jobID, status=['Eligible', 'Running', 'Blocked'])
         # If that job exists then all good.
         if len(jobs) != 0:
             return True
@@ -63,35 +64,46 @@ class JobStatus:
     # Enter certain parameters to reduce the search space of all jobs in LSF or that have been recently completed.
     # The default is to return all possible jobs.
     def get_jobs(self, jobid=0, jobName=None, user="all", queue=None, hostname=None, status='all'):
-        job_status = {'all': lsf.ALL_JOB, 'done': lsf.DONE_JOB, 'pending': lsf.PEND_JOB,
-                      'suspended': lsf.SUSP_JOB, 'running': lsf.RUN_JOB, 'current': lsf.CUR_JOB,
-                      'eligible': lsf.APS_JOB, 'exited': lsf.EXIT_JOB}
+        # Since attempting to choose job status based on options does not work, we instead filter the jobs after
+        # we have found all the matches.
+        search_status = lsf.ALL_JOB
+        if status == "all":
+            status = Job.get_viable_status()
+        job_status = Job.get_viable_status()
 
         # LSF uses numbers for each type of job so initialize the options as 0.
-        options = 0
+        options = []
         # Try to go through all status' set.
         try:
-            # If the user entered a list, go through each status in the list.
+            # If the user entered a list, the options are already set. Just make sure they are all in the dictionary.
             if type(status) is list:
                 # Using or, put that status into the possible job options.
                 for s in status:
-                    options |= job_status[s]
+                    if s not in job_status:
+                        raise KeyError
+                    options.append(s)
             # If it is a string then it is only one status to look for.
             elif type(status) is str:
-                options = job_status[status]
+                if status not in job_status:
+                    raise KeyError
+                options.append(status)
         # If incorrect key was entered then print out error with correct options.
         except KeyError:
             status_str = ""
-            for key in job_status.keys():
-                status_str += key + " "
-            raise KeyError("Invalid status. Options are " + status_str)
+            index = 0
+            for key in job_status:
+                status_str += key 
+                if index < len(job_status) - 1:
+                    status_str += ", "
+                index += 1
+            raise KeyError("Invalid status, " + str(status) + ". Options are: " + status_str)
 
         # Create an array for holding each job.
         jobs = []
         if self.verbose:
-            print("jobid:", jobid, "jobName:", jobName, "user:", user, "queue:", queue, "hostname:", hostname, "options:", options)
+            print("jobid:", jobid, "jobName:", jobName, "user:", user, "queue:", queue, "hostname:", hostname, "options:", search_status)
         # Get a generator that will return a job whenever querried.
-        jobinfohead = lsf.lsb_openjobinfo_a(jobid, jobName, user, queue, hostname, options)
+        jobinfohead = lsf.lsb_openjobinfo_a(jobid, jobName, user, queue, hostname, search_status)
 
         # If there are some jobs that exist under certain parameters then get the number of jobs.
         if jobinfohead is not None:
@@ -108,7 +120,9 @@ class JobStatus:
             # Append the job to the list after transforming it into a Job class.
             # Once job info is closed, lsf.lsb_readjobinfo does not work again.
             # It is also a generator and can thus only be gone through once.
-            jobs.append(Job(lsf.lsb_readjobinfo(None)))
+            j = Job(lsf.lsb_readjobinfo(None))
+            if j.status in options:
+                jobs.append(j)
         # All done with this job info.
         lsf.lsb_closejobinfo()
 
@@ -122,7 +136,8 @@ class Job:
                        'complete':'Complete',
                        'walltimed': 'Walltimed',
                        'killed': 'Killed',
-                       'susp_person': 'Susp_person',
+                       'susp_person_dispatched': 'Susp_person_dispatched',
+                       'susp_person_pend': 'Susp_person_pend',
                        'susp_system': 'Susp_system',
                        'eligible': 'Eligible',
                        'blocked': 'Blocked',
@@ -155,7 +170,9 @@ class Job:
             else:
                 self.status = self.possible_status["killed"]
         elif j.status & lsf.JOB_STAT_USUSP:
-            self.status = self.possible_status["susp_person"]
+            self.status = self.possible_status["susp_person_dispatched"]
+        elif j.status & lsf.JOB_STAT_PSUSP:
+            self.status = self.possible_status["susp_person_pend"]
         elif j.status & lsf.JOB_STAT_SSUSP:
             self.status = self.possible_status["susp_system"]
         elif j.status & lsf.JOB_STAT_PEND:
