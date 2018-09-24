@@ -56,5 +56,5 @@ to the same database and there is a conflict, does it get corrupted?
   - Monitor queue script
 
 ## Unit Tests
-- Run unittests using 'python -m unittest discover unit_tests "test_*.py"
+- Run unittests using 'python -m unittest discover unit_tests "test_*.py"' while in the harmony directory.
   
