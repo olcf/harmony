@@ -13,6 +13,16 @@ class JobStatus:
         connect.connect(queue)
         self.verbose = verbose
 
+    # Test if a certain jobID is in the queue/running.
+    def in_queue(self, jobID):
+        # Get all the jobs that match that jobID and are either eligible or current.
+        jobs = self.get_jobs(jobid=jobID, status=['eligible', 'current'])
+        # If that job exists then all good.
+        if len(jobs) != 0:
+            return True
+        else:
+            return False
+
     # Find the set of jobs in LSF by username.
     def get_jobs_by_user(self, user):
         return self.get_jobs(user=user)

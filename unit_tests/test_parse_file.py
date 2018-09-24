@@ -156,7 +156,6 @@ class TestParseRGTInput(unittest.TestCase):
                 self.assertEqual('good', first_test['program'])
                 self.assertEqual('test', first_test['test'])
 
-
     def test_bad_nothing(self):
         file_path = os.path.join(self.path_to_rgts, 'nothing_rgt.txt')
         write_to_file(file_path, "")

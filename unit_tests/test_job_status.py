@@ -55,10 +55,17 @@ class TestJobStatus(unittest.TestCase):
                                     'Susp_system': 'SSUSP',
                                     'Eligible': 'PEND', 'Blocked': 'PEND'}
 
+    def test_in_queue(self):
+        for job_dic in self.job_dics:
+            if job_dic['stat'] in ['RUN', 'PEND']:
+                self.assertTrue(self.JS.in_queue(job_dic['jobid']))
+            elif job_dic['stat'] in ['DONE', 'EXIT']:
+                self.assertFalse(self.JS.in_queue(job_dic['jobid']))
+
     def test_get_jobs(self):
         jobs = self.JS.get_jobs()
         for job in jobs:
-            job_dic = self.find_job_dic_by_id(job.jobId)
+            job_dic = self.find_job_dics_by_attr(attr_name='jobid', search_val=job.jobId)
             self.assertEqual(self.jobstat_to_bjobstat(job.status), job_dic['stat'])
 
     def test_get_jobs_by_status(self):
@@ -66,21 +73,54 @@ class TestJobStatus(unittest.TestCase):
         for stat in viable_stats:
             jobs = self.JS.get_jobs_by_status(status=stat)
             for job in jobs:
-                job_dic = self.find_job_dic_by_id(job.jobId)
+                job_dic = self.find_job_dics_by_attr(attr_name='jobid', search_val=job.jobId)
                 self.assertEqual(self.jobstat_to_bjobstat(job.status), job_dic['stat'])
                 self.assertEqual(job.status, stat)
 
-    def test_get_jobs_by_name(self, name):
+    def test_get_jobs_by_name(self):
+        names = []
+        for job_dic in self.job_dics:
+            if job_dic['jobname'] not in names:
+                names.append(job_dic['jobname'])
+                name = job_dic['jobname']
+            else:
+                continue
+
+            jobs = self.JS.get_jobs_by_name(name)
+            actual_jobs = self.find_job_dics_by_attr(attr_name='jobname', search_val=name)
+
+            actual_job_ids = [actual_job['job_id'] for actual_job in actual_jobs]
+
+            for job in jobs:
+                self.assertIn(job.jobId, actual_job_ids)
+
+    def test_get_jobs_by_user(self):
+        users = []
+        for job_dic in self.job_dics:
+            if job_dic['user'] not in users:
+                users.append(job_dic['user'])
+                user = job_dic['user']
+            else:
+                continue
+
+            jobs = self.JS.get_jobs_by_user(user)
+            actual_jobs = self.find_job_dics_by_attr(attr_name='user', search_val=user)
+
+            actual_job_ids = [actual_job['user'] for actual_job in actual_jobs]
+
+            for job in jobs:
+                self.assertIn(job.jobId, actual_job_ids)
+
+    def find_job_dics_by_attr(self, attr_name, search_val):
         jobs = []
         for job_dic in self.job_dics:
-            if name == job_dic['jobname']:
-                jobs.append(job_dic)
+            if type(search_val) is list:
+                if job_dic[attr_name] in search_val:
+                    jobs.append(job_dic)
+            else:
+                if search_val == job_dic[attr_name]:
+                    jobs.append(job_dic)
         return jobs
-
-    def find_job_dic_by_id(self, jobid):
-        for job_dic in self.job_dics:
-            if jobid == job_dic['jobid']:
-                return job_dic
 
     def bjobs_to_file(self, bjobs_path):
         bjobs_command = os.path.join(bjobs_path, 'bjobs_to_file.sh')

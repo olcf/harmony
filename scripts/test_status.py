@@ -7,10 +7,9 @@ import time
 
 
 # Check that each test in the rgt.input is running correctly.
-# The optional argument is_in_queue is used for testing purposes.
-def check_tests(rgt_in_path, is_in_queue=None):
-    if is_in_queue is None:
-        is_in_queue = in_queue
+def check_tests(rgt_in_path, notifier=None):
+    if notifier is None:
+        notifier = slack_notify
 
     # Create the parser for the rgt input.
     rgt_parser = parse_file.ParseRGTInput()
@@ -46,7 +45,8 @@ def check_tests(rgt_in_path, is_in_queue=None):
             continue
 
         # If the job is not in the queue/running then add it to the error string.
-        if not is_in_queue(id):
+        JS = JobStatus()
+        if not JS.in_queue(id):
             error_not_queued += "\t" + test_list[i]['program'] + "\t" + test_list[i]['test'] + "\n"
             # Another problem.
             queued_problems = True
@@ -60,11 +60,15 @@ def check_tests(rgt_in_path, is_in_queue=None):
     if queued_problems:
         error_str += error_not_queued
 
-    # If either problem existed then send a Slack message.
+    # If either problem existed then send a notification somewhere.
     if exist_problems or queued_problems:
-        app = slack_send.SlackApp(os.environ["SLACK_BOT_TOKEN"])
-        channel = "CCRA1Q41J"
-        app.send_message(channel=channel, message=error_str)
+        return notifier(error_str)
+
+
+def slack_notify(message):
+    app = slack_send.SlackApp(os.environ["SLACK_BOT_TOKEN"])
+    channel = "CCRA1Q41J"
+    app.send_message(channel=channel, message=message)
 
 
 # Get the directory for each test.
@@ -77,19 +81,6 @@ def get_test_directories(tests_path, test_list):
         # Add this path to the test list.
         test_path_list.append(path)
     return test_path_list
-
-
-# Test if a certain jobID is in the queue/running.
-def in_queue(jobID):
-    # Initialize the status finder.
-    JS = JobStatus()
-    # Get all the jobs that match that jobID and are either eligible or current.
-    jobs = JS.get_jobs(jobid=jobID, status=['eligible', 'current'])
-    # If that job exists then all good.
-    if len(jobs) != 0:
-        return True
-    else:
-        return False
 
 
 if __name__ == '__main__':
