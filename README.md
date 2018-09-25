@@ -14,7 +14,7 @@ to the same database and there is a conflict, does it get corrupted?
 
 ## Database Schema
 - Tables:
-  - Test instances:
+  - Events:
     - Unique ID
     - Date
     - Harness UniqueID
@@ -26,10 +26,10 @@ to the same database and there is a conflict, does it get corrupted?
     - Submit Status
     - Harness Job Status
     - LSF Job Status
-  - Events:
+  - Events Types:
     - Event ID
     - Type of Event
-  - Status:
+  - Status Types:
     - Status ID
     - Status Name
     
