@@ -5,15 +5,24 @@ from scripts import connect
 import sys
 from collections import Counter
 
-
-# Create a class for doing all connections to LSF and asking for jobs.
 class JobStatus:
-    # Initialize the connection.
+    """
+    Get the status of a set of jobs in LSF according to some property they share.
+    """
+
+    """
+    Connect to lsf and set the verbosity.
+    """
     def __init__(self, queue='batch', verbose=False):
         connect.connect(queue)
         self.verbose = verbose
 
-    # Test if a certain jobID is in the queue/running.
+    """
+    Test if a certain jobID is in the queue/running.
+    
+    :argument (int) ID of job to test status of.
+    :returns (boolean) Whether the job is in queue.
+    """
     def in_queue(self, jobID):
         # Get all the jobs that match that jobID and are either eligible, current, or blocked.
         # Not sure if blocked is ok but whatever.
@@ -24,23 +33,49 @@ class JobStatus:
         else:
             return False
 
-    # Find the set of jobs in LSF by username.
+    """
+    Find the set of jobs in LSF by username.
+    
+    :argument (str) Name of user who's jobs will be found.
+    :returns (list) List of jobs from that user.
+    """
     def get_jobs_by_user(self, user):
         return self.get_jobs(user=user)
 
-    # Get all jobs by their jobID. This should only ever return at most one job.
+    """
+    Get all jobs by their jobID. This should only ever return at most one job.
+    
+    :argument (int) jobID to get corresponding job.
+    :returns (list) List containing all jobs with that id.
+    """
     def get_jobs_by_jobid(self, jobid):
         return self.get_jobs(jobid=jobid)
 
-    # Find a job according to it's name.
+    """
+    Find a job according to it's name. There may be multiple jobs with the same name.
+    
+    :argument (str) Name of job to find.
+    :returns (list) List of jobs found with that name.
+    """
     def get_jobs_by_name(self, jobName):
         return self.get_jobs(jobName=jobName)
 
-    # Get all jobs with a certain status or list of statuses.
+    """
+    Get all jobs with a certain status or list of statuses.
+    
+    :argument (str, list) A string containing a single status to find or a list that looks for any matches of any status
+           in that string.
+    :returns (list) List of jobs that have that set of statuses.
+    """
     def get_jobs_by_status(self, status):
         return self.get_jobs(status=status)
 
-    # Input a set of jobs and count how many are of each status type.
+    """
+    Input a set of jobs and count how many are of each status type.
+    
+    :argument (list) A set of jobs.
+    :returns (Counter) Object that has occurence of each status.
+    """
     def count_type(self, jobs):
         stats = []
         for j in jobs:
@@ -48,7 +83,12 @@ class JobStatus:
         cnt = Counter(stats)
         return cnt
 
-    # Send in the id of some job and get it's corresponding status.
+    """
+    Send in the id of some job and get it's corresponding status.
+    
+    :argument (int) Id of job whose status will be found.
+    :returns (str) Status of job.
+    """
     def get_job_status(self, jobid):
         # Get the job.
         jobs = self.get_jobs(jobid=jobid)
@@ -61,8 +101,18 @@ class JobStatus:
         # Return the status of the job.
         return jobs[0].status
 
-    # Enter certain parameters to reduce the search space of all jobs in LSF or that have been recently completed.
-    # The default is to return all possible jobs.
+    """
+    Enter certain parameters to reduce the search space of all jobs in LSF or that have been recently completed.
+    The default is to return all possible jobs.
+    
+    :keyword (int) jobid: jobid to match with.
+    :keyword (str) jobName: Name of job to match.
+    :keyword (str) user: User to match.
+    :keyword (str) queue: LSF queue to search.
+    :keyword (str) hostname: Hostname to search.
+    :keyword (str, list) status: Group of status to match.
+    :returns (list) List of jobs that match above criteria.
+    """
     def get_jobs(self, jobid=0, jobName=None, user="all", queue=None, hostname=None, status='all'):
         # Since attempting to choose job status based on options does not work, we instead filter the jobs after
         # we have found all the matches.
@@ -93,9 +143,9 @@ class JobStatus:
             index = 0
             for key in job_status:
                 status_str += key 
-                if index < len(job_status) - 1:
-                    status_str += ", "
+                status_str += ", "
                 index += 1
+            status_str += "all"
             raise KeyError("Invalid status, " + str(status) + ". Options are: " + status_str)
 
         # Create an array for holding each job.
@@ -130,8 +180,12 @@ class JobStatus:
         return jobs
 
 
-# Hold the information of some job. This is useful since the job info from lsf.<job info> is only temporary.
 class Job:
+    """
+    Hold the information of some job. This is useful since the job info from lsf.<job info> is only temporary.
+    """
+
+    # Hold all possible status for any job.
     possible_status = {'running':'Running',
                        'complete':'Complete',
                        'walltimed': 'Walltimed',
@@ -143,6 +197,9 @@ class Job:
                        'blocked': 'Blocked',
                        'unknown': 'Unknown'}
 
+    """
+    Get all possible status for a job.
+    """
     @staticmethod
     def get_viable_status():
         stats = []
@@ -150,7 +207,11 @@ class Job:
             stats.append(Job.possible_status[key])
         return stats
 
-    # Initialize the job with its id, total allowed run time., and status.
+    """
+    Initialize the job with its id, total allowed run time., and status.
+    
+    :argument (lsf job) The object that comes from the pythonlsf generator.
+    """
     def __init__(self, j):
         # Record jobID.
         self.jobId = j.jobId
