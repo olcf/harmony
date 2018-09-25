@@ -24,7 +24,8 @@ to the same database and there is a conflict, does it get corrupted?
     - Test name
     - Build Status
     - Submit Status
-    - Job Status
+    - Harness Job Status
+    - LSF Job Status
   - Events:
     - Event ID
     - Type of Event
