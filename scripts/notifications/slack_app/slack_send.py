@@ -1,6 +1,5 @@
 from slackclient import SlackClient
 import os
-import flask
 
 
 class SlackApp:
@@ -38,11 +37,22 @@ class SlackApp:
         else:
             raise Exception("Connection failed. Exception traceback printed above.")
 
+    def search_message(self):
+        if self.client.rtm_connect(with_team_state=False):
+            self.client.api_call(
+                "search.messages",
+                query="export"
+            )
+            print("I did it!")
+        else:
+            raise Exception("Connection failed. Exception traceback printed above.")
+
 
 if __name__ == '__main__':
     # Pull the bot token from the os environment and create the connector.
     app = SlackApp(os.environ["SLACK_BOT_TOKEN"])
-    # This is the id of the channel.
-    channel = "CCRA1Q41J"
-    # Send the message to the channel.
-    app.send_message(channel=channel, message="Another test message. This time from summitdev!")
+    app.search_message()
+    # # This is the id of the channel.
+    # channel = "CCRA1Q41J"
+    # # Send the message to the channel.
+    # app.send_message(channel=channel, message="Another test message. This time from summitdev!")
