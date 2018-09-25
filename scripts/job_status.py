@@ -21,8 +21,8 @@ class JobStatus:
         """
         Test if a certain jobID is in the queue/running.
 
-        :argument (int) ID of job to test status of.
-        :returns (boolean) Whether the job is in queue.
+        :param jobID: (int) ID of job to test status of.
+        :return: (boolean) Whether the job is in queue.
         """
         # Get all the jobs that match that jobID and are either eligible, current, or blocked.
         # Not sure if blocked is ok but whatever.
@@ -37,8 +37,8 @@ class JobStatus:
         """
         Find the set of jobs in LSF by username.
 
-        :argument (str) Name of user who's jobs will be found.
-        :returns (list) List of jobs from that user.
+        :param user: (str) Name of user who's jobs will be found.
+        :return: (list) List of jobs from that user.
         """
         return self.get_jobs(user=user)
 
@@ -46,8 +46,8 @@ class JobStatus:
         """
         Get all jobs by their jobID. This should only ever return at most one job.
 
-        :argument (int) jobID to get corresponding job.
-        :returns (list) List containing all jobs with that id.
+        :param jobid: (int) jobID to get corresponding job.
+        :return: (list) List containing all jobs with that id.
         """
         return self.get_jobs(jobid=jobid)
 
@@ -55,8 +55,8 @@ class JobStatus:
         """
         Find a job according to it's name. There may be multiple jobs with the same name.
 
-        :argument (str) Name of job to find.
-        :returns (list) List of jobs found with that name.
+        :param jobName: (str) Name of job to find.
+        :return: (list) List of jobs found with that name.
         """
         return self.get_jobs(jobName=jobName)
 
@@ -64,9 +64,9 @@ class JobStatus:
         """
         Get all jobs with a certain status or list of statuses.
 
-        :argument (str, list) A string containing a single status to find or a list that looks for any matches of any status
+        :param status: (str, list) A string containing a single status to find or a list that looks for any matches of any status
                in that string.
-        :returns (list) List of jobs that have that set of statuses.
+        :return: (list) List of jobs that have that set of statuses.
         """
         return self.get_jobs(status=status)
 
@@ -74,8 +74,8 @@ class JobStatus:
         """
         Input a set of jobs and count how many are of each status type.
 
-        :argument (list) A set of jobs.
-        :returns (Counter) Object that has occurence of each status.
+        :param jobs: (list) A set of jobs.
+        :return: (Counter) Object that has occurence of each status.
         """
         stats = []
         for j in jobs:
@@ -87,8 +87,8 @@ class JobStatus:
         """
         Send in the id of some job and get it's corresponding status.
 
-        :argument (int) Id of job whose status will be found.
-        :returns (str) Status of job.
+        :param jobid: (int) Id of job whose status will be found.
+        :return: (str) Status of job.
         """
         # Get the job.
         jobs = self.get_jobs(jobid=jobid)
@@ -106,13 +106,13 @@ class JobStatus:
         Enter certain parameters to reduce the search space of all jobs in LSF or that have been recently completed.
         The default is to return all possible jobs.
 
-        :keyword (int) jobid: jobid to match with.
-        :keyword (str) jobName: Name of job to match.
-        :keyword (str) user: User to match.
-        :keyword (str) queue: LSF queue to search.
-        :keyword (str) hostname: Hostname to search.
-        :keyword (str, list) status: Group of status to match.
-        :returns (list) List of jobs that match above criteria.
+        :param  jobid: (int) jobid to match with.
+        :param  jobName: (str) Name of job to match.
+        :param  user: (str) User to match.
+        :param  queue: (str) LSF queue to search.
+        :param  hostname: (str) Hostname to search.
+        :param  status: (str, list) Group of status to match.
+        :return: (list) List of jobs that match above criteria.
         """
         # Since attempting to choose job status based on options does not work, we instead filter the jobs after
         # we have found all the matches.
@@ -211,7 +211,7 @@ class Job:
         """
         Initialize the job with its id, total allowed run time., and status.
 
-        :argument (lsf job) The object that comes from the pythonlsf generator.
+        :param j: (lsf job) The object that comes from the pythonlsf generator.
         """
         # Record jobID.
         self.jobId = j.jobId
@@ -246,7 +246,7 @@ class Job:
 
 
 if __name__ == "__main__":
-    # If the this was called with some argument, assume it is the jobID.
+    # If the this was called with some param, assume it is the jobID.
     if len(sys.argv) > 1:
         jobid = int(sys.argv[1])
     else:
