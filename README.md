@@ -14,23 +14,44 @@ to the same database and there is a conflict, does it get corrupted?
 
 ## Database Schema
 - Tables:
-  - Test instances:
-    - Unique ID
-    - Date
-    - Harness UniqueID
+  - RGTstatus: 
+    - key: Harness UniqueID: we could change in future.
+    - Test ID
+    - Datetime
+    - Harness start time
     - JobID
-    - Event ID
     - App name
     - Test name
     - Build Status
     - Submit Status
-    - Job Status
-  - Events:
-    - Event ID
+    - Harness Job Status
+    - LSF Job Status
+    - Flag for record completed
+    
+  - Events: key is a combination of Event ID and Harness ID.
+    - Event Unique ID
+    - Event Type ID
+    - Datetime
+    - Event time
+    - Harness UniqueID   
+
+  - Events Types:
+    - key: Event ID
     - Type of Event
-  - Status:
-    - Status ID
+
+  - Status Types:
+    - key: Status ID
     - Status Name
+    - Status Value
+    
+  - Application:
+    - Unique ID
+    - App Name
+    
+  - Tests:
+    - Unique ID
+    - App ID
+    - Test Name
     
 ## Action Items
 - Status directory:
