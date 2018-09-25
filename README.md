@@ -26,6 +26,7 @@ to the same database and there is a conflict, does it get corrupted?
     - Submit Status
     - Harness Job Status
     - LSF Job Status
+    - Flag for record completed
     
   - Events: key is a combination of Event ID and Harness ID.
     - Event Unique ID
