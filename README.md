@@ -14,8 +14,9 @@ to the same database and there is a conflict, does it get corrupted?
 
 ## Database Schema
 - Tables:
-  - RGTstatus:
-    - key: Harness UniqueID
+  - RGTstatus: 
+    - key: Harness UniqueID: we could change in future.
+    - Test ID
     - Datetime
     - Harness start time
     - JobID
@@ -27,19 +28,29 @@ to the same database and there is a conflict, does it get corrupted?
     - LSF Job Status
     
   - Events: key is a combination of Event ID and Harness ID.
-    - Event ID
-    - Unique ID
+    - Event Unique ID
+    - Event Type ID
     - Datetime
     - Event time
     - Harness UniqueID   
 
-    
   - Events Types:
     - key: Event ID
     - Type of Event
+
   - Status Types:
     - key: Status ID
     - Status Name
+    - Status Value
+    
+  - Application:
+    - Unique ID
+    - App Name
+    
+  - Tests:
+    - Unique ID
+    - App ID
+    - Test Name
     
 ## Action Items
 - Status directory:
