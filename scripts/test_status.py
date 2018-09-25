@@ -6,8 +6,14 @@ import sys
 import time
 
 
-# Check that each test in the rgt.input is running correctly.
 def check_tests(rgt_in_path, notifier=None):
+    """
+    Check that each test in the rgt.input is running correctly.
+
+    :param rgt_in_path: (str) Path to rgt input.
+    :param notifier: (function) Function to notify if there was a problem.
+    :return: notification: Whatever is returned from the notifier.
+    """
     if notifier is None:
         notifier = slack_notify
 
@@ -66,13 +72,25 @@ def check_tests(rgt_in_path, notifier=None):
 
 
 def slack_notify(message):
+    """
+    Notify the harmony team using slack.
+
+    :param message: (str) Message to send.
+    :return:
+    """
     app = slack_send.SlackApp(os.environ["SLACK_BOT_TOKEN"])
     channel = "CCRA1Q41J"
     app.send_message(channel=channel, message=message)
 
 
-# Get the directory for each test.
 def get_test_directories(tests_path, test_list):
+    """
+    Get the path to the 'job_id.txt' files for each test.
+
+    :param tests_path: (str) Path to tests.
+    :param test_list: (list) List of tests.
+    :return: test_path_list: (list) List of paths.
+    """
     # Initially no paths.
     test_path_list = []
     for dic in test_list:

@@ -3,16 +3,24 @@ import os
 from scripts import test_status
 
 class TestTestStatus(unittest.TestCase):
-    # Setup a variables for use later on.
+    """
+    Test the test_status.py file.
+    """
+
     def setUp(self):
+        """
+        Setup variables for use later on.
+        """
         # Notifier so it does not try to send to slack and instead just returns the message.
         self.notifier = lambda message: message
         # Set paths.
         self.path_to_tests = os.path.join(os.path.dirname(__file__), 'test_inputs', 'example_test')
         self.path_to_rgts = os.path.join(os.path.dirname(__file__), 'test_inputs', 'rgts_for_test_status')
 
-    # Test is the path to a test can be found.
     def test_get_test_directories(self):
+        """
+        Test if the path to a test can be found.
+        """
         # List of tests.
         test_list = [{'program': 'program_name', 'test':'test_name'}]
         # Get list of paths.
@@ -23,13 +31,20 @@ class TestTestStatus(unittest.TestCase):
         # Assert that the path exists.
         self.assertTrue(os.path.exists(test_path_list[0]))
 
-    # Function to write to a file.
     def write_to_file(self, file_path, text):
+        """
+        Write some text to some file.
+
+        :param file_path: (str) Path to file to write.
+        :param text: (str) Text to write to file.
+        """
         with open(file_path, mode='w+') as f:
             f.write(text)
 
-    # Test is a file with no tests but with path has no problem.
     def test_check_no_jobs(self):
+        """
+        Test is a file with no tests but with path has no problem.
+        """
         # Set path to tests.
         text = 'path_to_tests = ' + self.path_to_tests
         # Set the path to where the rgt file will be written.
@@ -42,8 +57,10 @@ class TestTestStatus(unittest.TestCase):
         # The notification is nothing if there are no missing tests.
         self.assertIsNone(notification)
 
-    # Test that an error occurs if the specified test does not exist.
     def test_check_nonexistant_job(self):
+        """
+        Test that an error occurs if the specified test does not exist.
+        """
         # Create the file text.
         text = 'path_to_tests = ' + self.path_to_tests + "\n test = imaginary_program fantasy_test"
         # Set the file path.
@@ -59,8 +76,10 @@ class TestTestStatus(unittest.TestCase):
         self.assertIn('imaginary_program', notification)
         self.assertIn('fantasy_test', notification)
 
-    # Test that if there are multiple fake jobs, neither exist.
     def test_check_nonexistant_jobs(self):
+        """
+        Test that if there are multiple fake jobs, neither exist.
+        """
         # Create file text with multiple fake jobs.
         text = 'path_to_tests = ' + self.path_to_tests + "\n test = imaginary_program fantasy_test" + "\n" \
                + "test = unicorn_program chimera_test"
@@ -78,8 +97,10 @@ class TestTestStatus(unittest.TestCase):
         self.assertIn('unicorn_program', notification)
         self.assertIn('chimera_test', notification)
 
-    # Test that a test that exists but is unqueued raises an error.
     def test_check_unqueued_job(self):
+        """
+        Test that a test that exists but is unqueued raises an error.
+        """
         # Set the file text.
         text = 'path_to_tests = ' + self.path_to_tests + "\n test = program_name test_name"
         # Set the file path.
@@ -95,8 +116,10 @@ class TestTestStatus(unittest.TestCase):
         self.assertIn('program_name', notification)
         self.assertIn('test_name', notification)
 
-    # Test that a test that exists but is unqueued raises an error.
     def test_check_unqueued_and_nonexistant_job(self):
+        """
+        Test that a test that exists but is unqueued raises an error.
+        """
         # Set the file text.
         text = 'path_to_tests = ' + self.path_to_tests + "\n" +\
                " test = program_name test_name" + "\n" +\

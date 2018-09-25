@@ -3,8 +3,14 @@ import unittest
 import os
 
 class TestErrors(unittest.TestCase):
-    # Test the SyntaxException class.
+    """
+    Class to test error throwing.
+    """
+
     def test_syntax_exception(self):
+        """
+        Test the SyntaxException class.
+        """
         # Test that if the exception is raised, it is the correct exception.
         # This lambda function raises the exception.
         ex = lambda: (_ for _ in ()).throw(parse_file.SyntaxException)\
@@ -12,8 +18,10 @@ class TestErrors(unittest.TestCase):
         with self.assertRaises(parse_file.SyntaxException):
             ex()
 
-    # Test the SyntaxProblem class.
     def test_syntax_problem(self):
+        """
+        Test the SyntaxProblem class.
+        """
         # Create a message.
         message = "Problem"
         # Create a fake file to show that correct line is shown.
@@ -40,20 +48,33 @@ class TestErrors(unittest.TestCase):
                     self.assertIn(str(line_num), ex.toString(text))
 
 
-# Function to write some text to some file.
 def write_to_file(file_path, text):
+    """
+    Function to write some text to some file.
+
+    :param file_path: (str) Path to file to write in.
+    :param text: (str) Text to write to file.
+    """
     with open(file_path, mode='w+') as f:
         f.write(text)
 
 
 class TestParseJobID(unittest.TestCase):
-    # Setup a path to job ids and a parse jod id variable for easier writing/parsing.
+    """
+    Class to test whether the job_id.txt file can be parsed correctly.
+    """
+
     def setUp(self):
+        """
+        Setup a path to job ids and a parse jod id variable for easier writing/parsing.
+        """
         self.path_to_job_ids = os.path.join(os.path.dirname(__file__), 'test_inputs', 'test_job_ids')
         self.parse_job_id = parse_file.ParseJobID().parse_file
 
-    # Test that trying to read a file without anything errors.
     def test_absent_job_id(self):
+        """
+        Test that trying to read a file without anything errors.
+        """
         # Create the path to the file.
         file_path = os.path.join(self.path_to_job_ids, 'absent_job_id.txt')
         # Empty text to write to file.
@@ -63,8 +84,10 @@ class TestParseJobID(unittest.TestCase):
         with self.assertRaises(parse_file.SyntaxException):
             self.parse_job_id(file_path)
 
-    # Test that a job_id.txt with a string and not an integer errors.
     def test_str_job_id(self):
+        """
+        Test that a job_id.txt with a string and not an integer errors.
+        """
         # Create path.
         file_path = os.path.join(self.path_to_job_ids, 'string_job_id.txt')
         # Write string and some empty lines to file.
@@ -74,8 +97,10 @@ class TestParseJobID(unittest.TestCase):
         with self.assertRaises(parse_file.SyntaxException):
             self.parse_job_id(file_path)
 
-    # If the file contains a negative integer, that is an invalid id.
     def test_negative_job_id(self):
+        """
+        If the file contains a negative integer, that is an invalid id.
+        """
         # Create path.
         file_path = os.path.join(self.path_to_job_ids, 'negative_job_id.txt')
         # Write '-1' to file.
@@ -85,8 +110,10 @@ class TestParseJobID(unittest.TestCase):
         with self.assertRaises(parse_file.SyntaxException):
             self.parse_job_id(file_path)
 
-    # Test that if a good job_id.txt was entered, the correct id was returned.
     def test_good_job_id(self):
+        """
+        Test that if a good job_id.txt was entered, the correct id was returned.
+        """
         # Create path.
         file_path = os.path.join(self.path_to_job_ids, 'good_job_id.txt')
         # Set job id.
@@ -99,15 +126,23 @@ class TestParseJobID(unittest.TestCase):
 
 
 class TestParseRGTInput(unittest.TestCase):
-    # Setup paths to files and variables for common calls.
+    """
+    Class to test whether the rgt input can be parsed correctly.
+    """
+
     def setUp(self):
+        """
+        Setup paths to files and variables for common calls.
+        """
         self.path_to_rgts = os.path.join(os.path.dirname(__file__), 'test_inputs', 'test_rgts')
         self.parse_rgt_input = parse_file.ParseRGTInput().parse_file
         self.PR = parse_file.ParseRGTInput()
         self.path_to_example_tests = os.path.join(os.getcwd(), 'example_test')
 
-    # Test if all commented/empty lines and line parts are removed.
     def test_remove_commented(self):
+        """
+        Test if all commented/empty lines and line parts are removed.
+        """
         # Create the file.
         contents = ['       ',
                     '# Example text',
@@ -128,8 +163,10 @@ class TestParseRGTInput(unittest.TestCase):
         self.assertEqual(contents[3], new_contents[0])
         self.assertEqual('useful', new_contents[1][1])
 
-    # Test that lines are split correctly and error correctly.
     def test_split_line(self):
+        """
+        Test that lines are split correctly and error correctly.
+        """
         # Create example bad lines.
         bad_lines = ['test no equals',
                      'test = too = many equals',
@@ -163,8 +200,10 @@ class TestParseRGTInput(unittest.TestCase):
         self.assertEqual('test', line_dic['var'])
         self.assertEqual(['fantastic', 'thing'], line_dic['vals'])
 
-    # Test that variables can be parsed from a file.
     def test_parse_vars(self):
+        """
+        Test that variables can be parsed from a file.
+        """
         # Assert that an empty file is a problem.
         with self.assertRaises(Exception):
             self.PR.parse_vars([])
@@ -217,24 +256,30 @@ class TestParseRGTInput(unittest.TestCase):
                 self.assertEqual('good', first_test['program'])
                 self.assertEqual('test', first_test['test'])
 
-    # Test that an error occurs if the file is empty.
     def test_bad_nothing(self):
+        """
+        Test that an error occurs if the file is empty.
+        """
         file_path = os.path.join(self.path_to_rgts, 'nothing_rgt.txt')
         write_to_file(file_path, "")
 
         with self.assertRaises(Exception):
             self.parse_rgt_input(file_path)
 
-    # Test that an error occurs if the path is bad.
     def test_bad_no_path(self):
+        """
+        Test that an error occurs if the path is bad.
+        """
         file_path = os.path.join(self.path_to_rgts, 'bad_no_path_rgt.txt')
         write_to_file(file_path, "test = one two")
 
         with self.assertRaises(Exception):
             self.parse_rgt_input(file_path)
 
-    # Test that a file is good as long as the path exists.
     def test_good_no_comments_only_path(self):
+        """
+        Test that a file is good as long as the path exists.
+        """
         file_path = os.path.join(self.path_to_rgts, 'good_no_comments_only_path_rgt.txt')
         write_to_file(file_path, "path_to_tests = " + self.path_to_example_tests)
 
@@ -245,8 +290,10 @@ class TestParseRGTInput(unittest.TestCase):
         # Make sure that there are no tests found.
         self.assertEqual(0, len(test_list), msg="Since no tests were written, none should exist.")
 
-    # Test that a file that contains tests is correct.
     def test_good_no_comments(self):
+        """
+        Test that a file that contains tests is correct.
+        """
         # Create the file.
         file_path = os.path.join(self.path_to_rgts, 'good_no_comments_rgt.txt')
         program_name = 'program_name'
@@ -268,8 +315,10 @@ class TestParseRGTInput(unittest.TestCase):
         self.assertEqual(program_name, test['program'])
         self.assertEqual(test_name, test['test'])
 
-    # Test that a file that contains tests is correct.
     def test_good_comments(self):
+        """
+        Test that a file that contains tests is correct.
+        """
         # Create the file.
         file_path = os.path.join(self.path_to_rgts, 'good_comments_rgt.txt')
         program_name = 'program_name'

@@ -3,17 +3,30 @@ import os
 import flask
 
 
-# Class for sending a message whenever called.
 class SlackApp:
+    """
+    Class for sending a message via slack.
+    """
     def __init__(self, bot_token):
+        """
+        Initialize the slack client and set the bot token.
+
+        :param bot_token: (str) The ID for the bot.
+        """
         # Set the token for the bot being used.
         # This slack bot token is hidden in the environment so it can not be stolen.
         self.bot_token = bot_token
         # Create a slack connector from the bot token
         self.client = SlackClient(self.bot_token)
 
-    # Send a message to a specific channel.
     def send_message(self, channel, message):
+        """
+        Send a message to a slack channel.
+
+        :param channel: (str) ID for the channel.
+        :param message: (str) Message to send to the channel.
+        :return:
+        """
         # Attempt connection with Slack.
         if self.client.rtm_connect(with_team_state=False):
             # Call the slack api to post a message to a specific channel.

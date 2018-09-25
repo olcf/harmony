@@ -5,10 +5,15 @@ from random import randint
 import os
 
 
-# This class tests whether the Job class in job_status works correctly.
 class TestJobClass(unittest.TestCase):
-    # Test whether one can create a Job and it has the correct properties.
+    """
+    Class to test the Job class in job_status.
+    """
+
     def test_job_class(self):
+        """
+        Test whether one can create a Job and it has the correct properties.
+        """
         # Open all possible stats that a job might have. The zero as the final stat acts as an unknown status.
         stats = [lsf.JOB_STAT_RUN, lsf.JOB_STAT_DONE, lsf.JOB_STAT_EXIT,
                  lsf.JOB_STAT_USUSP, lsf.JOB_STAT_SSUSP, lsf.JOB_STAT_PEND, 0]
@@ -52,20 +57,34 @@ class TestJobClass(unittest.TestCase):
                     # Move to the next expected status.
                     index += 1
 
-    # Class for creating fake lsf jobs.
     class example_job:
-        # Initialize the class with all the stats that we look for.
+        """
+        Class to create a fake lsf job for testing.
+        """
         def __init__(self, jobID, status, exit_status, pend_state_j):
+            """
+            Initialize the fake job.
+
+            :param jobID: (int) The jobs id.
+            :param status: (int) The lsf code status for the job.
+            :param exit_status: (int) The lsf code status for exiting.
+            :param pend_state_j: (int) The code for if it is pending.
+            """
             self.jobId = jobID
             self.status = status
             self.exitStatus = exit_status
             self.pendStateJ = pend_state_j
 
 
-# Test that the job status finding aspect of job_status works correctly.
 class TestJobStatus(unittest.TestCase):
-    # Before each test, run this.
+    """
+    Test that the job status finding aspect of job_status works correctly.
+    """
+
     def setUp(self):
+        """
+        Set up variables for use later on in the code.
+        """
         # Set the path where to get the currently running lsf jobs.
         bjobs_path = os.path.join(os.path.dirname(__file__), 'test_inputs')
         # Get the current lsf jobs into a file.
@@ -85,8 +104,10 @@ class TestJobStatus(unittest.TestCase):
                                     'Susp_system': 'SSUSP',
                                     'Eligible': 'PEND', 'Blocked': 'PEND'}
 
-    # Test the in_queue method.
     def test_in_queue(self):
+        """
+        Test the in_queue method.
+        """
         # Iterate over all jobs currently in lsf.
         for job_dic in self.job_dics:
             # If it is either running or pending then it should count as in queue.
@@ -96,8 +117,10 @@ class TestJobStatus(unittest.TestCase):
             elif job_dic['stat'] in ['DONE', 'EXIT']:
                 self.assertFalse(self.JS.in_queue(job_dic['jobid']))
 
-    # Test the get_jobs method.
     def test_get_jobs(self):
+        """
+        Test the get_jobs method.
+        """
         # Get all jobs in lsf using our code.
         jobs = self.JS.get_jobs()
         # Iterate over all jobs found.
@@ -109,8 +132,10 @@ class TestJobStatus(unittest.TestCase):
                 self.assertEqual(job.jobId, job_dic['jobid'])
                 self.assertEqual(self.jobstat_to_bjobstat[job.status], job_dic['stat'])
 
-    # Test the get_jobs_by_status method.
     def test_get_jobs_by_status(self):
+        """
+        Test the get_jobs_by_status method.
+        """
         # Get all possible viable job states.
         viable_stats = job_status.Job.get_viable_status()
         # Iterate over these states.
@@ -126,8 +151,10 @@ class TestJobStatus(unittest.TestCase):
                     self.assertEqual(self.jobstat_to_bjobstat[job.status], job_dic['stat'])
                     self.assertEqual(job.status, stat)
 
-    # Test the get_jobs_by_name method.
     def test_get_jobs_by_name(self):
+        """
+        Test the get_jobs_by_name method.
+        """
         # Create a list of job names.
         names = []
         # Iterate over each job in bjobs.
@@ -157,8 +184,10 @@ class TestJobStatus(unittest.TestCase):
                 for actual_job_id in actual_job_ids:
                     self.assertIn(actual_job_id, job_ids)
 
-    # Test the get_jobs_by_user method.
     def test_get_jobs_by_user(self):
+        """
+        Test the get_jobs_by_user method.
+        """
         # Create a list of users.
         users = []
         # Iterate over each job in bjobs.
@@ -188,8 +217,14 @@ class TestJobStatus(unittest.TestCase):
                 for actual_job_id in actual_job_ids:
                     self.assertIn(actual_job_id, job_ids)
 
-    # Get all jobs in bjobs according to a certain attribute.
     def find_job_dics_by_attr(self, attr_name, search_val):
+        """
+        Get all jobs in bjobs according to a certain attribute.
+
+        :param attr_name: (str) Name of attribute to search by.
+        :param search_val: Values to test if the job shares them.
+        :return: jobs: (list) Jobs that satisfied the requirements.
+        """
         # Initially no jobs found.
         jobs = []
         # For each job in bjobs . . .
@@ -205,8 +240,12 @@ class TestJobStatus(unittest.TestCase):
         # Return the final list of matching jobs.
         return jobs
 
-    # Get the output of 'bjobs -u all -a' into a file.
     def bjobs_to_file(self, bjobs_path):
+        """
+        Get the output of 'bjobs -u all -a' into a file.
+
+        :param bjobs_path: (str) Path to location of bjobs command.
+        """
         # Path to the command.
         bjobs_command = os.path.join(bjobs_path, 'bjobs_to_file.sh')
         # Path to the output file.
@@ -216,8 +255,13 @@ class TestJobStatus(unittest.TestCase):
         # Run the command.
         subprocess.check_call(["bash", bjobs_command, bjobs_file])
 
-    # Parse the output of 'bjobs -u all -a' that is in a file.
     def parse_bjobs(self, file_path):
+        """
+        Parse the output of 'bjobs -u all -a' that is in a file.
+
+        :param file_path: (str) Path to output of bjobs.
+        :return: job_dics: (list) List of dictionaries containing necessary information of each job.
+        """
         file_contents = []
         # Get file into list.
         with open(file_path) as f:

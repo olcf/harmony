@@ -1,9 +1,19 @@
 import copy
 
 
-# Parse the job_id.txt file that each test has when run.
+
 class ParseJobID:
+    """
+    Parse the job_id.txt file that each test has when run.
+    """
+
     def parse_file(self, file_path):
+        """
+        Parse the input file and get the id for the job.
+
+        :param file_path: (str) Path to 'job_id.txt'
+        :return: (int) Id of the job.
+        """
         # Open the file and get the text.
         with open(file_path) as file:
             file_contents = [line for line in file]
@@ -31,8 +41,18 @@ class ParseJobID:
 
 # Class to parse the rgt master input file.
 class ParseRGTInput:
-    # Enter the file_path and get the path to all tests and a list of dictionaries that contain the info for each test.
+    """
+    Parse the master rgt input file and get necessary information.
+    """
     def parse_file(self, file_path, verbose=False):
+        """
+        Get the path to tests and the tests from an rgt file.
+
+        :param file_path: (str) Path to rgt.input.master.
+        :param verbose: (boolean) Whether to show status.
+        :returns: path_to_tests: (str) Path to location of tests in rgt,
+                  test_list: (list) List of dictionaries containing test information.
+        """
         # Open the file and get the text.
         with open(file_path) as file:
             file_contents = [line for line in file]
@@ -69,6 +89,12 @@ class ParseRGTInput:
 
     # Remove all lines from the file that start with a '#'.
     def remove_commented(self, file_contents):
+        """
+        Remove all useless lines from an enumerated file.
+
+        :param file_contents: (list) Enumerated file.
+        :return: (list) Enumerated file with useless lines and comments removed.
+        """
         # Initially no lines to keep.
         contents = []
         # For each line in file contents check if it has a '#' as it's leftmost non-space character.
@@ -86,8 +112,13 @@ class ParseRGTInput:
         # Return the important contents.
         return contents
 
-    # Split each line into the variable to be set and the values.
     def split_lines(self, file_contents):
+        """
+        Split lines in a file into the variable to be set and the contents to set it as.
+
+        :param file_contents: (list) Enumerated file without comments.
+        :return: (list) Enumerated list of dictionaries containing variable and values.
+        """
         # Initially no contents.
         contents = []
         # For each (line_num, contents) in the file_contents, try to split it.
@@ -99,6 +130,13 @@ class ParseRGTInput:
         return contents
 
     def split_line(self, line_tup):
+        """
+        Split a single line into it's variable and values.
+
+        :param line_tup: (tuple) Tuple containing line number and contents.
+        :returns: line_num: (int) Line that was edited.
+                  line_dic: (dic) Dictionary containing 'var' (variable) and 'vals' (values).
+        """
         # Get the actual contents.
         line = line_tup[1]
         # Get the corresponding line number.
@@ -127,8 +165,14 @@ class ParseRGTInput:
         line_dic = {"var": line[0][0], "vals": line[1]}
         return line_num, line_dic
 
-    # Parse the variables from a list of {variable, values} dictionaries.
     def parse_vars(self, file_contents):
+        """
+        Parse a list of dictionaries containing variables and values.
+
+        :param file_contents: File with lines split into dictionaries.
+        :returns: path_to_tests: (str) Path to where tests are stored.
+                  test_list: (list) List of dictionaries containing the program and test name.
+        """
         # Initially there are no tests.
         test_list = []
         # Initially no path.
@@ -169,9 +213,17 @@ class ParseRGTInput:
         return path_to_tests, test_list
 
 
-# This class contains the required info for any syntax error in the rgt input file.
 class SyntaxProblem(Exception):
+    """
+    This class contains the required info for any syntax error in the rgt input file.
+    """
     def __init__(self, message, line_num=-1):
+        """
+        Initialize the error.
+
+        :param message: (str) Message of what was the problem with the line.
+        :param line_num: (int) Line number that was the problem.
+        """
         # Initialize this as an Exception.
         super().__init__(message)
         # Set the message.
@@ -179,8 +231,13 @@ class SyntaxProblem(Exception):
         # Set the line number.
         self.line_num = line_num
 
-    # Change the class into a string that also shows the problem line.
     def toString(self, unchanged_contents):
+        """
+        Change the class into a string that also shows the problem line.
+
+        :param unchanged_contents: (list) Contents of initial file.
+        :return: new_message: Correct error message.
+        """
         # Create a new message with the original string.
         new_message = self.message
         # If there is a line number then add information about the line.
