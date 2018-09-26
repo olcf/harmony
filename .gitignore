@@ -9,3 +9,9 @@
 
 # slack ids
 */ids.txt
+
+# pyc files
+*.pyc
+
+# nfs file
+*nfs*
