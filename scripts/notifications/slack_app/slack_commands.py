@@ -41,7 +41,7 @@ def make_columns(tuple_list, col_sizes=[8, 15, 15]):
 class MessageParser():
     bot_name = 'Botty McBotterson'
 
-    def __init__(self, watch_time):
+    def __init__(self, watch_time=600):
         parser_functions = get_functions(MessageParser)
 
         try:
@@ -114,7 +114,7 @@ class MessageParser():
         if len(jobs) == 1:
             response = "I found 1 job by " + username + ".\n"
         else:
-            response = "I found " + len(jobs) + " jobs by " + username + ".\n"
+            response = "I found " + str(len(jobs)) + " jobs by " + username + ".\n"
 
         tuple_list = [(job.jobId, job.jobName, job.status) for job in jobs]
         response += make_columns(tuple_list)
