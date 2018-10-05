@@ -94,10 +94,10 @@ class JobStatus:
         jobs = self.get_jobs(jobid=jobid)
         # If no job with this id exists then error.
         if len(jobs) == 0:
-            raise Exception("There is no job with ID", jobid)
+            raise KeyError("There is no job with ID", jobid)
         # If multiple jobs with this id exist then error.
         elif len(jobs) > 1:
-            raise Exception("Too many jobs with ID", jobid)
+            raise KeyError("Too many jobs with ID", jobid)
         # Return the status of the job.
         return jobs[0].status
 

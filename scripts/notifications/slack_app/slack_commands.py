@@ -2,11 +2,18 @@
 #   help
 #   my jobs
 #   check tests
+from scripts import job_monitor
 
 
 def docstring_parameter(*args, **kwargs):
     def dec(obj):
         obj.__doc__ = obj.__doc__.format(*args, **kwargs)
+        return obj
+    return dec
+
+def is_command(slack_command=True):
+    def dec(obj):
+        obj.is_command = slack_command
         return obj
     return dec
 
@@ -18,6 +25,7 @@ def get_functions(cls):
 
     return functions
 
+
 def make_columns(tuple_list, col_sizes=[8, 15, 15]):
     string = ""
     if len(tuple_list) == 0:
@@ -26,15 +34,19 @@ def make_columns(tuple_list, col_sizes=[8, 15, 15]):
         raise ValueError("Invalid column sizes. Cannot understand " + len(col_sizes) +
                          " defining " + len(tuple_list[0]) + " columns.")
 
-    for tuple in tuple_list:
-        unformatted = ""
-        for i in range(len(tuple)):
-            if i == 0:
-                unformatted += "{" + i + ":<" + col_sizes[i] + "} "
-            else:
-                unformatted += "{" + i + ":>" + col_sizes[i] + "} "
+    for i in range(len(tuple_list)):
+        tuple = tuple_list[i]
 
-        string += unformatted.format(tuple) + "\n"
+        unformatted = ""
+        for j in range(len(tuple)):
+            if j == 0:
+                unformatted += "{" + j + ":<" + col_sizes[j] + "} "
+            else:
+                unformatted += "{" + j + ":>" + col_sizes[j] + "} "
+
+        string += unformatted.format(tuple)
+        if i < len(tuple_list) - 1:
+            string += "\n"
 
     return string
 
@@ -55,11 +67,19 @@ class MessageParser():
         self.command_descriptions = ""
         for key in sorted(parser_functions):
             if hasattr(parser_functions[key], 'is_command'):
-                self.command_descriptions += key + ":\t" + parser_functions[key].__doc__ + "\n\n"
+                if parser_functions[key].is_command:
+                    self.command_descriptions += key + ":\t" + parser_functions[key].__doc__ + "\n\n"
 
         self.watch_time = watch_time
 
-    def parse_message(self, message):
+        self.JM = job_monitor.JobMonitor()
+
+        self.path_to_previous_rgt = None
+
+    def parse_message(self, entire_message, slack_sender, channel):
+        message = entire_message['text']
+        slack_user = entire_message['user']
+
         if 'help' in message:
             return self.slack_help()
 
@@ -68,7 +88,10 @@ class MessageParser():
                 return "I can't seem to find LSF so '" + message + "' won't work."
             message = message.split()
             index = message.index('my_jobs')
-            username = message[index + 1]
+            try:
+                username = message[index + 1]
+            except IndexError:
+                return "I can't find your username."
             return self.my_jobs(username)
 
         elif 'all_jobs' in message:
@@ -79,15 +102,39 @@ class MessageParser():
         elif 'check_tests' in message:
             if not self.on_summit:
                 return "I can't seem to find LSF so '" + message + "' won't work."
+            message = message.split()
+            index = message.index('check_tests')
+            try:
+                path = message[index + 1]
+            except IndexError:
+                path = None
+
+            return self.check_tests(path_to_rgt=path)
 
         elif 'monitor_job' in message:
             if not self.on_summit:
                 return "I can't seem to find LSF so '" + message + "' won't work."
+            message = message.split()
+            index = message.index('monitor_job')
+            str_ids = message[(index + 1):]
+
+            job_ids = []
+            for str_id in str_ids:
+                try:
+                    job_ids.append(int(str_id))
+                except ValueError:
+                    return "I don't understand the a job id that looks like '" + str_id + "'."
+
+            if len(job_ids) == 0:
+                return "I can't find the job id that you wanted to monitor in the message you sent me. \n" + \
+                       "The job may exist, I just can't get the id out of your message."
+            return self.monitor_job(job_ids, slack_sender, channel, slack_user)
 
         else:
             return "I don't understand what exactly you wanted me to do with '" + message + "'. " + self.slack_help()
 
     @docstring_parameter(bot=bot_name)
+    @is_command
     def slack_help(self):
         """
         Show all commands that I can run.
@@ -97,9 +144,9 @@ class MessageParser():
         """
         response = "Here is what I can do! \n\n" + self.command_descriptions
         return response
-    slack_help.is_command = True
 
     @docstring_parameter(bot=bot_name)
+    @is_command
     def my_jobs(self, username):
         """
         Show all jobs currently running by some user.
@@ -120,9 +167,9 @@ class MessageParser():
         response += make_columns(tuple_list)
 
         return response
-    my_jobs.is_command = True
 
     @docstring_parameter(bot=bot_name)
+    @is_command
     def check_tests(self, path_to_rgt=None):
         """
         Check all harmony tests.
@@ -133,12 +180,21 @@ class MessageParser():
         """
         returner = lambda x: x
 
+        message = ""
+        if path_to_rgt is None:
+            if self.path_to_previous_rgt is None:
+                return "I'm not sure what rgt input you would like me to test."
+            else:
+                message += "I am assuming you want me to recheck " + self.path_to_previous_rgt + ".\n"
+        elif path_to_rgt is not None:
+            self.path_to_previous_rgt = path_to_rgt
+
         from scripts import test_status
         return test_status.check_tests(path_to_rgt, notifier=returner)
-    check_tests.is_command = True
 
     @docstring_parameter(bot=bot_name)
-    def monitor_job(self, jobID):
+    @is_command
+    def monitor_job(self, jobID, slack_sender, channel, slack_user):
         """
         Continue checking on a job and notify when it changes status.
         NOT YET IMPLEMENTED
@@ -146,10 +202,31 @@ class MessageParser():
         :param jobID: The ID of the job to check.
         :return: An update whenever the job does something in LSF.
         """
-        return
-    monitor_job.is_command = True
+        # We need to create a monitor.
+        # Then we pass it in a function that it can call to send out a notification of some sort.
+        def send(user=None, job_id=None, status=None, new_status=None, done=False, error_message=None):
+            message = "<@" + user + "> [" + str(job_id) + "] "
+            if error_message is not None:
+                message += error_message
+            elif new_status is None:
+                if not done:
+                    message += "The job is currently " + status + "."
+                else:
+                    message += "The job is done with state " + status + "."
+            else:
+                message += "The job has changed from " + status + " to " + new_status + "!"
+
+            slack_sender.send_message(channel, message)
+
+        self.JM.refresh_threads()
+        if len(self.JM.running_monitors) + 1 > self.JM.max_monitors:
+            return "<@" + slack_user + "> I can't watch this job yet. " \
+                   "I'm already watching " + self.JM.max_monitors + " jobs!"
+        self.JM.monitor_jobs(job_ids=jobID, watch_time=self.watch_time, notifier=send, user=slack_user)
+        return "I have started monitoring " + str(jobID) + "."
 
     @docstring_parameter(bot=bot_name)
+    @is_command
     def all_jobs(self):
         """
         Show all jobs currently on LSF.
@@ -169,7 +246,6 @@ class MessageParser():
         response += make_columns(tuple_list)
 
         return response
-    all_jobs.is_command = True
 
 if __name__ == '__main__':
     MP = MessageParser()
