@@ -11,7 +11,7 @@ class SlackApp:
     """
 
     # All times are in unix time.
-    def __init__(self, bot_token, app_token, channel, response_time=5, max_messengers=4, verbose=0):
+    def __init__(self, bot_token, app_token, channel, response_time=5, max_messengers=4, verbose=0, max_responses=100):
         """
         Construct the application.
 
@@ -21,6 +21,7 @@ class SlackApp:
         :param response_time: How often to check the recent messages and send responses.
         :param max_messengers: How many messengers should be allowed to exist at once.
         :param verbose: Whether to print out what the app is currently doing. (0, 1, or 2)
+        :param max_responses: How many responses from slack to go through each time we loop.
         """
         # Set the token for the bot being used.
         # This slack bot token is hidden in the environment so it can not be stolen.
@@ -49,6 +50,9 @@ class SlackApp:
 
         # A message parser for when a message comes in for the app.
         self.MP = slack_commands.MessageParser()
+
+        # Only read a certain number of responses from the server. This prevents an overflow of messages from coming in.
+        self.max_responses = max_responses
 
     def send_message(self, channel, message):
         """
@@ -171,7 +175,6 @@ class SlackApp:
         :param recent_messages: A list of responses from the slack api call.
         :return:
         """
-        # TODO: Instead of doing our own threading, do it through the slack api option.
         # A list of new messengers to create.
         new_messengers = []
         # For each message, create a messenger.
@@ -215,7 +218,16 @@ class SlackApp:
 
         # Get the response from the server when we read from it. This is all the messages since the last of these calls
         # or since when we connected.
-        responses = self.client.rtm_read()
+        responses = []
+        response = self.client.rtm_read()
+        while len(responses) != 0 and len(responses) < self.max_responses:
+            print(response)
+            responses.extend(response)
+
+            # rtm_read only gets a single frame from the slack client.
+            # It can fall behind if there are frames not yet read.
+            responses = self.client.rtm_read()
+
         # Return all messages with our mention token.
         return self.search_messages(key=("<@" + self.user_id + ">"), responses=responses)
 
@@ -292,9 +304,6 @@ def dic_print(dic):
     m = recursive_print_dic(dic)
     print(m)
 
-
-# Only respond to messages if they are somewhat recent.
-# How to look for mentions? Reduce the number of 'responses' since duplicated.
 
 if __name__ == '__main__':
     bot_token = os.environ["SLACK_BOT_TOKEN"]

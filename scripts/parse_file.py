@@ -1,6 +1,29 @@
 import copy
 
 
+class ParseEvent:
+    """
+    Parse an event file from the harness.
+    """
+
+    def parse_file(self, file_path):
+        with open(file_path) as file:
+            file_contents = [line for line in file]
+
+        event_dics = []
+        for line in file_contents:
+            this_event = {}
+            split_line = line.split()
+            for var_val in split_line:
+                if '=' in var_val:
+                    if var_val.count('=') != 1:
+                        raise SyntaxError("I can't understand '" + var_val + "'.")
+                    var, val = var_val.split('=')
+                    this_event[var] = val
+            event_dics.append(this_event)
+
+        return event_dics
+
 
 class ParseJobID:
     """

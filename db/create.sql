@@ -1,6 +1,7 @@
 
-use harmony
+use harmony;
 
+# Hold different types of events.
 CREATE TABLE IF NOT EXISTS `rgt_event`
   (
   `event_id`          INT (6)         NOT NULL,
@@ -11,7 +12,7 @@ CREATE TABLE IF NOT EXISTS `rgt_event`
   UNIQUE  KEY `event_uid`  ( `event_uid` )
   );
 
-
+# Information about error types when checking LSF.
 CREATE TABLE IF NOT EXISTS `rgt_check`
   (
   `check_id`          INT (6)         NOT NULL,
@@ -22,6 +23,7 @@ CREATE TABLE IF NOT EXISTS `rgt_check`
   UNIQUE KEY  `check_uid` ( `check_uid` )
   );
 
+# Hold info about test.
 CREATE TABLE IF NOT EXISTS `rgt_test`
   (
   `test_id`           INT (6)         NOT NULL,
@@ -40,12 +42,14 @@ CREATE TABLE IF NOT EXISTS `rgt_test`
   `output_check`      TEXT            NULL,
   `output_report`     TEXT            NULL,
   `system`            VARCHAR (64)    NOT NULL,
+  'next_harness_uid'  CHAR (36)       NOT NULL,
   `timestamp`         TIMESTAMP       ,
   PRIMARY KEY  ( `test_id` ),
   UNIQUE  KEY `harness_uid`  ( `harness_uid` ),
   FOREIGN KEY ( `check_status` ) REFERENCES `rgt_check` ( `check_uid` )
   );
 
+# Hold ids of events that occurred to tests.
 CREATE TABLE IF NOT EXISTS `rgt_test_event`
   (
   `id`                INT (6)         NOT NULL,
