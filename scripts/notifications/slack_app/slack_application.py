@@ -4,6 +4,7 @@ import time
 import threading
 from scripts.notifications.slack_app import slack_commands
 import sys
+import re
 
 
 class SlackApp:
@@ -12,7 +13,8 @@ class SlackApp:
     """
 
     # All times are in unix time.
-    def __init__(self, bot_token, app_token, channel, response_time=5, max_messengers=4, verbose=0, max_responses=100):
+    def __init__(self, bot_token, app_token, channel, response_time=5, max_messengers=4, verbose=0, max_responses=100,
+                 max_message_length=100):
         """
         Construct the application.
 
@@ -23,6 +25,7 @@ class SlackApp:
         :param max_messengers: How many messengers should be allowed to exist at once.
         :param verbose: Whether to print out what the app is currently doing. (0, 1, or 2)
         :param max_responses: How many responses from slack to go through each time we loop.
+        :param max_message_length: Maximum length of a message that we try to parse.
         """
         # Set the token for the bot being used.
         # This slack bot token is hidden in the environment so it can not be stolen.
@@ -54,6 +57,9 @@ class SlackApp:
 
         # Only read a certain number of responses from the server. This prevents an overflow of messages from coming in.
         self.max_responses = max_responses
+
+        # Only read messages less than some length.
+        self.max_message_length = max_message_length
 
     def send_message(self, channel, message):
         """
@@ -235,6 +241,10 @@ class SlackApp:
         return self.search_messages(key=("<@" + self.user_id + ">"), responses=responses)
 
     def check_allowable_mention(self, message):
+        def match(string, search=re.compile(r'[^a-z0-9<>@]').search):
+            return not bool(search(string))
+
+
         print('')
 
     def get_my_mention_token(self):

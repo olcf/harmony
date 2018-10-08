@@ -1,6 +1,6 @@
 from scripts.job_status import JobStatus
 from scripts import parse_file
-from scripts.notifications.slack_app import slack_send
+from scripts.notifications.slack_app import slack_application
 import os
 import sys
 import time
@@ -78,7 +78,7 @@ def slack_notify(message):
     :param message: (str) Message to send.
     :return:
     """
-    app = slack_send.SlackApp(os.environ["SLACK_BOT_TOKEN"])
+    app = slack_application.SlackApp(os.environ["SLACK_BOT_TOKEN"])
     channel = "CCRA1Q41J"
     app.send_message(channel=channel, message=message)
 

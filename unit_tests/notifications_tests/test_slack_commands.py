@@ -125,4 +125,8 @@ class TestMessageParser(unittest.TestCase):
 
     def test_all_jobs(self):
         response = self.MP.all_jobs()
+        actual_jobs = get_actual_jobs.get_jobs()
+
+        for actual_job in actual_jobs:
+            self.assertIn(actual_job['jobid'], response)
 
