@@ -77,8 +77,8 @@ class MessageParser():
         self.path_to_previous_rgt = None
 
     def parse_message(self, entire_message, slack_sender, channel):
-        message = entire_message['text']
-        slack_user = entire_message['user']
+        message = str(entire_message['text'])
+        slack_user = str(entire_message['user'])
 
         if 'help' in message:
             return self.slack_help()
@@ -197,8 +197,8 @@ class MessageParser():
     def monitor_job(self, jobID, slack_sender, channel, slack_user):
         """
         Continue checking on a job and notify when it changes status.
-        NOT YET IMPLEMENTED
 
+        USAGE: @{bot} monitor_job <jobID> [<jobID>, ...]
         :param jobID: The ID of the job to check.
         :return: An update whenever the job does something in LSF.
         """

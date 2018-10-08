@@ -17,11 +17,7 @@ class TestMonitor(unittest.TestCase):
         :return:
         """
         # Get the actual jobs to some file.
-        bjobs_path = os.path.join(os.path.dirname(__file__), 'test_inputs')
-        get_actual_jobs.bjobs_to_file(bjobs_path)
-
-        # Read the currently active jobs.
-        job_dics = get_actual_jobs.parse_bjobs(os.path.join(bjobs_path, 'example_bjobs.txt'))
+        job_dics = get_actual_jobs.get_jobs()
 
         # Set the path to the monitor output.
         monitor_path = os.path.join(bjobs_path, 'notification_outputs', 'single_monitor.txt')
@@ -57,8 +53,7 @@ class TestMonitor(unittest.TestCase):
             contents = [line.strip() for line in f]
 
         # Get the currently running jobs.
-        get_actual_jobs.bjobs_to_file(bjobs_path)
-        updated_job_dics = get_actual_jobs.parse_bjobs(os.path.join(bjobs_path, 'example_bjobs.txt'))
+        updated_job_dics = get_actual_jobs.get_jobs()
 
         # Find the job in LSF that corresponds to the job we started with.
         for job in updated_job_dics:
@@ -218,10 +213,7 @@ class TestJobMonitorClass(unittest.TestCase):
         """
 
         # Get the jobs currently in LSF.
-        bjobs_path = os.path.join(os.path.dirname(__file__), 'test_inputs')
-        get_actual_jobs.bjobs_to_file(bjobs_path)
-
-        job_dics = get_actual_jobs.parse_bjobs(os.path.join(bjobs_path, 'example_bjobs.txt'))
+        job_dics = get_actual_jobs.get_jobs()
 
         # Get all of the ids and stats.
         job_ids = [job_dic['jobid'] for job_dic in job_dics]
@@ -257,8 +249,7 @@ class TestJobMonitorClass(unittest.TestCase):
         time.sleep(num_iterations * watch_time)
 
         # Get the status of the jobs now.
-        get_actual_jobs.bjobs_to_file(bjobs_path)
-        updated_job_dics = get_actual_jobs.parse_bjobs(os.path.join(bjobs_path, 'example_bjobs.txt'))
+        updated_job_dics = get_actual_jobs.get_jobs()
 
         # Get all jobs that match a job_id we had previously.
         useful_job_dics = []

@@ -1,5 +1,7 @@
 from scripts.notifications.slack_app import slack_commands
 import unittest
+from unit_tests import get_actual_jobs
+
 
 class TestStaticFunctions(unittest.TestCase):
     """
@@ -111,3 +113,16 @@ class TestMessageParser(unittest.TestCase):
         self.assertIn(self.MP.bot_name, help_response)
         self.assertIn('slack_help', help_response)
         self.assertIn('return', help_response)
+
+    def test_my_jobs(self):
+        # Some username that will not occur.
+        username = 'abcdefghijklmnopqrstuvwxyz123456789'
+
+        response = self.MP.my_jobs(username)
+
+        self.assertIn(username, response)
+        self.assertIn('0 jobs', response)
+
+    def test_all_jobs(self):
+        response = self.MP.all_jobs()
+

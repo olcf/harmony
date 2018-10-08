@@ -92,12 +92,8 @@ class TestJobStatus(unittest.TestCase):
         """
         Set up variables for use later on in the code.
         """
-        # Set the path where to get the currently running lsf jobs.
-        bjobs_path = os.path.join(os.path.dirname(__file__), 'test_inputs')
-        # Get the current lsf jobs into a file.
-        get_actual_jobs.bjobs_to_file(bjobs_path)
         # Parse the file and get the results into a classwide variable.
-        self.job_dics = get_actual_jobs.parse_bjobs(os.path.join(bjobs_path, 'example_bjobs.txt'))
+        self.job_dics = get_actual_jobs.get_jobs()
 
         # Create a classwide variable for anything to do with job status.
         self.JS = job_status.JobStatus()

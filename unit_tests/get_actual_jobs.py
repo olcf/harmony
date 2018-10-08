@@ -1,6 +1,12 @@
 import os
 
 
+def get_jobs():
+    bjobs_path = os.path.join(os.path.dirname(__file__), 'test_inputs')
+    bjobs_to_file(bjobs_path)
+    return parse_bjobs(bjobs_path)
+
+
 def bjobs_to_file(bjobs_path):
     """
     Get the output of 'bjobs -u all -a' into a file.
@@ -47,4 +53,3 @@ def parse_bjobs(file_path):
                          'jobname': line[jobname_index:].strip()})
 
     return job_dics
-
