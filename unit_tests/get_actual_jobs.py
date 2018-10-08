@@ -4,7 +4,7 @@ import os
 def get_jobs():
     bjobs_path = os.path.join(os.path.dirname(__file__), 'test_inputs')
     bjobs_to_file(bjobs_path)
-    return parse_bjobs(bjobs_path)
+    return parse_bjobs(os.path.join(bjobs_path, 'example_bjobs.txt'))
 
 
 def bjobs_to_file(bjobs_path):

@@ -4,7 +4,8 @@ import os
 from scripts import job_monitor
 import random
 import time
-import global_vars
+from unit_tests import global_vars
+import shutil
 
 
 class TestMonitor(unittest.TestCase):
@@ -20,7 +21,8 @@ class TestMonitor(unittest.TestCase):
         job_dics = get_actual_jobs.get_jobs()
 
         # Set the path to the monitor output.
-        monitor_path = os.path.join(bjobs_path, 'notification_outputs', 'single_monitor.txt')
+        monitor_path = os.path.join(os.path.dirname(__file__), 'test_inputs',
+                                    'notification_outputs', 'single_monitor.txt')
         # Create an empty file.
         with open(monitor_path, mode="w+") as f:
             f.write("")
@@ -219,8 +221,10 @@ class TestJobMonitorClass(unittest.TestCase):
         job_ids = [job_dic['jobid'] for job_dic in job_dics]
         old_stats = [job_dic['stat'] for job_dic in job_dics]
         # Create all the paths. Each path also contains the job id that is being monitored.
-        monitor_folder_path = os.path.join(bjobs_path, 'notification_outputs')
-        monitor_paths = [os.path.join(monitor_folder_path, str(job_id) + '_job_monitor.txt')
+        monitor_folder_path = os.path.join(os.path.join(os.path.dirname(__file__), 
+                                           'test_inputs', 'notification_outputs'))
+        monitor_postfix = "_job_monitor.txt"
+        monitor_paths = [os.path.join(monitor_folder_path, str(job_id) + monitor_postfix)
                          for job_id in job_ids]
 
         if not os.path.exists(monitor_folder_path):
@@ -336,6 +340,8 @@ class TestJobMonitorClass(unittest.TestCase):
                             expected_done_state = False
                         self.assertEqual(split_line[done_index], str(expected_done_state))
 
-        # Remove all job specific monitor files.
-        for path in monitor_paths:
-            os.remove(path)
+        # Remove all files created for monitoring.
+        for f in os.listdir(monitor_folder_path):
+            if monitor_postfix in f:
+                os.remove(os.path.join(monitor_folder_path, f))
+

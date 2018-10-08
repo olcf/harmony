@@ -170,7 +170,11 @@ class JobStatus:
             # Append the job to the list after transforming it into a Job class.
             # Once job info is closed, lsf.lsb_readjobinfo does not work again.
             # It is also a generator and can thus only be gone through once.
-            j = Job(lsf.lsb_readjobinfo(None))
+            lsf_job = lsf.lsb_readjobinfo(None) 
+            # This occurs if the job pops out of queue after getting the number of lsf jobs.
+            if lsf_job is None:
+                continue
+            j = Job(lsf_job)
             if j.status in options:
                 jobs.append(j)
         # All done with this job info.

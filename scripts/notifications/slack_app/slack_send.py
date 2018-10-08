@@ -229,10 +229,13 @@ class SlackApp:
 
             # rtm_read only gets a single frame from the slack client.
             # It can fall behind if there are frames not yet read.
-            responses = self.client.rtm_read()
+            response = self.client.rtm_read()
 
         # Return all messages with our mention token.
         return self.search_messages(key=("<@" + self.user_id + ">"), responses=responses)
+
+    def check_allowable_mention(self, message):
+        print('')
 
     def get_my_mention_token(self):
         """

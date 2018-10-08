@@ -1,4 +1,7 @@
 JOBID   USER       STAT   SLOTS    QUEUE       START_TIME    FINISH_TIME   JOB_NAME                      
+340987  yoonh      RUN    21       batch       Oct  8 10:49  Oct  8 14:49  horo_256                      
+340988  yoonh      RUN    21       batch       Oct  8 10:49  Oct  8 14:49  horo_512                      
+340993  lukebr     RUN    701      batch       Oct  8 12:13  Oct  8 14:13  /bin/bash                     
 339664  b2v        PEND      -     batch             -             -       mer_gas_54                    
 339675  b2v        PEND      -     batch             -             -       mer_gas_54                    
 339682  b2v        PEND      -     batch             -             -       mer_mpi_54                    
@@ -10,5 +13,13 @@ JOBID   USER       STAT   SLOTS    QUEUE       START_TIME    FINISH_TIME   JOB_N
 339687  b2v        PSUSP     -     batch       Oct  4 05:26        -       mer_shmem_32                  
 339671  b2v        PSUSP     -     batch       Oct  4 05:16        -       mer_gas_16                    
 339662  b2v        PSUSP     -     batch       Oct  4 05:04        -       mer_gas_32                    
+340989  yoonh      PEND      -     batch             -             -       horo_1024                     
+340998  jain       PEND      -     batch             -             -       SWIFT                         
+340999  mjbrim     PEND      -     batch             -             -       unifycr                       
+341000  lukebr     PEND      -     batch             -             -       /bin/bash                     
 340974  rsankar    PEND      -     batch             -             -       qnightly                      
 340975  rsankar    PEND      -     batch             -             -       raptorxlf                     
+340991  mjbrim     EXIT   641      batch       Oct  8 11:26  Oct  8 12:11  unifycr                       
+340992  jain       EXIT   321      batch       Oct  8 12:11  Oct  8 12:13  SWIFT                         
+340997  kngott     DONE   21       batch       Oct  8 12:17  Oct  8 12:19  MMtest                        
+340996  andreas    DONE   21       batch       Oct  8 12:13  Oct  8 12:22  NiO_codedev                   

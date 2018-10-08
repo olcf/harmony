@@ -32,14 +32,14 @@ class TestStaticFunctions(unittest.TestCase):
         self.assertNotIn(param, no_doc_par.__doc__)
 
     def test_is_command(self):
-        @slack_commands.is_command
+        @slack_commands.is_command()
         def command_1():
             return
 
         self.assertTrue(hasattr(command_1, 'is_command'))
         self.assertTrue(command_1.is_command)
 
-        @slack_commands.is_command(slack_command=True)
+        @slack_commands.is_command(command=True)
         def command_2():
             return
 
@@ -51,7 +51,7 @@ class TestStaticFunctions(unittest.TestCase):
 
         self.assertFalse(hasattr(not_command_1, 'is_command'))
 
-        @slack_commands.is_command(slack_command=False)
+        @slack_commands.is_command(command=False)
         def not_command_2():
             return
 
@@ -60,18 +60,18 @@ class TestStaticFunctions(unittest.TestCase):
 
     def test_get_functions(self):
         class function_class():
-            @slack_commands.is_command
+            @slack_commands.is_command()
             def command_1(self):
                 return
 
-            @slack_commands.is_command(slack_command=True)
+            @slack_commands.is_command(command=True)
             def command_2(self):
                 return
 
             def not_command_1(self):
                 return
 
-            @slack_commands.is_command(slack_command=False)
+            @slack_commands.is_command(command=False)
             def not_command_2(self):
                 return
 

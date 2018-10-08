@@ -94,8 +94,14 @@ def monitor(job_id, watch_time, notifier, num_iterations=None, **kwargs):
     # Remove class since we will have many of these threads and we want to relieve memory and not store this class.
     del JS
 
+    if status in ['Complete', 'Killed', 'Walltimed']:
+        done_status = True
+    else:
+        done_status = False
+
     # Notify about the current job's status.
-    notifier(**kwargs, job_id=job_id, status=status)
+    notifier(**kwargs, job_id=job_id, status=status, done=done_status)
+    del done_status
 
     # Create an iteration counter.
     iteration = 0
@@ -109,7 +115,7 @@ def monitor(job_id, watch_time, notifier, num_iterations=None, **kwargs):
         try:
             new_status = JS.get_job_status(job_id)
         except KeyError as e:
-            notifier(**kwargs, error_message="Something happened while monitoring my job.\n" + str(e))
+            notifier(**kwargs, job_id=job_id, error_message="Something happened while monitoring my job.\n" + str(e))
 
         # If the status has changed then notify.
         if new_status != status:

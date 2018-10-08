@@ -3,25 +3,35 @@
 #   my jobs
 #   check tests
 from scripts import job_monitor
+import functools
 
 
-def docstring_parameter(*args, **kwargs):
-    def dec(obj):
-        obj.__doc__ = obj.__doc__.format(*args, **kwargs)
+class docstring_parameter:
+    def __init__(self, **kwargs):
+        self.kws = kwargs
+
+    def __call__(self, obj):
+        obj.__doc__ = obj.__doc__.format(**self.kws)
         return obj
-    return dec
 
-def is_command(slack_command=True):
-    def dec(obj):
-        obj.is_command = slack_command
+
+class is_command:
+    def __init__(self, command=True):
+        self.command = command
+
+    def __call__(self, obj):
+        obj.is_command = self.command
         return obj
-    return dec
+
 
 def get_functions(cls):
     functions = {}
     for key in sorted(cls.__dict__.keys()):
         if callable(cls.__dict__[key]) and '__' not in key:
-            functions[key] = cls.__dict__[key]
+            func = cls.__dict__[key]
+            if hasattr(func, 'is_command'):
+                if func.is_command:
+                    functions[key] = cls.__dict__[key]
 
     return functions
 
@@ -35,16 +45,18 @@ def make_columns(tuple_list, col_sizes=[8, 15, 15]):
                          " defining " + len(tuple_list[0]) + " columns.")
 
     for i in range(len(tuple_list)):
-        tuple = tuple_list[i]
+        tup = tuple([str(val) for val in tuple_list[i]])
 
         unformatted = ""
-        for j in range(len(tuple)):
+        for j in range(len(tup)):
             if j == 0:
-                unformatted += "{" + j + ":<" + col_sizes[j] + "} "
+                unformatted += "{" + str(j) + ":<" + str(col_sizes[j]) + "} "
             else:
-                unformatted += "{" + j + ":>" + col_sizes[j] + "} "
+                unformatted += "{" + str(j) + ":>" + str(col_sizes[j]) + "} "
 
-        string += unformatted.format(tuple)
+        print(unformatted)
+        print(tup)
+        string += unformatted.format(tup)
         if i < len(tuple_list) - 1:
             string += "\n"
 
@@ -133,7 +145,7 @@ class MessageParser():
         else:
             return "I don't understand what exactly you wanted me to do with '" + message + "'. " + self.slack_help()
 
-    @is_command
+    @is_command()
     @docstring_parameter(bot=bot_name)
     def slack_help(self):
         """
@@ -145,7 +157,7 @@ class MessageParser():
         response = "Here is what I can do! \n\n" + self.command_descriptions
         return response
 
-    @is_command
+    @is_command()
     @docstring_parameter(bot=bot_name)
     def my_jobs(self, username):
         """
@@ -168,7 +180,7 @@ class MessageParser():
 
         return response
 
-    @is_command
+    @is_command()
     @docstring_parameter(bot=bot_name)
     def check_tests(self, path_to_rgt=None):
         """
@@ -192,7 +204,7 @@ class MessageParser():
         from scripts import test_status
         return test_status.check_tests(path_to_rgt, notifier=returner)
 
-    @is_command
+    @is_command()
     @docstring_parameter(bot=bot_name)
     def monitor_job(self, jobID, slack_sender, channel, slack_user):
         """
@@ -225,7 +237,7 @@ class MessageParser():
         self.JM.monitor_jobs(job_ids=jobID, watch_time=self.watch_time, notifier=send, user=slack_user)
         return "I have started monitoring " + str(jobID) + "."
 
-    @is_command
+    @is_command()
     @docstring_parameter(bot=bot_name)
     def all_jobs(self):
         """
@@ -240,7 +252,7 @@ class MessageParser():
         if len(jobs) == 1:
             response = "I found 1 job in LSF.\n"
         else:
-            response = "I found " + len(jobs) + " jobs in LSF.\n"
+            response = "I found " + str(len(jobs)) + " jobs in LSF.\n"
 
         tuple_list = [(job.jobId, job.jobName, job.status) for job in jobs]
         response += make_columns(tuple_list)
