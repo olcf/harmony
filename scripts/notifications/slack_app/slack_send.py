@@ -3,6 +3,7 @@ import os
 import time
 import threading
 from scripts.notifications.slack_app import slack_commands
+import sys
 
 
 class SlackApp:
@@ -189,8 +190,10 @@ class SlackApp:
             try:
                 response_message = self.MP.parse_message(message, self, channel)
             except Exception as e:
+                print("An error occurred! Here is the traceback:\n" + \
+                      str(sys.exc_info()[2]))
                 response_message = "Something went horribly horribly wrong! I got this error:\n" + \
-                                   e.__class__ + "\t" + str(e)
+                                   str(e.__class__) + "\t" + str(e)
 
             # Make sure to mention the user who sent the message.
             response_message = "<@" + user + "> " + response_message

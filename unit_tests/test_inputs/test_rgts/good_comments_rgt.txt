@@ -1,0 +1,4 @@
+path_to_tests = /autofs/nccs-svm1_home1/c2k/harmony/example_test
+ # Commented text
+           # test = commented test
+test = program_name test_name

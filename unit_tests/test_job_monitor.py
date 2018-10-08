@@ -4,6 +4,7 @@ import os
 from scripts import job_monitor
 import random
 import time
+import global_vars
 
 
 class TestMonitor(unittest.TestCase):
@@ -23,15 +24,15 @@ class TestMonitor(unittest.TestCase):
         job_dics = get_actual_jobs.parse_bjobs(os.path.join(bjobs_path, 'example_bjobs.txt'))
 
         # Set the path to the monitor output.
-        monitor_path = os.path.join(bjobs_path, 'notifications_tests', 'notification_outputs', 'single_monitor.txt')
+        monitor_path = os.path.join(bjobs_path, 'notification_outputs', 'single_monitor.txt')
         # Create an empty file.
         with open(monitor_path, mode="w+") as f:
             f.write("")
 
         # Set the neccessary parameters for the notifier.
-        watch_time = 15
+        watch_time = 1
         # The notifier appends to the file we previously cleaned.
-        notifier = append_to_file
+        notifier = monitor_to_file
         user = "test_user"
         num_iterations = 4
 
@@ -52,7 +53,8 @@ class TestMonitor(unittest.TestCase):
                             path=monitor_path, num_iterations=num_iterations)
 
         # Get the contents output from the notifier.
-        contents = [line.strip() for line in open(monitor_path, mode='r')]
+        with open(monitor_path, mode='r') as f:
+            contents = [line.strip() for line in f]
 
         # Get the currently running jobs.
         get_actual_jobs.bjobs_to_file(bjobs_path)
@@ -105,7 +107,7 @@ class TestMonitor(unittest.TestCase):
                 self.assertEqual(split_line[user_index], user)
                 job_id_index = split_line.index('job_id:') + 1
                 # Assert that the job ids are the same.
-                self.assertEqual(split_line[job_id_index], job_id)
+                self.assertEqual(int(split_line[job_id_index]), job_id)
 
                 status_index = split_line.index('status:') + 1
                 done_index = split_line.index('done:') + 1
@@ -113,7 +115,7 @@ class TestMonitor(unittest.TestCase):
                 # The first line should contain the information of the old status of the job.
                 if not found_starter:
                     # Make sure starting status is the same.
-                    self.assertEqual(split_line[status_index], old_status)
+                    self.assertEqual(global_vars.jobstat_to_bjobstat[split_line[status_index]], old_status)
                     found_starter = True
                 else:
                     # If the status has changed, the previous status is called 'status' in our notifier.
@@ -135,10 +137,10 @@ class TestMonitor(unittest.TestCase):
                 # Test if the current line is the last line in the file and is not the starter.
                 elif found_starter and i == len(usable_contents) - 1:
                     # Assert that the current LSF status of the job is the same as the final recorded by the monitor.
-                    self.assertEqual(split_line[status_index], new_status)
+                    self.assertEqual(global_vars.jobstat_to_bjobstat[split_line[status_index]], new_status)
 
                     # If the status was finished then the expected state of the monitor should be done.
-                    if new_status in ['Complete', 'Killed', 'Walltimed']:
+                    if new_status in ['DONE', 'EXIT']:
                         expected_done_state = True
                     else:
                         expected_done_state = False
@@ -214,6 +216,7 @@ class TestJobMonitorClass(unittest.TestCase):
         Test if the class functions correctly and monitors jobs correctly.
         :return:
         """
+
         # Get the jobs currently in LSF.
         bjobs_path = os.path.join(os.path.dirname(__file__), 'test_inputs')
         get_actual_jobs.bjobs_to_file(bjobs_path)
@@ -224,16 +227,20 @@ class TestJobMonitorClass(unittest.TestCase):
         job_ids = [job_dic['jobid'] for job_dic in job_dics]
         old_stats = [job_dic['stat'] for job_dic in job_dics]
         # Create all the paths. Each path also contains the job id that is being monitored.
-        monitor_paths = [os.path.join(bjobs_path, 'notifications_tests', 'notification_outputs', str(job_id) + '_job_monitor.txt')
+        monitor_folder_path = os.path.join(bjobs_path, 'notification_outputs')
+        monitor_paths = [os.path.join(monitor_folder_path, str(job_id) + '_job_monitor.txt')
                          for job_id in job_ids]
+
+        if not os.path.exists(monitor_folder_path):
+            os.mkdir(monitor_folder_path)
         # Create/clear all of these files.
         for monitor_path in monitor_paths:
-            with open(monitor_path, mode="w+") as f:
+            with open(monitor_path, mode="w") as f:
                 f.write("")
 
         # Set all variables for the monitors.
-        watch_time = 15
-        notifier = append_to_file
+        watch_time = 1
+        notifier = monitor_to_file
         user = "test_user"
         num_iterations = 4
 
@@ -271,7 +278,8 @@ class TestJobMonitorClass(unittest.TestCase):
             # Get the path to where this job was monitored.
             monitor_path = monitor_paths[job_ids.index(job_id)]
             # Get the files contents.
-            contents = [line.strip() for line in open(monitor_path, mode='r')]
+            with open(monitor_path, mode='r') as f:
+                contents = [line.strip() for line in f]
 
             # Find the status of the job from LSF.
             new_status = updated_job_dic['stat']
@@ -303,14 +311,14 @@ class TestJobMonitorClass(unittest.TestCase):
                     user_index = split_line.index('user:') + 1
                     self.assertEqual(split_line[user_index], user)
                     job_id_index = split_line.index('job_id:') + 1
-                    self.assertEqual(split_line[job_id_index], job_id)
+                    self.assertEqual(int(split_line[job_id_index]), job_id)
                     status_index = split_line.index('status:') + 1
                     done_index = split_line.index('done:') + 1
                     # If we have not found the first update from the monitor then this is it.
                     # The first line should contain the information of the old status of the job.
                     if not found_starter:
-                        self.assertEqual(split_line[status_index], old_status)
-                        if old_status in ['Complete', 'Killed', 'Walltimed']:
+                        self.assertEqual(global_vars.jobstat_to_bjobstat[split_line[status_index]], old_status)
+                        if old_status in ['DONE', 'EXIT']:
                             expected_done_state = True
                         else:
                             expected_done_state = False
@@ -330,8 +338,8 @@ class TestJobMonitorClass(unittest.TestCase):
 
                     # Test if the current line is the last line in the file.
                     elif i > 0 and i == len(usable_contents) - 1:
-                        self.assertEqual(split_line[status_index], new_status)
-                        if new_status in ['Complete', 'Killed', 'Walltimed']:
+                        self.assertEqual(global_vars.jobstat_to_bjobstat[split_line[status_index]], new_status)
+                        if new_status in ['DONE', 'EXIT']:
                             expected_done_state = True
                         else:
                             expected_done_state = False

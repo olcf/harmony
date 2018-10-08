@@ -25,6 +25,8 @@ class TestJobClass(unittest.TestCase):
         pend_states = [0, randint(1, 100)]
         # Give it a random job id.
         jobID = randint(1, 1000000)
+        # Give it a name.
+        jName = "practice_test_"
 
         # These are the expected stats that will come from the class.
         # They line up with the iterations through the lists.
@@ -44,8 +46,9 @@ class TestJobClass(unittest.TestCase):
             for exit_status in exit_stats:
                 # Iterate over possible pending states.
                 for pend_state_j in pend_states:
+                    job_name = jName + str(index)
                     # Create a fake lsf job with the correct attributes.
-                    lsf_job = TestJobClass.example_job(jobID=jobID, status=status,
+                    lsf_job = TestJobClass.example_job(jobID=jobID, status=status, jName=job_name,
                                                        exit_status=exit_status, pend_state_j=pend_state_j)
                     # Create a job from the fake lsf job.
                     job = job_status.Job(lsf_job)
@@ -55,6 +58,8 @@ class TestJobClass(unittest.TestCase):
                         self.assertEqual(job.jobId, jobID)
                         # Assert that the correct status from the class is given.
                         self.assertEqual(job.status, expected_stats[index])
+                        # Assert that the name is preserved.
+                        self.assertEqual(job.jobName, job_name)
                     # Move to the next expected status.
                     index += 1
 
@@ -62,7 +67,7 @@ class TestJobClass(unittest.TestCase):
         """
         Class to create a fake lsf job for testing.
         """
-        def __init__(self, jobID, status, exit_status, pend_state_j):
+        def __init__(self, jobID, jName, status, exit_status, pend_state_j):
             """
             Initialize the fake job.
 
@@ -75,6 +80,7 @@ class TestJobClass(unittest.TestCase):
             self.status = status
             self.exitStatus = exit_status
             self.pendStateJ = pend_state_j
+            self.jName = jName
 
 
 class TestJobStatus(unittest.TestCase):
@@ -146,7 +152,7 @@ class TestJobStatus(unittest.TestCase):
             # For each of those jobs, assert that there is a matching job in bjobs
             # and that each job does have the correct state.
             for job in jobs:
-                with self.subTest(stat=stat, searchstat=searchstat):
+                with self.subTest(stat=stat):
                     job_dic = self.find_job_dics_by_attr(attr_name='jobid', search_val=job.jobId)[0]
                     self.assertEqual(job_dic['jobid'], job.jobId)
                     self.assertEqual(self.jobstat_to_bjobstat[job.status], job_dic['stat'])

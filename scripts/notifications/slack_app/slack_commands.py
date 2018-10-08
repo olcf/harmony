@@ -53,7 +53,7 @@ def make_columns(tuple_list, col_sizes=[8, 15, 15]):
 class MessageParser():
     bot_name = 'Botty McBotterson'
 
-    def __init__(self, watch_time):
+    def __init__(self, watch_time=600):
         parser_functions = get_functions(MessageParser)
 
         try:
@@ -133,8 +133,8 @@ class MessageParser():
         else:
             return "I don't understand what exactly you wanted me to do with '" + message + "'. " + self.slack_help()
 
-    @docstring_parameter(bot=bot_name)
     @is_command
+    @docstring_parameter(bot=bot_name)
     def slack_help(self):
         """
         Show all commands that I can run.
@@ -145,8 +145,8 @@ class MessageParser():
         response = "Here is what I can do! \n\n" + self.command_descriptions
         return response
 
-    @docstring_parameter(bot=bot_name)
     @is_command
+    @docstring_parameter(bot=bot_name)
     def my_jobs(self, username):
         """
         Show all jobs currently running by some user.
@@ -161,15 +161,15 @@ class MessageParser():
         if len(jobs) == 1:
             response = "I found 1 job by " + username + ".\n"
         else:
-            response = "I found " + len(jobs) + " jobs by " + username + ".\n"
+            response = "I found " + str(len(jobs)) + " jobs by " + username + ".\n"
 
         tuple_list = [(job.jobId, job.jobName, job.status) for job in jobs]
         response += make_columns(tuple_list)
 
         return response
 
-    @docstring_parameter(bot=bot_name)
     @is_command
+    @docstring_parameter(bot=bot_name)
     def check_tests(self, path_to_rgt=None):
         """
         Check all harmony tests.
@@ -192,8 +192,8 @@ class MessageParser():
         from scripts import test_status
         return test_status.check_tests(path_to_rgt, notifier=returner)
 
-    @docstring_parameter(bot=bot_name)
     @is_command
+    @docstring_parameter(bot=bot_name)
     def monitor_job(self, jobID, slack_sender, channel, slack_user):
         """
         Continue checking on a job and notify when it changes status.
@@ -225,8 +225,8 @@ class MessageParser():
         self.JM.monitor_jobs(job_ids=jobID, watch_time=self.watch_time, notifier=send, user=slack_user)
         return "I have started monitoring " + str(jobID) + "."
 
-    @docstring_parameter(bot=bot_name)
     @is_command
+    @docstring_parameter(bot=bot_name)
     def all_jobs(self):
         """
         Show all jobs currently on LSF.

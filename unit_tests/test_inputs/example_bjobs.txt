@@ -1,60 +1,14 @@
 JOBID   USER       STAT   SLOTS    QUEUE       START_TIME    FINISH_TIME   JOB_NAME                      
-337768  yoonh      RUN    321      batch       Sep 24 12:50  Sep 24 16:50  horo_1024                     
-337833  pkommera   RUN    21       batch       Sep 24 12:50  Sep 24 16:50  cctbx2_1s                     
-337837  jmfinney   RUN    321      batch       Sep 24 14:35  Sep 24 16:55  scalpack_summitdev_llt        
-337843  pkommera   RUN    21       batch       Sep 24 14:35  Sep 24 15:35  cctbx2_s                      
-337847  cnewman    RUN    21       batch       Sep 24 14:35  Sep 24 16:35  /bin/bash                     
-337842  jmfinney   RUN    21       batch       Sep 24 14:39  Sep 24 16:39  slate_gemm_1                  
-335385  tpapathe   PEND      -     batch             -             -       test                          
-336361  b2v        PEND      -     batch             -             -       sort_iso_mpi_54               
-336368  b2v        PEND      -     batch             -             -       sort_iso_shmem_54             
-336377  b2v        PEND      -     batch             -             -       sort_iso_shmem_54             
-336386  b2v        PEND      -     batch             -             -       sort_iso_gasnetex_54          
-336393  b2v        PEND      -     batch             -             -       sort_iso_mpi_54               
-336401  b2v        PEND      -     batch             -             -       mer_shmem_54                  
-336408  b2v        PEND      -     batch             -             -       mer_gas_54                    
-336560  b2v        PEND      -     batch             -             -       sort_iso_shmem_54             
-336710  b2v        PEND      -     batch             -             -       sort_chapel_54                
-336728  b2v        PEND      -     batch             -             -       sort_chapel_54                
-336735  b2v        PEND      -     batch             -             -       sort_chapel_54                
-336742  b2v        PEND      -     batch             -             -       sort_chapel_54                
-336754  b2v        PEND      -     batch             -             -       pop-mpi-jobs_54               
-336761  b2v        PEND      -     batch             -             -       push-mpi-jobs_54              
-336768  b2v        PEND      -     batch             -             -       push_many-mpi-jobs_54         
-337838  acharara   PEND      -     batch             -             -       scalapack_getrf_16            
-337845  yoonh      PEND      -     batch             -             -       eval                          
-337846  jmfinney   PEND      -     batch             -             -       slate_potrf_16_perf           
-337848  pkommera   PEND      -     batch             -             -       cctbx2_1                      
-337796  kshitij    PEND      -     batch             -             -       Resnet18                      
-337849  pkommera   PEND      -     batch             -             -       cctbx2                        
-337852  ul6        PEND      -     batch             -             -       /bin/bash                     
-337665  rsankar    PEND      -     batch             -             -       qnightly                      
-337666  rsankar    PEND      -     batch             -             -       raptorxlf                     
-337769  yoonh      PEND      -     batch             -             -       horo_1024                     
-337770  yoonh      PEND      -     batch             -             -       horo_1024                     
-337771  yoonh      PEND      -     batch             -             -       horo_1024                     
-337772  yoonh      PEND      -     batch             -             -       horo_1024                     
-337773  yoonh      PEND      -     batch             -             -       horo_1024                     
-337774  yoonh      PEND      -     batch             -             -       horo_1024                     
-337775  yoonh      PEND      -     batch             -             -       horo_1024                     
-337776  yoonh      PEND      -     batch             -             -       horo_1024                     
-337777  yoonh      PEND      -     batch             -             -       horo_1024                     
-337797  kshitij    PEND      -     batch             -             -       Resnet18                      
-337798  kshitij    PEND      -     batch             -             -       Resnet18                      
-337799  kshitij    PEND      -     batch             -             -       Resnet18                      
-337800  kshitij    PEND      -     batch             -             -       Resnet18                      
-337801  kshitij    PEND      -     batch             -             -       Resnet18                      
-337802  kshitij    PEND      -     batch             -             -       Resnet18                      
-337803  kshitij    PEND      -     batch             -             -       Resnet18                      
-337804  kshitij    PEND      -     batch             -             -       Resnet18                      
-337805  kshitij    PEND      -     batch             -             -       Resnet18                      
-337844  iparask2   DONE   21       batch       Sep 24 13:56  Sep 24 13:57  RunSim123                     
-337834  pkommera   EXIT   21       batch       Sep 24 13:07  Sep 24 14:02  cctbx2_1                      
-337839  cnewman    EXIT   0        batch             -       Sep 24 14:04  /bin/bash                     
-337795  kshitij    EXIT   21       batch       Sep 24 10:13  Sep 24 14:14  Resnet18                      
-337825  jmfinney   DONE   21       batch       Sep 24 12:52  Sep 24 14:17  slate_gemm_potrf_1            
-337836  pkommera   DONE   61       batch       Sep 24 14:02  Sep 24 14:19  cctbx2                        
-337850  ul6        EXIT   0        batch             -       Sep 24 14:35  /bin/bash                     
-337823  ayarkhan   EXIT   321      batch       Sep 24 12:15  Sep 24 14:35  /bin/bash                     
-337851  ul6        EXIT   0        batch             -       Sep 24 14:35  /bin/bash                     
-337840  jmfinney   EXIT   21       batch       Sep 24 14:35  Sep 24 14:39  slate_gemm_1                  
+339664  b2v        PEND      -     batch             -             -       mer_gas_54                    
+339675  b2v        PEND      -     batch             -             -       mer_gas_54                    
+339682  b2v        PEND      -     batch             -             -       mer_mpi_54                    
+339689  b2v        PEND      -     batch             -             -       mer_shmem_54                  
+339670  b2v        PSUSP     -     batch       Oct  4 05:24        -       mer_gas_1                     
+339673  b2v        PSUSP     -     batch       Oct  4 05:26        -       mer_gas_32                    
+339679  b2v        PSUSP     -     batch       Oct  4 05:26        -       mer_mpi_2                     
+339683  b2v        PSUSP     -     batch       Oct  4 05:26        -       mer_mpi_8                     
+339687  b2v        PSUSP     -     batch       Oct  4 05:26        -       mer_shmem_32                  
+339671  b2v        PSUSP     -     batch       Oct  4 05:16        -       mer_gas_16                    
+339662  b2v        PSUSP     -     batch       Oct  4 05:04        -       mer_gas_32                    
+340974  rsankar    PEND      -     batch             -             -       qnightly                      
+340975  rsankar    PEND      -     batch             -             -       raptorxlf                     
