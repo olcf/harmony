@@ -127,11 +127,11 @@ def monitor(job_id, watch_time, notifier, num_iterations=None, **kwargs):
         del new_status
         del JS
 
-    # If we care about the number of iterations, be careful about the last message sent by the monitor.
-    if num_iterations is not None:
-        if iteration >= num_iterations and status not in ['Complete', 'Killed', 'Walltimed']:
-            notifier(**kwargs, job_id=job_id, status=status, done=False)
+    if status in ['Complete', 'Killed', 'Walltimed']:
+        done_status = True
+    else:
+        done_status = False
 
     # Notify that the job is all done.
-    notifier(**kwargs, job_id=job_id, status=status, done=True)
+    notifier(**kwargs, job_id=job_id, status=status, done=done_status)
 

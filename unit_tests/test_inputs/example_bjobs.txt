@@ -1,9 +1,4 @@
 JOBID   USER       STAT   SLOTS    QUEUE       START_TIME    FINISH_TIME   JOB_NAME                      
-340053  yoonh      RUN    21       batch       Oct  5 13:58  Oct  5 17:58  eval                          
-340175  yoonh      RUN    321      batch       Oct  5 15:24  Oct  5 19:24  horo_1024                     
-340184  ul6        RUN    21       batch       Oct  5 15:43  Oct  5 19:43  /bin/bash                     
-340202  jingoo     RUN    21       batch       Oct  5 16:45  Oct  5 19:15  /bin/bash                     
-340210  mjbrim     RUN    321      batch       Oct  5 17:07  Oct  5 17:42  unifycr                       
 339664  b2v        PEND      -     batch             -             -       mer_gas_54                    
 339675  b2v        PEND      -     batch             -             -       mer_gas_54                    
 339682  b2v        PEND      -     batch             -             -       mer_mpi_54                    
@@ -15,27 +10,5 @@ JOBID   USER       STAT   SLOTS    QUEUE       START_TIME    FINISH_TIME   JOB_N
 339687  b2v        PSUSP     -     batch       Oct  4 05:26        -       mer_shmem_32                  
 339671  b2v        PSUSP     -     batch       Oct  4 05:16        -       mer_gas_16                    
 339662  b2v        PSUSP     -     batch       Oct  4 05:04        -       mer_gas_32                    
-340176  yoonh      PEND      -     batch             -             -       horo_1024                     
-339984  rsankar    PEND      -     batch             -             -       qnightly                      
-339986  rsankar    PEND      -     batch             -             -       raptorxlf                     
-340195  ngawande   EXIT   0        batch             -       Oct  5 16:10  /bin/bash                     
-340196  jmsexton   EXIT   0        batch             -       Oct  5 16:11  Test                          
-340188  jingoo     EXIT   21       batch       Oct  5 15:47  Oct  5 16:18  /bin/bash                     
-340190  mjbrim     DONE   81       batch       Oct  5 15:59  Oct  5 16:19  unifycr                       
-340197  jmsexton   EXIT   21       batch       Oct  5 16:19  Oct  5 16:23  Test                          
-340191  mjbrim     DONE   161      batch       Oct  5 16:19  Oct  5 16:38  unifycr                       
-340201  jingoo     EXIT   0        batch             -       Oct  5 16:44  /bin/bash                     
-340164  jaharris   EXIT   321      batch       Oct  5 14:44  Oct  5 16:45  /bin/bash                     
-340193  atmyers2   DONE   21       batch       Oct  5 16:45  Oct  5 16:46  WarpX                         
-340199  lunalin    DONE   21       batch       Oct  5 16:45  Oct  5 16:46  Heat1C                        
-339999  jqiu       DONE   21       batch       Oct  5 14:24  Oct  5 16:47  dcan_3_layer_grade_dense      
-340203  atmyers2   DONE   21       batch       Oct  5 16:46  Oct  5 16:47  WarpX                         
-340200  jmsexton   EXIT   21       batch       Oct  5 16:45  Oct  5 16:48  Test                          
-340198  lunalin    DONE   21       batch       Oct  5 16:45  Oct  5 16:49  ElectromagneticPIC            
-340204  atmyers2   DONE   21       batch       Oct  5 16:48  Oct  5 16:49  WarpX                         
-340205  atmyers2   DONE   21       batch       Oct  5 16:50  Oct  5 16:51  WarpX                         
-340206  lunalin    DONE   21       batch       Oct  5 16:52  Oct  5 16:54  Heat1C                        
-340207  atmyers2   DONE   21       batch       Oct  5 16:53  Oct  5 16:54  WarpX                         
-340192  mjbrim     DONE   321      batch       Oct  5 16:45  Oct  5 16:55  unifycr                       
-340208  atmyers2   DONE   21       batch       Oct  5 16:59  Oct  5 17:00  WarpX                         
-340209  jmsexton   EXIT   21       batch       Oct  5 17:03  Oct  5 17:07  Test                          
+340974  rsankar    PEND      -     batch             -             -       qnightly                      
+340975  rsankar    PEND      -     batch             -             -       raptorxlf                     
