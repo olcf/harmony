@@ -229,7 +229,7 @@ class SlackApp:
         # or since when we connected.
         responses = []
         response = self.client.rtm_read()
-        while len(responses) != 0 and len(responses) < self.max_responses:
+        while len(response) != 0 and len(responses) < self.max_responses:
             print(response)
             responses.extend(response)
 
