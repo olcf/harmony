@@ -5,6 +5,7 @@ from unit_tests import test_parse_file
 from unit_tests import test_test_status
 from unit_tests.notifications_tests import test_slack_commands
 
+
 def main():
     # TODO: Split these into types of tests to run and order them correctly.
     test_list = [test_job_monitor.TestJobMonitorClass, test_job_monitor.TestMonitor,
@@ -12,6 +13,11 @@ def main():
                  test_parse_file.TestErrors, test_parse_file.TestParseJobID, test_parse_file.TestParseRGTInput,
                  test_test_status.TestTestStatus,
                  test_slack_commands.TestMessageParser, test_slack_commands.TestStaticFunctions]
+
+    message = "Running tests in these cases:"
+    for test in test_list:
+        message += "\n " + test.__name__
+    print(message)
 
     test_load = unittest.TestLoader()
 
