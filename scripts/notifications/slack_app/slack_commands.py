@@ -36,7 +36,7 @@ def get_functions(cls):
     return functions
 
 
-def make_columns(tuple_list, col_sizes=[10, 20, 20]):
+def make_columns(tuple_list, col_sizes=[10, 30, 20]):
     string = ""
     if len(tuple_list) == 0:
         return string
@@ -45,10 +45,10 @@ def make_columns(tuple_list, col_sizes=[10, 20, 20]):
                          " defining " + str(len(tuple_list[0])) + " columns.")
 
     tuple_list = [tuple([str(val) for val in tup]) for tup in tuple_list]
-    for tup in tuple_list:
-        for i in range(len(tup)):
-            if col_sizes[i] < len(tup[i]):
-                col_sizes[i] = len(tup[i])
+    for i in range(len(col_sizes)):
+        max_col_size = max((len(tup[0]) for tup in tuple_list))
+        if col_sizes[i] < max_col_size:
+            col_sizes[i] = max_col_size
 
     for i in range(len(tuple_list)):
         tup = tuple([str(val) for val in tuple_list[i]])
@@ -63,6 +63,7 @@ def make_columns(tuple_list, col_sizes=[10, 20, 20]):
             string += "\n"
 
     return string
+
 
 class MessageParser():
     bot_name = 'Botty McBotterson'
