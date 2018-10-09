@@ -1,0 +1,38 @@
+\documentclass{article}
+
+\title{Harmony Database Data Path}
+
+\begin{document}
+
+\section{Database Setup}
+
+Both the rgt event and rgt check tables should be hardcoded into running. These will not be updated and instead only contain the information about what some event or exit status means.
+
+\section{Action Times}
+
+Updates to the database should occur whenever a test:
+\begin{itemize}
+	\item begins building
+	\item finishes building
+	\item starts running
+	\item finishes running
+	\item starts validating results
+	\item finishes validating
+\end{itemize}
+
+We won't set up a push system but will instead look through the data files for updates and change the database according to those. We can do this for any time step but LSF is cleared once per hour. Thus, in order to get the correct exit status, we need to pull from LSF within that time period.
+
+rgt event and rgt check tables should both already be set up before a test begins. These are hardcoded
+
+When test begins building, put info into rgt test.
+	test id, harness uid, harness start, harness tld (what is this), application, testname, system, next harness uid	
+
+	build status changes to whatever the 'building' status is
+
+
+We check that a test has begun building by looking at rgt status. I don't think that there is ever a time when rgt status will not have the correct build stat.
+
+
+When test finishes building
+
+\end{document}

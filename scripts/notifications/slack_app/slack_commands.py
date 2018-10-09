@@ -36,7 +36,7 @@ def get_functions(cls):
     return functions
 
 
-def make_columns(tuple_list, col_sizes=[8, 15, 15]):
+def make_columns(tuple_list, col_sizes=[10, 20, 20, 10]):
     string = ""
     if len(tuple_list) == 0:
         return string
@@ -52,7 +52,7 @@ def make_columns(tuple_list, col_sizes=[8, 15, 15]):
             if j == 0:
                 unformatted += "{" + str(j) + ":<" + str(col_sizes[j]) + "} "
             else:
-                unformatted += "{" + str(j) + ":>" + str(col_sizes[j]) + "} "
+                unformatted += "{" + str(j) + ":<" + str(col_sizes[j]) + "} "
 
         print(unformatted)
         print(tup)
@@ -80,7 +80,7 @@ class MessageParser():
         for key in sorted(parser_functions):
             if hasattr(parser_functions[key], 'is_command'):
                 if parser_functions[key].is_command:
-                    self.command_descriptions += key + ":\t" + parser_functions[key].__doc__ + "\n\n"
+                    self.command_descriptions += "*" + key + "*:\t" + parser_functions[key].__doc__ + "\n\n"
 
         self.watch_time = watch_time
 
@@ -176,6 +176,7 @@ class MessageParser():
             response = "I found " + str(len(jobs)) + " jobs by " + username + ".\n"
 
         tuple_list = [(job.jobId, job.jobName, job.status) for job in jobs]
+        tuple_list.insert(0, ('Job ID', 'Job Name', 'Job Status'))
         response += make_columns(tuple_list)
 
         return response
@@ -184,7 +185,8 @@ class MessageParser():
     @docstring_parameter(bot=bot_name)
     def check_tests(self, path_to_rgt=None):
         """
-        Check all harmony tests.
+        Check all harmony tests. A path does not need to be entered.
+        If there is no path, the previous path checked will be used.
 
         USAGE: @{bot} check_tests <path>
         :param path_to_rgt: The path to the rgt_input file that can be accessed by everyone.

@@ -229,23 +229,63 @@ class SlackApp:
         # or since when we connected.
         responses = []
         response = self.client.rtm_read()
-        while len(response) != 0 and len(responses) < self.max_responses:
-            print(response)
-            responses.extend(response)
+        iterations = 0
+        while len(response) != 0 and iterations < self.max_responses:
+            iterations += 1
+            if self.allowable_mention(response):
+                responses.extend(response)
 
             # rtm_read only gets a single frame from the slack client.
             # It can fall behind if there are frames not yet read.
-            response = self.client.rtm_read()
+            if iterations < self.max_responses - 1:
+                response = self.client.rtm_read()
 
         # Return all messages with our mention token.
         return self.search_messages(key=("<@" + self.user_id + ">"), responses=responses)
 
-    def check_allowable_mention(self, message):
-        def match(string, search=re.compile(r'[^a-z0-9<>@]').search):
+    def allowable_mention(self, message):
+        """
+        Check if some message in the channel is usable or should be ignored.
+
+        :param message: Message from rtm_read.
+        :return: Whether the message was deemed suitable.
+        """
+        def match(string, search=re.compile(r'[^a-z0-9<>@]', re.IGNORECASE).search):
             return not bool(search(string))
 
+        # Check that there is not an enormous excess of keys.
+        if len(message.keys()) > 20:
+            if self.verbose == 2:
+                self.verbose_print("This message had too many keys.\n" + str(message))
+            return False
 
-        print('')
+        # Check that the message and event are less than 10 * response time old.
+        message_age = time.time() - message['ts']
+        event_age = time.time() - message['event_ts']
+
+        if message_age > self.response_time * 10:
+            if self.verbose == 2:
+                self.verbose_print("This message was too old.\n" + str(message))
+            return False
+        if event_age > self.response_time * 10:
+            if self.verbose == 2:
+                self.verbose_print("The event that corresponds to this message was too old.\n" + str(message))
+            return False
+
+        # Check that the message has a reasonable amount of text for us to parse.
+        if len(message['text']) > self.max_message_length:
+            if self.verbose == 2:
+                self.verbose_print("This message had too much text.\n" + str(message))
+            return False
+
+        # Check that the text of the message only contains alphanumerics
+        # and '<', '>', and '@' so that our user can be mentioned.
+        if not match(message['text']):
+            if self.verbose == 2:
+                self.verbose_print("This message had weird text that I could not understand.")
+            return False
+
+        return True
 
     def get_my_mention_token(self):
         """
