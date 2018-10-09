@@ -44,15 +44,18 @@ def make_columns(tuple_list, col_sizes=[10, 20, 20]):
         raise ValueError("Invalid column sizes. Cannot understand " + str(len(col_sizes)) +
                          " defining " + str(len(tuple_list[0])) + " columns.")
 
+    tuple_list = [tuple([str(val) for val in tup]) for tup in tuple_list]
+    for tup in tuple_list:
+        for i in range(len(tup)):
+            if col_sizes[i] < len(tup[i]):
+                col_sizes[i] = len(tup[i])
+
     for i in range(len(tuple_list)):
         tup = tuple([str(val) for val in tuple_list[i]])
 
         unformatted = ""
         for j in range(len(tup)):
-            if j == 0:
-                unformatted += "{" + str(j) + ":<" + str(col_sizes[j]) + "} "
-            else:
-                unformatted += "{" + str(j) + ":<" + str(col_sizes[j]) + "} "
+            unformatted += "{" + str(j) + ":<" + str(col_sizes[j]) + "} "
 
         # Unpack the tuple and format it.
         string += unformatted.format(*tup)
