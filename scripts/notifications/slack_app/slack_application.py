@@ -106,9 +106,6 @@ class SlackApp:
             self.verbose_print('[' + str(len(matching_messages)) + '/' + str(len(messages)) + ']' + ' matching messages.')
 
         if self.verbose == 2:
-            # Print response
-            dic_print(responses)
-
             if len(responses) == 0:
                 self.verbose_print("Number of responses searched:" + str(len(responses))
                                    + " (i.e. No responses in the channel in the past "
@@ -182,6 +179,9 @@ class SlackApp:
         :param recent_messages: A list of responses from the slack api call.
         :return:
         """
+
+        # TODO: Check if the response from the server was ok.
+
         # A list of new messengers to create.
         new_messengers = []
         # For each message, create a messenger.
@@ -232,8 +232,12 @@ class SlackApp:
         iterations = 0
         while len(response) != 0 and iterations < self.max_responses:
             iterations += 1
-            if self.allowable_mention(response):
-                responses.extend(response)
+            for message in response:
+                if self.allowable_mention(message):
+                    self.verbose_print("Message was allowable:\n" + str(message))
+                    responses.append(message)
+                else:
+                    self.verbose_print("Message was not allowable:\n" + str(message))
 
             # rtm_read only gets a single frame from the slack client.
             # It can fall behind if there are frames not yet read.
@@ -250,39 +254,46 @@ class SlackApp:
         :param message: Message from rtm_read.
         :return: Whether the message was deemed suitable.
         """
-        def match(string, search=re.compile(r'[^a-z0-9<>@]', re.IGNORECASE).search):
+        def match(string, search=re.compile(r'[^a-z0-9<>@_ ]', re.IGNORECASE).search):
             return not bool(search(string))
+        
+        try:
+            # Check that the text of the message only contains alphanumerics
+            # and '<', '>', and '@' so that our user can be mentioned.
+            # We do this first so that future error messages can be shown with less string parsing danger.
+            if not match(message['text']):
+                if self.verbose:
+                    self.verbose_print("This message had weird text that I could not understand.")
+                return False
 
-        # Check that there is not an enormous excess of keys.
-        if len(message.keys()) > 20:
-            if self.verbose == 2:
-                self.verbose_print("This message had too many keys.\n" + str(message))
-            return False
+            # Check that there is not an enormous excess of keys.
+            if len(message.keys()) > 20:
+                if self.verbose:
+                    self.verbose_print("This message had too many keys.\n" + str(message))
+                return False
 
-        # Check that the message and event are less than 10 * response time old.
-        message_age = time.time() - message['ts']
-        event_age = time.time() - message['event_ts']
+            # Check that the message and event are less than 10 * response time old.
+            message_age = time.time() - float(message['ts'])
+            event_age = time.time() - float(message['event_ts'])
 
-        if message_age > self.response_time * 10:
-            if self.verbose == 2:
-                self.verbose_print("This message was too old.\n" + str(message))
-            return False
-        if event_age > self.response_time * 10:
-            if self.verbose == 2:
-                self.verbose_print("The event that corresponds to this message was too old.\n" + str(message))
-            return False
+            if message_age > self.response_time * 10:
+                if self.verbose:
+                    self.verbose_print("This message was too old.\n" + str(message))
+                return False
+            if event_age > self.response_time * 10:
+                if self.verbose:
+                    self.verbose_print("The event that corresponds to this message was too old.\n" + str(message))
+                return False
 
-        # Check that the message has a reasonable amount of text for us to parse.
-        if len(message['text']) > self.max_message_length:
-            if self.verbose == 2:
-                self.verbose_print("This message had too much text.\n" + str(message))
-            return False
-
-        # Check that the text of the message only contains alphanumerics
-        # and '<', '>', and '@' so that our user can be mentioned.
-        if not match(message['text']):
-            if self.verbose == 2:
-                self.verbose_print("This message had weird text that I could not understand.")
+            # Check that the message has a reasonable amount of text for us to parse.
+            if len(message['text']) > self.max_message_length:
+                if self.verbose:
+                    self.verbose_print("This message had too much text.\n" + str(message))
+                return False
+        except KeyError as e:
+            # One of those many keys did not exist.
+            if self.verbose:
+                self.verbose_print("This message did not have the " + str(e) + " key.")
             return False
 
         return True

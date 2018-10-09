@@ -36,13 +36,13 @@ def get_functions(cls):
     return functions
 
 
-def make_columns(tuple_list, col_sizes=[10, 20, 20, 10]):
+def make_columns(tuple_list, col_sizes=[10, 20, 20]):
     string = ""
     if len(tuple_list) == 0:
         return string
     if len(tuple_list[0]) != len(col_sizes):
-        raise ValueError("Invalid column sizes. Cannot understand " + len(col_sizes) +
-                         " defining " + len(tuple_list[0]) + " columns.")
+        raise ValueError("Invalid column sizes. Cannot understand " + str(len(col_sizes)) +
+                         " defining " + str(len(tuple_list[0])) + " columns.")
 
     for i in range(len(tuple_list)):
         tup = tuple([str(val) for val in tuple_list[i]])
