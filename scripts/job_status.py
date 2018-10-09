@@ -221,6 +221,8 @@ class Job:
         self.jobId = j.jobId
         # Record job name.
         self.jobName = j.jName
+        # Record user who submitted job.
+        self.user = j.user
 
         # Get the status of the job.
         # print("jobId:", self.jobId, "RUN:", lsf.JOB_STAT_RUN, "DONE:", lsf.JOB_STAT_DONE,"EXIT:", lsf.JOB_STAT_EXIT,

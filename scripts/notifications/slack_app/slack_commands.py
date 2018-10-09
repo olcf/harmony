@@ -185,8 +185,8 @@ class MessageParser():
             response = "I found " + str(len(jobs)) + " jobs by " + username + ".\n"
 
         tuple_list = [(job.jobId, job.jobName, job.status) for job in jobs]
-        tuple_list.insert(0, ('Job ID', 'Job Name', 'Job Status'))
-        response += make_columns(tuple_list)
+        tuple_list.insert(0, ("JOBID", "JOBNAME", "STATUS"))
+        response += "```" + make_columns(tuple_list) + "```"
 
         return response
 
@@ -265,11 +265,8 @@ class MessageParser():
         else:
             response = "I found " + str(len(jobs)) + " jobs in LSF.\n"
 
-        tuple_list = [(job.jobId, job.jobName, job.status) for job in jobs]
+        tuple_list = [(job.jobId, job.user, job.jobName, job.status) for job in jobs]
+        tuple_list.insert(0, ("JOBID", "USER", "JOBNAME", "STATUS"))
         response += "```" + make_columns(tuple_list) + "```"
 
         return response
-
-if __name__ == '__main__':
-    MP = MessageParser()
-    print(MP.parse_message(""))
