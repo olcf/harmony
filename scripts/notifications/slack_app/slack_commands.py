@@ -54,9 +54,8 @@ def make_columns(tuple_list, col_sizes=[10, 20, 20, 10]):
             else:
                 unformatted += "{" + str(j) + ":<" + str(col_sizes[j]) + "} "
 
-        print(unformatted)
-        print(tup)
-        string += unformatted.format(tup)
+        # Unpack the tuple and format it.
+        string += unformatted.format(*tup)
         if i < len(tuple_list) - 1:
             string += "\n"
 
