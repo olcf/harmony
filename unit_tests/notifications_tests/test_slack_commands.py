@@ -90,7 +90,8 @@ class TestStaticFunctions(unittest.TestCase):
         col_sizes = [10, 10, 10]
         col_ranges = [0]
         for i in range(len(col_sizes)):
-            col_ranges.append(col_ranges[i] + col_sizes[i])
+            # Add 1 since there is a space at the end of the column.
+            col_ranges.append(col_ranges[i] + col_sizes[i] + 1)
 
         columns = slack_commands.make_columns(tuple_list, col_sizes)
         columns = columns.splitlines()
@@ -111,21 +112,25 @@ class TestStaticFunctions(unittest.TestCase):
         col_sizes = [10, 10, 10]
         col_ranges = [0]
         for i in range(len(col_sizes)):
-            col_ranges.append(col_ranges[i] + col_sizes[i])
+            # Add 1 since there is a space at the end of the column.
+            col_ranges.append(col_ranges[i] + col_sizes[i] + 1)
 
         columns = slack_commands.make_columns(tuple_list, col_sizes)
         columns = columns.splitlines()
 
         self.assertEqual(len(tuple_list), len(columns))
         for i in range(len(columns)):
-            with self.subTest(tuple=tuple_list[i]):
-                for j in range(len(tuple_list[i])):
+            tup = tuple_list[i]
+            with self.subTest(tuple=tup):
+                for j in range(len(tup)):
                     # The first column should still be correct.
                     if j == 0:
-                        self.assertIn(str(tuple_list[i][j]), columns[i][col_ranges[j]:col_ranges[j+1]])
+                        self.assertIn(str(tup[j]), columns[i][col_ranges[j]:col_ranges[j+1]])
+                    elif j == 1 and len(tup[j]) <= col_sizes[j]:
+                        self.assertIn(str(tup[j]), columns[i][col_ranges[j]:col_ranges[j+1]])
                     # The others should be offset.
                     else:
-                        self.assertNotIn(str(tuple_list[i][j]), columns[i][col_ranges[j]:col_ranges[j+1]])
+                        self.assertNotIn(str(tup[j]), columns[i][col_ranges[j]:col_ranges[j+1]])
 
 
 
