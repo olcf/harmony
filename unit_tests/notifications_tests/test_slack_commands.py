@@ -81,6 +81,36 @@ class TestStaticFunctions(unittest.TestCase):
         self.assertNotIn('not_command_1', commands.keys())
         self.assertNotIn('not_command_2', commands.keys())
 
+    def test_maximize_col_sizes_single(self):
+        single_tuple = [('a', 'test_a', '0')]
+        col_sizes = [1, 1, 1]
+        expected_col_sizes = [1, 6, 1]
+
+        new_col_sizes = slack_commands.maximize_col_sizes(single_tuple, col_sizes)
+        correct_cols = [0, 2]
+        for i in range(len(col_sizes)):
+            with self.subTest(column=i, expected=expected_col_sizes, actual=new_col_sizes):
+                if i in correct_cols:
+                    self.assertEqual(col_sizes[i], new_col_sizes[i])
+                else:
+                    self.assertNotEqual(col_sizes[i], new_col_sizes[i])
+                    self.assertEqual(expected_col_sizes[i], new_col_sizes[i])
+
+    def test_maximize_col_sizes_multiple(self):
+        single_tuple = [('a', 't_a', '0'), ('b', 'test_b', '1')]
+        col_sizes = [1, 1, 1]
+        expected_col_sizes = [1, 6, 1]
+
+        new_col_sizes = slack_commands.maximize_col_sizes(single_tuple, col_sizes)
+        correct_cols = [0, 2]
+        for i in range(len(col_sizes)):
+            with self.subTest(column=i, expected=expected_col_sizes, actual=new_col_sizes):
+                if i in correct_cols:
+                    self.assertEqual(col_sizes[i], new_col_sizes[i])
+                else:
+                    self.assertNotEqual(col_sizes[i], new_col_sizes[i])
+                    self.assertEqual(expected_col_sizes[i], new_col_sizes[i])
+
     def test_make_columns_smaller(self):
         """
         Test if columns are made correctly if the strings in the tuples are smaller than the set column sizes.
@@ -108,7 +138,7 @@ class TestStaticFunctions(unittest.TestCase):
         :return:
         """
         # Expect column sizes to be 1, 26, 1
-        tuple_list = [('a', 'test_a', 0), ('b', 'test_b', 1), ('c', 'test_c c c c c c c c c c c', 2)]
+        tuple_list = [('a', 'test_a', 0), ('b', 'long_name_indeed', 1), ('c', 'test_c c c c c c c c c c c', 2)]
         col_sizes = [10, 10, 10]
         col_ranges = [0]
         for i in range(len(col_sizes)):
@@ -121,7 +151,7 @@ class TestStaticFunctions(unittest.TestCase):
         self.assertEqual(len(tuple_list), len(columns))
         for i in range(len(columns)):
             tup = tuple_list[i]
-            with self.subTest(tuple=tup):
+            with self.subTest(tuple=tup, line=columns[i]):
                 for j in range(len(tup)):
                     # The first column should still be correct.
                     if j == 0:
@@ -131,7 +161,6 @@ class TestStaticFunctions(unittest.TestCase):
                     # The others should be offset.
                     else:
                         self.assertNotIn(str(tup[j]), columns[i][col_ranges[j]:col_ranges[j+1]])
-
 
 
 class TestMessageParser(unittest.TestCase):

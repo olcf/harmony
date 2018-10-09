@@ -36,7 +36,7 @@ def get_functions(cls):
     return functions
 
 
-def make_columns(tuple_list, col_sizes=[10, 30, 20]):
+def make_columns(tuple_list, col_sizes=[10, 20, 20]):
     string = ""
     if len(tuple_list) == 0:
         return string
@@ -45,25 +45,30 @@ def make_columns(tuple_list, col_sizes=[10, 30, 20]):
                          " defining " + str(len(tuple_list[0])) + " columns.")
 
     tuple_list = [tuple([str(val) for val in tup]) for tup in tuple_list]
-    for i in range(len(col_sizes)):
-        max_col_size = max((len(tup[0]) for tup in tuple_list))
-        if col_sizes[i] < max_col_size:
-            col_sizes[i] = max_col_size
 
-    print(col_sizes)
+    col_sizes = maximize_col_sizes(tuple_list, col_sizes)
+
     for i in range(len(tuple_list)):
-        tup = tuple([str(val) for val in tuple_list[i]])
+        tup = tuple_list[i]
 
         unformatted = ""
         for j in range(len(tup)):
             unformatted += "{" + str(j) + ":<" + str(col_sizes[j]) + "} "
 
-        # Unpack the tuple and format it.
+        # Unpack the tuple with '*' operator and format it.
         string += unformatted.format(*tup)
         if i < len(tuple_list) - 1:
             string += "\n"
 
     return string
+
+
+def maximize_col_sizes(tuple_list, col_sizes):
+    new_cols = [0] * len(col_sizes)
+    for i in range(len(col_sizes)):
+        max_col_size = max((len(tup[i]) for tup in tuple_list))
+        new_cols[i] = max(max_col_size, col_sizes[i])
+    return new_cols
 
 
 class MessageParser():
@@ -261,7 +266,7 @@ class MessageParser():
             response = "I found " + str(len(jobs)) + " jobs in LSF.\n"
 
         tuple_list = [(job.jobId, job.jobName, job.status) for job in jobs]
-        response += make_columns(tuple_list)
+        response += "```" + make_columns(tuple_list) + "```"
 
         return response
 

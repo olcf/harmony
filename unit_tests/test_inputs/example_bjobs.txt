@@ -1,5 +1,8 @@
 JOBID   USER       STAT   SLOTS    QUEUE       START_TIME    FINISH_TIME   JOB_NAME                      
-341239  yoonh      RUN    321      batch       Oct  9 06:40  Oct  9 10:40  horo_256                      
+341358  ul6        RUN    21       batch       Oct  9 13:01  Oct  9 17:01  /bin/bash                     
+341359  ul6        RUN    21       batch       Oct  9 13:01  Oct  9 17:01  /bin/bash                     
+341386  4jh        RUN    21       batch       Oct  9 14:08  Oct  9 18:08  Resnet50                      
+341390  shubhankar RUN    81       batch       Oct  9 14:51  Oct  9 15:21  /bin/bash -l                  
 341112  b2v        PEND      -     batch             -             -       sort_chapel_54                
 341119  b2v        PEND      -     batch             -             -       sort_chapel_54                
 341126  b2v        PEND      -     batch             -             -       sort_chapel_54                
@@ -9,3 +12,12 @@ JOBID   USER       STAT   SLOTS    QUEUE       START_TIME    FINISH_TIME   JOB_N
 341136  rsankar    PEND      -     batch             -             -       qnightly                      
 341137  rsankar    PEND      -     batch             -             -       raptorxlf                     
 341240  yoonh      PEND      -     batch             -             -       horo_1024                     
+341381  jackm      EXIT   21       batch       Oct  9 13:53  Oct  9 13:53  /bin/bash -l -nnodes 1        
+341380  jackm      EXIT   21       batch       Oct  9 13:53  Oct  9 13:54  /bin/bash -l -nnodes 1        
+341382  shubhankar EXIT   81       batch       Oct  9 13:53  Oct  9 13:56  /bin/bash                     
+341384  shubhankar EXIT   81       batch       Oct  9 13:56  Oct  9 14:07  /bin/bash                     
+341385  andreas    DONE   21       batch       Oct  9 13:57  Oct  9 14:17  NiO_codedev                   
+341383  jackm      EXIT   21       batch       Oct  9 13:54  Oct  9 14:24  /bin/bash -l                  
+341387  shubhankar DONE   81       batch       Oct  9 14:45  Oct  9 14:46  /bin/bash -l                  
+341388  shubhankar DONE   81       batch       Oct  9 14:46  Oct  9 14:50  /bin/bash -l                  
+341389  atmyers2   DONE   21       batch       Oct  9 14:49  Oct  9 14:51  WarpX                         
