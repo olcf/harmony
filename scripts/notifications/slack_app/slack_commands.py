@@ -50,6 +50,7 @@ def make_columns(tuple_list, col_sizes=[10, 30, 20]):
         if col_sizes[i] < max_col_size:
             col_sizes[i] = max_col_size
 
+    print(col_sizes)
     for i in range(len(tuple_list)):
         tup = tuple([str(val) for val in tuple_list[i]])
 

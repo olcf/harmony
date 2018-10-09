@@ -81,7 +81,11 @@ class TestStaticFunctions(unittest.TestCase):
         self.assertNotIn('not_command_1', commands.keys())
         self.assertNotIn('not_command_2', commands.keys())
 
-    def test_make_columns(self):
+    def test_make_columns_smaller(self):
+        """
+        Test if columns are made correctly if the strings in the tuples are smaller than the set column sizes.
+        :return:
+        """
         tuple_list = [('a', 'test_a', 0), ('b', 'test_b', 1), ('c', 'test_c', 2)]
         col_sizes = [10, 10, 10]
         col_ranges = [0]
@@ -96,6 +100,33 @@ class TestStaticFunctions(unittest.TestCase):
             with self.subTest(tuple=tuple_list[i]):
                 for j in range(len(tuple_list[i])):
                     self.assertIn(str(tuple_list[i][j]), columns[i][col_ranges[j]:col_ranges[j+1]])
+
+    def test_make_columns_bigger(self):
+        """
+        Test if columns are made correctly if some of the strings in the tuples are bigger than the set column sizes.
+        :return:
+        """
+        # Expect column sizes to be 1, 26, 1
+        tuple_list = [('a', 'test_a', 0), ('b', 'test_b', 1), ('c', 'test_c c c c c c c c c c c', 2)]
+        col_sizes = [10, 10, 10]
+        col_ranges = [0]
+        for i in range(len(col_sizes)):
+            col_ranges.append(col_ranges[i] + col_sizes[i])
+
+        columns = slack_commands.make_columns(tuple_list, col_sizes)
+        columns = columns.splitlines()
+
+        self.assertEqual(len(tuple_list), len(columns))
+        for i in range(len(columns)):
+            with self.subTest(tuple=tuple_list[i]):
+                for j in range(len(tuple_list[i])):
+                    # The first column should still be correct.
+                    if j == 0:
+                        self.assertIn(str(tuple_list[i][j]), columns[i][col_ranges[j]:col_ranges[j+1]])
+                    # The others should be offset.
+                    else:
+                        self.assertNotIn(str(tuple_list[i][j]), columns[i][col_ranges[j]:col_ranges[j+1]])
+
 
 
 class TestMessageParser(unittest.TestCase):
