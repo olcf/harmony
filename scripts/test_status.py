@@ -83,19 +83,20 @@ def slack_notify(message):
     app.send_message(channel=channel, message=message)
 
 
-def get_test_directories(tests_path, test_list):
+def get_test_directories(tests_path, test_list, append_dirs=('Status', 'latest')):
     """
     Get the path to the 'job_id.txt' files for each test.
 
     :param tests_path: (str) Path to tests.
     :param test_list: (list) List of tests.
+    :param append_dirs: (iter) An iterable containing additional directories to append to each path.
     :return: test_path_list: (list) List of paths.
     """
     # Initially no paths.
     test_path_list = []
     for dic in test_list:
         # Join the path_to_tests, the program for the test, the name of the test, Status, and latest.
-        path = os.path.join(tests_path, dic['program'], dic['test'], 'Status', 'latest')
+        path = os.path.join(tests_path, dic['program'], dic['test'], *append_dirs)
         # Add this path to the test list.
         test_path_list.append(path)
     return test_path_list

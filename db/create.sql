@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `rgt_test`
   `application`       VARCHAR (1024)  NOT NULL,
   `testname`          VARCHAR (1024)  NOT NULL,
   `job_id`            CHAR (64)       NULL,
-  `job_status`        TINYINT         NULL,
+  `lsf_exit_status`   TINYINT         NULL,
   `build_status`      TINYINT         NULL,
   `submit_status`     TINYINT         NULL,
   `check_status`      TINYINT         NULL,

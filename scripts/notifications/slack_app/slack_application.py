@@ -225,22 +225,30 @@ class SlackApp:
         :return: A list of all the messages.
         """
 
+        # rtm_read only gets a single frame from the slack client.
+        # It can fall behind if there are frames not yet read which is why we do the following iteration stuff.
+
         # Get the response from the server when we read from it. This is all the messages since the last of these calls
         # or since when we connected.
         responses = []
+        # Read the first response.
         response = self.client.rtm_read()
+        # Count the number of times we have iterated.
         iterations = 0
+        # While we are still getting new responses and we have not iterated the maximum number of times.
         while len(response) != 0 and iterations < self.max_responses:
+            # Increment iterations.
             iterations += 1
+            # For each message in the response (it is always one but this is just to be safe)
             for message in response:
+                # If message was ok then add it to the list of messages we will respond to.
                 if self.allowable_mention(message):
                     self.verbose_print("Message was allowable:\n" + str(message))
                     responses.append(message)
+                # Otherwise do not.
                 else:
                     self.verbose_print("Message was not allowable:\n" + str(message))
 
-            # rtm_read only gets a single frame from the slack client.
-            # It can fall behind if there are frames not yet read.
             if iterations < self.max_responses - 1:
                 response = self.client.rtm_read()
 
@@ -255,9 +263,22 @@ class SlackApp:
         :return: Whether the message was deemed suitable.
         """
         def match(string, search=re.compile(r'[^a-z0-9<>@_ ]', re.IGNORECASE).search):
+            """
+            Test if a string only contains certain characters. This is nice and safe since it is a simple regex.
+            :param string: The string to search.
+            :param search: The regex search.
+            :return: Whether the string only contained those characters.
+            """
             return not bool(search(string))
-        
+
+        # Try the following code. If it does not work and a key error is the issue then show the server runner.
         try:
+            # Check that the message has a reasonable amount of text for us to parse.
+            if len(message['text']) > self.max_message_length:
+                if self.verbose:
+                    self.verbose_print("This message had too much text.\n" + str(message))
+                return False
+
             # Check that the text of the message only contains alphanumerics
             # and '<', '>', and '@' so that our user can be mentioned.
             # We do this first so that future error messages can be shown with less string parsing danger.
@@ -285,17 +306,13 @@ class SlackApp:
                     self.verbose_print("The event that corresponds to this message was too old.\n" + str(message))
                 return False
 
-            # Check that the message has a reasonable amount of text for us to parse.
-            if len(message['text']) > self.max_message_length:
-                if self.verbose:
-                    self.verbose_print("This message had too much text.\n" + str(message))
-                return False
         except KeyError as e:
             # One of those many keys did not exist.
             if self.verbose:
                 self.verbose_print("This message did not have the " + str(e) + " key.")
             return False
 
+        # If it passes all tests then it is ok to parse.
         return True
 
     def get_my_mention_token(self):

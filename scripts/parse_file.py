@@ -25,6 +25,70 @@ class ParseEvent:
         return event_dics
 
 
+class ParseRGTStatus:
+    """
+    Parse the rgt_status.txt file found in each test.
+    """
+
+    def parse_file(self, file_path):
+        """
+        Parse the file and get the info for each test instance.
+
+        :param file_path: Path to rgt_status.txt file.
+        :return: A list of dictionaries containing each test instances variables.
+        """
+        # Open file and get contents.
+        with open(file_path) as file:
+            file_contents = [line for line in file]
+
+        # Remove the header from the file.
+        file_contents = self.remove_header(file_contents)
+
+        # Create an empty list for holding job dictionaries.
+        job_dics = []
+        # Go through each line and get important values.
+        for line in file_contents:
+            # Split the line.
+            split = line.split()
+            # Get the time when the harness started recording and replace the 'T' with a ' '
+            # so that it is ready to be entered into the database.
+            harness_start = split[0].replace('T', ' ')
+            # Get the UID for the test instance.
+            harness_uid = split[1]
+            # Get the id for the job.
+            job_id = split[2]
+            # Get the status of each stage.
+            build_status = split[3]
+            submit_status = split[4]
+            check_status = split[5]
+
+            # Change the line into a dictionary and add it to the list.
+            job_dic = {'harness_start': harness_start,
+                       'harness_uid': harness_uid,
+                       'job_id': job_id,
+                       'build_status': build_status,
+                       'submit_status': submit_status,
+                       'check_status': check_status}
+            job_dics.append(job_dic)
+        return job_dics
+
+    def remove_header(self, file_contents):
+        """
+        Remove the header from a `rgt_status.txt` file that exists just inside the Status directory for the test.
+
+        :param file_contents: The file_contents in list format.
+        :return: The file_contents with header removed.
+        """
+        # Create list to hold new contents.
+        new_contents = []
+        # Go through each line and check if it is in the header or contains nothing. If it is a usable line, add it.
+        for line in file_contents:
+            if len(line.lstrip()) !=0 and line.lstrip()[0] != '#':
+                new_contents.append(line)
+
+        return new_contents
+
+
 class ParseJobID:
     """
     Parse the job_id.txt file that each test has when run.
