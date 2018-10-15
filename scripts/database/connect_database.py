@@ -26,3 +26,12 @@ class DatabaseConnector:
         :return: The database that is connected to.
         """
         return pymysql.connect(self.host, self.user, self.password, self.database_name)
+
+
+if __name__ == '__main__':
+    DC = DatabaseConnector('localhost', 'root', 'password', 'harmony')
+    db = DC.connect()
+    cursor = db.cursor()
+    sql = "SELECT * FROM testing_table"
+    cursor.execute(sql)
+    print(cursor.fetchall())

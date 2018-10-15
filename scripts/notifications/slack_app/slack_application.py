@@ -306,6 +306,12 @@ class SlackApp:
                     self.verbose_print("The event that corresponds to this message was too old.\n" + str(message))
                 return False
 
+            # Test if correct channel. Only read until end of channel length and no more.
+            if self.channel != message['channel'][:len(channel)]:
+                if self.verbose:
+                    self.verbose_print("The channel that corresponds to this message was not the channel this"
+                                       " bot was meant for.\n" + str(message))
+
         except KeyError as e:
             # One of those many keys did not exist.
             if self.verbose:
@@ -393,8 +399,7 @@ if __name__ == '__main__':
     bot_token = os.environ["SLACK_BOT_TOKEN"]
     app_token = os.environ["SLACK_APP_TOKEN"]
     # This is the id of the channel.
-    # TODO: Set this as environment variable.
-    channel = "CCRA1Q41J"
+    channel = os.environ["SLACK_HARMONY_CHANNEL"]
     # Pull the bot token from the os environment and create the connector.
     app = SlackApp(bot_token=bot_token, app_token=app_token, channel=channel, response_time=1, verbose=1)
 

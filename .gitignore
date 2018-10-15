@@ -15,3 +15,6 @@
 
 # nfs file
 *nfs*
+
+# config file. Just remake it if you need it.
+*.ini

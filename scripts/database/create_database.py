@@ -1,4 +1,3 @@
-import pymysql
 from os import path as p
 
 

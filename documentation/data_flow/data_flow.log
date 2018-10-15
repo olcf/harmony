@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.5.23)  12 OCT 2018 08:42
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.5.23)  13 OCT 2018 11:13
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -473,16 +473,16 @@ LaTeX Font Warning: Font shape `OT1/cmss/m/it' in size <9> not available
 
 
 
-Overfull \hbox (74.44936pt too wide) in paragraph at lines 258--259
+Overfull \hbox (104.63626pt too wide) in paragraph at lines 279--280
 [] 
  []
 
 [3] (./data_flow.aux) ) 
 Here is how much of TeX's memory you used:
- 11804 strings out of 492995
- 243981 string characters out of 6132704
- 280774 words of memory out of 5000000
- 15144 multiletter control sequences out of 15000+600000
+ 11828 strings out of 492995
+ 244624 string characters out of 6132704
+ 282839 words of memory out of 5000000
+ 15168 multiletter control sequences out of 15000+600000
  8723 words of font info for 31 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  55i,8n,61p,718b,821s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -495,7 +495,7 @@ s/cm/cmr17.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/
 cm/cmssi9.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/c
 m/cmsy10.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm
 /cmtt10.pfb>
-Output written on data_flow.pdf (3 pages, 98187 bytes).
+Output written on data_flow.pdf (3 pages, 98506 bytes).
 PDF statistics:
  49 PDF objects out of 1000 (max. 8388607)
  35 compressed objects within 1 object stream

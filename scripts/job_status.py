@@ -101,6 +101,23 @@ class JobStatus:
         # Return the status of the job.
         return jobs[0].status
 
+    def get_job_exit_status(self, jobid):
+        """
+        Send in the id of some job and get it's corresponding exit status if it has one.
+
+        :param jobid: Id of job whose exit status will be found.
+        :return: The exit status of the job.
+        """
+        # Get the job.
+        jobs = self.get_jobs(jobid=jobid)
+        # If no job with that id exists, then error.
+        if len(jobs) == 0:
+            raise KeyError("There is no job with ID", jobid)
+        elif len(jobs) > 1:
+            raise KeyError("There are too many jobs with ID", jobid)
+        # Return the exit status of the job.
+        return jobs[0].exit_status
+
     def get_jobs(self, jobid=0, jobName=None, user="all", queue=None, hostname=None, status='all'):
         """
         Enter certain parameters to reduce the search space of all jobs in LSF or that have been recently completed.
@@ -223,15 +240,17 @@ class Job:
         self.jobName = j.jName
         # Record user who submitted job.
         self.user = j.user
+        # Set the exit status value initially to None. If it has one, it is changed later on.
+        self.exit_status = int(j.exitStatus)
 
         # Get the status of the job.
-        # print("jobId:", self.jobId, "RUN:", lsf.JOB_STAT_RUN, "DONE:", lsf.JOB_STAT_DONE,"EXIT:", lsf.JOB_STAT_EXIT,
-        #       "USUSP:", lsf.JOB_STAT_USUSP, "SSUSP:", lsf.JOB_STAT_SSUSP, "PEND:", lsf.JOB_STAT_PEND)
         if j.status & lsf.JOB_STAT_RUN:
             self.status = self.possible_status["running"]
         elif j.status & lsf.JOB_STAT_DONE:
+            self.exit_status = int(j.exitStatus)
             self.status = self.possible_status["complete"]
         elif j.status & lsf.JOB_STAT_EXIT:
+            self.exit_status = int(j.exitStatus)
             # I think that error code 140 always means runlimit exceeded and there is no other code.
             # I'm not totally sure about that though.
             if (int(j.exitStatus) % 256) == 140:
