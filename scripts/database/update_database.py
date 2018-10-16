@@ -220,11 +220,7 @@ class UpdateDatabase:
         :param rgt_stat_line: The line from the rgt_status.txt file that matches this test.
         :return:
         """
-        # Create parser for parsing event.
-        parser = parse_file.ParseEvent()
-        # Get event dictionary.
-        event_dic = parser.parse_file(event_path)
-
+        # TODO: This file seems to do some repetitve updating. Is that problematic and what is the best way to fix it?
         # LSF job id.
         job_id = rgt_stat_line['job_id']
         # Check LSF.
@@ -245,6 +241,27 @@ class UpdateDatabase:
                     if update_fields[status] not in [0, 17]:
                         update_fields['done'] = True
                         break
+
+        # Create parser for parsing event.
+        parser = parse_file.ParseEvent()
+        # Get event dictionary.
+        event_dic = parser.parse_file(event_path)
+
+        # Get path to output files.
+        output_path = event_dic['run_archive']
+
+        # For each possible output field.
+        for output_field in self.possible_outputs:
+            # Try to get the text from the file.
+            try:
+                output_text = self.output_text(output_path, output_field)
+            # If the file does not exist, try to get the next file.
+            except FileNotFoundError:
+                pass
+            # If it does exist, add it as a field to update.
+            else:
+                key = 'output_' + output_field
+                update_fields[key] = output_text
 
         # Get the necessary sql for updating the database.
         sql = self.get_update_sql(update_fields, test_id)
