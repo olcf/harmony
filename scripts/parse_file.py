@@ -45,8 +45,10 @@ class ParseRGTStatus:
 
         # Create an empty list for holding job dictionaries.
         job_dics = []
-        # Go through each line and get important values.
-        for line in file_contents:
+        # Go through each line and get important values. We use the index method for iteration so that we keep it in
+        # order. This speeds up matching the harness_uid when updating the database.
+        for i in len(file_contents):
+            line = file_contents[i]
             # Split the line.
             split = line.split()
             # Get the time when the harness started recording and replace the 'T' with a ' '
