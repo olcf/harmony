@@ -1,6 +1,7 @@
 import configparser
 import os
 
+
 def write_config(file_path):
     conf = configparser.ConfigParser()
 
@@ -27,8 +28,20 @@ def write_config(file_path):
     # Refresh the database every half hour.
     database['REFRESH_TIME'] = '1800'
 
+    # Maximum length of a message we send.
+    # Slack splits it into multiple bits when it is longer than ~4000 so this is a good limit.
+    database['MAX_SENT_MESSAGE_LENGTH'] = '3500'
+
     with open(file_path, mode='w+') as configfile:
         conf.write(configfile)
+
+
+def get_config(file_path=os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config.ini'))):
+    conf = configparser.ConfigParser()
+
+    conf.read(file_path)
+    return conf
+
 
 if __name__ == '__main__':
     config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config.ini'))

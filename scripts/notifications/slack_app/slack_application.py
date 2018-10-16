@@ -5,6 +5,9 @@ import threading
 from scripts.notifications.slack_app import slack_commands
 import sys
 import re
+from scripts import config_functions
+import math
+import copy
 
 
 class SlackApp:
@@ -13,18 +16,18 @@ class SlackApp:
     """
 
     # All times are in unix time.
-    def __init__(self, bot_token, app_token, channel, response_time=5, max_messengers=4, verbose=0, max_responses=100,
-                 max_message_length=100):
+    def __init__(self, bot_token, app_token, channel, watch_time=5, max_messengers=4, verbose=0, max_reads=100,
+                 max_message_length=100, max_message_keys=20):
         """
         Construct the application.
 
         :param bot_token: Token for the bot in the app. This is the bot that needs to be mentioned.
         :param app_token: Token for the app.
         :param channel: Channel to check for messages from.
-        :param response_time: How often to check the recent messages and send responses.
+        :param watch_time: How often to check the recent messages and send responses.
         :param max_messengers: How many messengers should be allowed to exist at once.
         :param verbose: Whether to print out what the app is currently doing. (0, 1, or 2)
-        :param max_responses: How many responses from slack to go through each time we loop.
+        :param max_reads: How many responses from slack to go through each time we loop.
         :param max_message_length: Maximum length of a message that we try to parse.
         """
         # Set the token for the bot being used.
@@ -42,7 +45,7 @@ class SlackApp:
         self.user_id = self.get_my_mention_token()
 
         # How often the bot should check for messages.
-        self.response_time = response_time
+        self.watch_time = watch_time
 
         # Maximum number of messengers allowed.
         self.max_messengers = max_messengers
@@ -56,10 +59,16 @@ class SlackApp:
         self.MP = slack_commands.MessageParser()
 
         # Only read a certain number of responses from the server. This prevents an overflow of messages from coming in.
-        self.max_responses = max_responses
+        self.max_reads = max_reads
 
         # Only read messages less than some length.
         self.max_message_length = max_message_length
+
+        # Only look at messages with less than this number of keys.
+        self.max_message_keys = max_message_keys
+
+        # Slack splits messages if they are too long so we set a limit where we want to split it.
+        self.max_sent_message_length = max_sent_message_length
 
     def send_message(self, channel, message):
         """
@@ -71,10 +80,51 @@ class SlackApp:
         """
         # Call the slack api to post a message to a specific channel.
         start = time.time()
-        self.client.rtm_send_message(channel, message)
+        if len(message) >= self.max_sent_message_length:
+            if self.verbose:
+                self.verbose_print("Splitting long message.")
+            num_splits = math.ceil(float(len(message)) / self.max_sent_message_length)
+            split_length = int(len(message) / num_splits)
+            split_message = self.split_message_to_send(message, split_length)
+        else:
+            split_message = [message]
+
+        for i in range(len(split_message)):
+            message = split_message[i]
+            if self.verbose == 2:
+                self.verbose_print("Sending message part.\n" + message)
+            self.client.rtm_send_message(channel, message)
+
         if self.verbose:
             self.verbose_print("Sent message in " + str(time.time() - start) + " seconds.")
         return
+
+    def split_message_to_send(self, message, split_length):
+        changed_message = copy.copy(message)
+        index = split_length
+        new_split_length = None
+        split_message = []
+        while index < len(message):
+            # Check if this string is going to be formatted. If it is, make sure that the formatting is done correctly.
+            before_count = message[:index].count('```')
+            after_count = message[index:].count('```')
+
+            if before_count % 2 != 0 and after_count != 0:
+                if new_split_length is None:
+                    message_part = changed_message[0:split_length] + '```'
+                    changed_message = '```' + changed_message[split_length:]
+                    new_split_length = split_length + 3
+                else:
+                    message_part = changed_message[0:new_split_length] + '```'
+                    changed_message = '```' + changed_message[new_split_length]
+            else:
+                new_split_length = None
+                message_part = changed_message[0:split_length]
+                changed_message = changed_message[split_length:]
+
+            split_message.append(message_part)
+
+        return split_message
 
     def search_messages(self, key, responses):
         """
@@ -109,7 +159,7 @@ class SlackApp:
             if len(responses) == 0:
                 self.verbose_print("Number of responses searched:" + str(len(responses))
                                    + " (i.e. No responses in the channel in the past "
-                                   + str(self.response_time) + " seconds)")
+                                   + str(self.watch_time) + " seconds)")
             else:
                 self.verbose_print("Number of responses searched:" + str(len(responses)))
             self.verbose_print("Number of matching messages:" + str(len(matching_messages)))
@@ -158,8 +208,8 @@ class SlackApp:
                 total_time = time.time() - start
                 if self.verbose == 2:
                     self.verbose_print("Finished checking in " + str(total_time) + " seconds.")
-                if self.response_time - total_time > 0:
-                    time.sleep(self.response_time - total_time)
+                if self.watch_time - total_time > 0:
+                    time.sleep(self.watch_time - total_time)
 
     def remove_dead_messengers(self):
         """
@@ -236,7 +286,7 @@ class SlackApp:
         # Count the number of times we have iterated.
         iterations = 0
         # While we are still getting new responses and we have not iterated the maximum number of times.
-        while len(response) != 0 and iterations < self.max_responses:
+        while len(response) != 0 and iterations < self.max_reads:
             # Increment iterations.
             iterations += 1
             # For each message in the response (it is always one but this is just to be safe)
@@ -249,7 +299,7 @@ class SlackApp:
                 else:
                     self.verbose_print("Message was not allowable:\n" + str(message))
 
-            if iterations < self.max_responses - 1:
+            if iterations < self.max_reads - 1:
                 response = self.client.rtm_read()
 
         # Return all messages with our mention token.
@@ -288,7 +338,7 @@ class SlackApp:
                 return False
 
             # Check that there is not an enormous excess of keys.
-            if len(message.keys()) > 20:
+            if len(message.keys()) > self.max_message_keys:
                 if self.verbose:
                     self.verbose_print("This message had too many keys.\n" + str(message))
                 return False
@@ -297,11 +347,11 @@ class SlackApp:
             message_age = time.time() - float(message['ts'])
             event_age = time.time() - float(message['event_ts'])
 
-            if message_age > self.response_time * 10:
+            if message_age > self.watch_time * 10:
                 if self.verbose:
                     self.verbose_print("This message was too old.\n" + str(message))
                 return False
-            if event_age > self.response_time * 10:
+            if event_age > self.watch_time * 10:
                 if self.verbose:
                     self.verbose_print("The event that corresponds to this message was too old.\n" + str(message))
                 return False
@@ -371,12 +421,12 @@ def recursive_print_dic(dic, indent=0):
     new_line = '\n'
     if type(dic) is dict:
         for key in dic.keys():
-            message += new_line + indent * tab + "'" + key + "': {" + recursive_print_dic(dic[key],
-                                                                                          indent=indent + 1) + "}" + new_line + indent * tab
+            message += new_line + indent * tab + "'" + key + "': {" + \
+                       recursive_print_dic(dic[key], indent=indent + 1) + "}" + new_line + indent * tab
     elif type(dic) is list:
         for element in dic:
-            message += new_line + indent * tab + "[" + recursive_print_dic(element,
-                                                                           indent=indent + 1) + "]" + new_line + indent * tab
+            message += new_line + indent * tab + "[" + \
+                       recursive_print_dic(element, indent=indent + 1) + "]" + new_line + indent * tab
     else:
         message += tab + str(dic) + tab
         message = message.encode('ascii', 'replace')
@@ -396,11 +446,26 @@ def dic_print(dic):
 
 
 if __name__ == '__main__':
-    bot_token = os.environ["SLACK_BOT_TOKEN"]
-    app_token = os.environ["SLACK_APP_TOKEN"]
+    config = config_functions.get_config()
+    slack_config = config['SLACK_APP']
+    bot_token = slack_config["slack_bot_token"]
+    app_token = slack_config["slack_app_token"]
     # This is the id of the channel.
-    channel = os.environ["SLACK_HARMONY_CHANNEL"]
+    channel = slack_config["slack_harmony_channel"]
+    # How often the bot should recheck the channel.
+    watch_time = float(slack_config["watch_time"])
+    # Maximum number of message senders.
+    max_messengers = int(slack_config["max_messengers"])
+    # Maximum number of reads from slack when pulling messages.
+    max_reads = int(slack_config["max_reads"])
+    # Maximum message length to try to read.
+    max_message_length = int(slack_config["max_message_length"])
+    # Maximum number of keys allowed in any message from slack.
+    max_message_keys = int(slack_config["max_message_keys"])
+
     # Pull the bot token from the os environment and create the connector.
-    app = SlackApp(bot_token=bot_token, app_token=app_token, channel=channel, response_time=1, verbose=1)
+    app = SlackApp(bot_token=bot_token, app_token=app_token, channel=channel, watch_time=watch_time,
+                   verbose=1, max_messengers=max_messengers, max_reads=max_reads, max_message_length=max_message_length,
+                   max_message_keys=max_message_keys)
 
     app.main()
