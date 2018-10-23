@@ -366,6 +366,6 @@ class MessageParser():
         # Add headers to message.
         tuple_list.insert(0, ("JOBID", "USER", "JOBNAME", "STATUS"))
         # Format the message and send it back.
-        response += "```" + make_columns(tuple_list) + "```"
+        response += "```" + make_columns(tuple_list, [10, 10, 20, 20]) + "```"
 
         return response

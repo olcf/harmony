@@ -1,2 +1,2 @@
-user: test_user job_id: 341032 status: Susp_person_pend done: False END_OF_MESSAGE 
-user: test_user job_id: 341032 status: Susp_person_pend done: False END_OF_MESSAGE 
+user: test_user job_id: 342234 status: Complete done: True END_OF_MESSAGE 
+user: test_user job_id: 342234 status: Complete done: True END_OF_MESSAGE 

@@ -27,6 +27,7 @@ class TestJobClass(unittest.TestCase):
         jobID = randint(1, 1000000)
         # Give it a name.
         jName = "practice_test_"
+        user = "user"
 
         # These are the expected stats that will come from the class.
         # They line up with the iterations through the lists.
@@ -49,7 +50,7 @@ class TestJobClass(unittest.TestCase):
                     job_name = jName + str(index)
                     # Create a fake lsf job with the correct attributes.
                     lsf_job = TestJobClass.example_job(jobID=jobID, status=status, jName=job_name,
-                                                       exit_status=exit_status, pend_state_j=pend_state_j)
+                                                       exit_status=exit_status, pend_state_j=pend_state_j, user=user)
                     # Create a job from the fake lsf job.
                     job = job_status.Job(lsf_job)
                     # Do subTests so that if it fails in one place it will still continue and try all.
@@ -67,7 +68,7 @@ class TestJobClass(unittest.TestCase):
         """
         Class to create a fake lsf job for testing.
         """
-        def __init__(self, jobID, jName, status, exit_status, pend_state_j):
+        def __init__(self, jobID, jName, status, exit_status, pend_state_j, user):
             """
             Initialize the fake job.
 
@@ -81,6 +82,7 @@ class TestJobClass(unittest.TestCase):
             self.exitStatus = exit_status
             self.pendStateJ = pend_state_j
             self.jName = jName
+            self.user = user
 
 
 class TestJobStatus(unittest.TestCase):
