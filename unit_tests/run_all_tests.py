@@ -18,7 +18,7 @@ def main():
     parser = make_parser()
     args = parser.parse_args()
 
-    # TODO: Split these into types of tests to run and order them correctly.
+    # TODO: Should this be split more than this?
     fast_test_list = [test_job_status.TestJobClass, test_job_status.TestJobStatus,
                       test_parse_file.TestErrors, test_parse_file.TestParseJobID, test_parse_file.TestParseRGTInput,
                       test_test_status.TestTestStatus,

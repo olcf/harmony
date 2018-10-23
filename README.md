@@ -76,6 +76,10 @@ to the same database and there is a conflict, does it get corrupted?
   - Status file parsing
   - Monitor queue script
 
-## Unit Tests
-- Run unittests using 'python3 -m unittest discover unit_tests "test_*.py"' while in the harmony directory.
+## Running Stuff
+#### Unit Tests
+- Run unittests using `python3 -m unittest discover unit_tests "test_*.py"` while in the harmony directory. 
+Add the `-f` flag to the end to only run fast tests.
   
+#### Application
+- Run the slack application using `python3 -m scripts.notifications.slack_app.slack_application` while in the harmony directory.

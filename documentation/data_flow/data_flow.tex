@@ -110,6 +110,22 @@ We always need to check the LSF status of the job once it has begun running. Thi
       edge[stateEdge] node[edgeLabel, xshift=3.5em]{\emph{Create UID list}} 
       (nextUID.north); 
 
+  \coordinate (nextUID2nextUIDA) at ($(nextUID.east) + (2em, -1em)$);
+  \coordinate (nextUID2nextUIDB) at ($(nextUID2nextUIDA) + (0em, 2em)$);
+  \coordinate (nextUID2nextUIDC) at ($(nextUID2nextUIDB) + (-2em, 0em)$);
+
+  \draw ($(nextUID.east) + (0, -1em)$)
+  	  edge[stateEdgePortion]
+  	  (nextUID2nextUIDA);
+
+  \draw (nextUID2nextUIDA)
+  	  edge[stateEdgePortion] node[edgeLabel, xshift=2.75em]{\emph{UID in table}}
+  	  (nextUID2nextUIDB);
+
+  \draw (nextUID2nextUIDB)
+      edge[stateEdge]
+      (nextUID2nextUIDC);
+
   \draw ($(nextUID.south) + (1em, 0)$) 
       edge[stateEdge] node[edgeLabel, xshift=3.5em]{\emph{UID not in table}} 
       ($(addUID.north) + (1em, 0)$); 
@@ -182,10 +198,15 @@ We always need to check the LSF status of the job once it has begun running. Thi
   	  edge[stateEdge] node[edgeLabel, xshift=3.8em]{\emph{Create list of files}}
   	  (nextEvent.north);
 
-  \draw (nextEvent.north west)
-  	  edge[stateEdge] node[edgeLabel, xshift=-3.6em]{\emph{No more events}}
-  	  (nextTestA.south east);
+  \path let \p1=(nextTestA), \p2=(nextEvent) in coordinate (nextEvent2nextTestA) at (\x1, \y2 + 1em);
 
+  \draw ($(nextEvent.west) + (0, 1em)$)
+      edge[stateEdgePortion] node[edgeLabel, yshift=1em]{\emph{No more events}}
+      (nextEvent2nextTestA);
+
+  \draw (nextEvent2nextTestA)
+      edge[stateEdge]
+      (nextTestA.south);
 
   \coordinate (nextEvent2nextEventA) at ($(nextEvent.south) + (1em, -2em)$);
   \coordinate (nextEvent2nextEventB) at ($(nextEvent2nextEventA) + (-2em, 0em)$);

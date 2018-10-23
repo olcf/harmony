@@ -115,7 +115,7 @@ def maximize_col_sizes(tuple_list, col_sizes):
     return new_cols
 
 
-class MessageParser():
+class MessageParser:
     """
     Class to hold the parser for messages.
     """

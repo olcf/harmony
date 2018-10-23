@@ -1,11 +1,32 @@
 import pymysql
+from scripts import config_functions
 
 
 class DatabaseConnector:
     """
     Class to hold info on some connection.
     """
-    def __init__(self, host, user, password, database_name):
+
+    def __init__(self, database_config):
+        """
+        Class to easily connect and disconnect some database.
+
+        :param host: The host for the connection. (ex. 'localhost')
+        :param user: The user trying to connect.
+        :param password: The password for the user.
+        :param database_name: The database targeted.
+        """
+
+        self.host = database_config['host']
+        self.user = database_config['user']
+        self.password = database_config['password']
+        self.database_name = database_config['database_name']
+        if 'port' in database_config:
+            self.port = database_config['port']
+        else:
+            self.port = None
+
+    def __init__(self, host, user, password, database_name, port=None):
         """
         Class to easily connect and disconnect some database.
 
@@ -19,10 +40,27 @@ class DatabaseConnector:
         self.user = user
         self.password = password
         self.database_name = database_name
+        self.port = port
 
     def connect(self):
         """
         Connect to some database.
+
         :return: The database that is connected to.
         """
-        return pymysql.connect(self.host, self.user, self.password, self.database_name)
+        # If there is a port defined, use that. Otherwise use the default port.
+        if self.port is not None:
+            return pymysql.connect(self.host, self.user, self.password, self.database_name, port=self.port)
+        else:
+            return pymysql.connect(self.host, self.user, self.password, self.database_name)
+
+
+if __name__ == '__main__':
+    conf = config_functions.get_config()
+
+    DC = DatabaseConnector(conf['host'], conf['user'], conf['password'], conf['database_name'])
+    db = DC.connect()
+    cursor = db.cursor()
+    sql = "SELECT * FROM testing_table"
+    cursor.execute(sql)
+    print(cursor.fetchall())

@@ -1,4 +1,3 @@
-import pymysql
 from os import path as p
 
 
@@ -28,10 +27,17 @@ def execute_sql_file(connector, file_path):
 
     # Open the file and get the lines.
     with open(file_path, mode='r') as f:
-        sql_file = f.read()
+        sql_file = ""
+        for line in f:
+            if len(line.lstrip()) != 0 and line.lstrip()[0] != '#':
+                cleaned_line = line.replace('\n', ' ')
+                sql_file += cleaned_line + " "
 
     # Split according to ';' and try running commands.
     sql_commands = sql_file.split(';')
+
+    # Remove dead lines.
+    sql_commands = [command for command in sql_commands if len(command.strip()) != 0]
 
     for command in sql_commands:
         # Try to execute the command and if it does not work inform the user.

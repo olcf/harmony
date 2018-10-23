@@ -1,8 +1,8 @@
-
+# Create example tables for testing the database.
 use harmony;
 
 # Hold different types of events.
-CREATE TABLE IF NOT EXISTS `rgt_event`
+CREATE TABLE IF NOT EXISTS `test_rgt_event`
   (
   `event_id`          INT (6)         AUTO_INCREMENT,
   `event_uid`         SMALLINT        NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS `rgt_event`
   );
 
 # Information about error types when checking LSF.
-CREATE TABLE IF NOT EXISTS `rgt_check`
+CREATE TABLE IF NOT EXISTS `test_rgt_check`
   (
   `check_id`          INT (6)         AUTO_INCREMENT,
   `check_uid`         TINYINT         NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `rgt_check`
   );
 
 # Hold info about test.
-CREATE TABLE IF NOT EXISTS `rgt_test`
+CREATE TABLE IF NOT EXISTS `test_rgt_test`
   (
   `test_id`           INT (6)         AUTO_INCREMENT,
   `harness_uid`       CHAR (36)       NOT NULL,
@@ -42,16 +42,16 @@ CREATE TABLE IF NOT EXISTS `rgt_test`
   `output_check`      TEXT            NULL,
   `output_report`     TEXT            NULL,
   `system`            VARCHAR (64)    NOT NULL,
-  `previous_job_id`   CHAR (36)       NOT NULL,
+  `next_harness_uid`  CHAR (36)       NOT NULL,
   `done`              BOOLEAN         NOT NULL,
   `timestamp`         TIMESTAMP       ,
   PRIMARY KEY  ( `test_id` ),
   UNIQUE  KEY `harness_uid`  ( `harness_uid` ),
-  FOREIGN KEY ( `check_status` ) REFERENCES `rgt_check` ( `check_uid` )
+  FOREIGN KEY ( `check_status` ) REFERENCES `test_rgt_check` ( `check_uid` )
   );
 
 # Hold ids of events that occurred to tests.
-CREATE TABLE IF NOT EXISTS `rgt_test_event`
+CREATE TABLE IF NOT EXISTS `test_rgt_test_event`
   (
   `id`                INT (6)         AUTO_INCREMENT,
   `test_id`           INT (6)         NOT NULL,
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS `rgt_test_event`
   `event_time`        DATETIME        NOT NULL,
   `timestamp`         TIMESTAMP       ,
   PRIMARY KEY ( `id` ),
-  FOREIGN KEY ( `test_id` ) REFERENCES `rgt_test` ( `test_id` ),
-  FOREIGN KEY ( `event_id` ) REFERENCES `rgt_event` ( `event_id` ),
+  FOREIGN KEY ( `test_id` ) REFERENCES `test_rgt_test` ( `test_id` ),
+  FOREIGN KEY ( `event_id` ) REFERENCES `test_rgt_event` ( `event_id` ),
   UNIQUE  KEY `test_event` ( `test_id`, `event_id` )
   );

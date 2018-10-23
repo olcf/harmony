@@ -10,19 +10,18 @@ class ParseEvent:
         with open(file_path) as file:
             file_contents = [line for line in file]
 
-        event_dics = []
         for line in file_contents:
-            this_event = {}
+            if len(line.strip()) == 0:
+                continue
+            event = {}
             split_line = line.split()
             for var_val in split_line:
                 if '=' in var_val:
                     if var_val.count('=') != 1:
                         raise SyntaxError("I can't understand '" + var_val + "'.")
                     var, val = var_val.split('=')
-                    this_event[var] = val
-            event_dics.append(this_event)
-
-        return event_dics
+                    event[var] = val
+            return event
 
 
 class ParseRGTStatus:
@@ -46,8 +45,10 @@ class ParseRGTStatus:
 
         # Create an empty list for holding job dictionaries.
         job_dics = []
-        # Go through each line and get important values.
-        for line in file_contents:
+        # Go through each line and get important values. We use the index method for iteration so that we keep it in
+        # order. This speeds up matching the harness_uid when updating the database.
+        for i in len(file_contents):
+            line = file_contents[i]
             # Split the line.
             split = line.split()
             # Get the time when the harness started recording and replace the 'T' with a ' '
