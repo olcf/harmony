@@ -186,8 +186,7 @@ class TestUpdateDatabase(unittest.TestCase):
         :return:
         """
         database_conf = config_functions.get_config()['DATABASE']
-        self.connector = connect_database.DatabaseConnector(database_conf['host'], database_conf['user'],
-                                                            database_conf['password'], database_conf['database_name'])
+        self.connector = connect_database.DatabaseConnector(database_conf)
 
         create_tables_path = os.path.join(os.path.dirname(__file__), 'create_test_tables.sql')
         create_database.execute_sql_file(self.connector, create_tables_path)

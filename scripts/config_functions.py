@@ -1,11 +1,12 @@
 import configparser
 import os
+import sys
 
 
 config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config.ini'))
 
 
-def write_config(file_path):
+def write_config(file_path, password=None):
     conf = configparser.ConfigParser()
 
     # SLACK_APP
@@ -28,9 +29,13 @@ def write_config(file_path):
     # DATABASE
     conf['DATABASE'] = {}
     database = conf['DATABASE']
-    database['HOST'] = 'localhost'
-    database['USER'] = 'root'
-    database['PASSWORD'] = os.environ['DATABASE_PASSWORD']
+    database['HOST'] = 'rgtroute-stf006.marble.ccs.ornl.gov'
+    database['PORT'] = 31673
+    database['USER'] = 'kuchta'
+    if password is not None:
+        database['PASSWORD'] = password
+    else:
+        database['PASSWORD'] = os.environ['DATABASE_PASSWORD']
     database['DATABASE_NAME'] = 'harmony'
     database['TEST_TABLE'] = 'rgt_test'
     database['EVENT_TABLE'] = 'rgt_event'
@@ -56,4 +61,9 @@ def get_config(file_path=os.path.abspath(os.path.join(os.path.dirname(__file__),
 
 
 if __name__ == '__main__':
-    write_config(config_path)
+    if len(sys.argv) > 1:
+        password = sys.argv[1]
+        write_config(config_path, password)
+
+    else:
+        write_config(config_path)
