@@ -40,6 +40,7 @@ def execute_sql_file(connector, file_path):
     sql_commands = [command for command in sql_commands if len(command.strip()) != 0]
 
     for command in sql_commands:
+        print("Trying to run " + command)
         # Try to execute the command and if it does not work inform the user.
         # Otherwise commit the command to the database.
         try:
@@ -50,3 +51,4 @@ def execute_sql_file(connector, file_path):
             database.commit()
 
     database.close()
+

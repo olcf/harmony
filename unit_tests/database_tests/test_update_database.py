@@ -8,163 +8,157 @@ import shutil
 from random import random
 
 
+class InstanceCreator:
+    class InstancePaths:
+        def __init__(self):
+            return
+
+    def __init__(self):
+        self.path_to_inputs = os.path.abspath(os.path.join(__file__, '..', '..', 'test_inputs', 'database_inputs'))
+        self.path_to_rgt_input = os.path.join(self.path_to_inputs, 'rgt_input.txt')
+        self.path_to_exit_files = os.path.join(self.path_to_inputs, 'lsf_exit_files')
+        self.path_to_output_files = os.path.join(self.path_to_inputs, 'output_files')
+        self.path_to_example_tests = os.path.join(self.path_to_inputs, 'example_tests_for_database')
+
+    def create_test_instance(self, program_name, test_name, instance_name, time, job_id, build_status, submit_status,
+                             check_status, outputs, system, events, exit_status):
+        instance = self.InstancePaths()
+        instance.run_archive_instance_path, instance.status_instance_path = \
+            self.make_directories(program_name, test_name, instance_name, self.path_to_example_tests)
+
+        instance.path_to_rgt_status = os.path.join(os.path.dirname(instance.status_instance_path), 'rgt_status.txt')
+        self.write_rgt_status(instance.path_to_rgt_status, time, instance_name, job_id, build_status, submit_status, check_status)
+
+        self.write_rgt_input(self.path_to_rgt_input, self.path_to_example_tests, program_name, test_name)
+
+        for output_key in outputs.keys():
+            instance.output_path = os.path.join(instance.run_archive_instance_path, 'output_' + output_key + ".txt")
+            self.write_output(instance.output_path, outputs[output_key])
+
+        complete_events = {}
+        event_paths = {}
+        for event_key in events.keys():
+            event_dic = events[event_key]
+            file_name = 'Event_' + str(event_key) + '.txt'
+            if 'app' not in event_dic.keys():
+                event_dic['app'] = program_name
+            if 'test' not in event_dic.keys():
+                event_dic['test'] = test_name
+            if 'rgt_system_log_tag' not in event_dic.keys():
+                event_dic['rgt_system_log_tag'] = system
+            if 'run_archive' not in event_dic.keys():
+                event_dic['run_archive'] = instance.run_archive_instance_path
+            if 'event_filename' not in event_dic.keys():
+                event_dic['event_filename'] = file_name
+            if 'event_time' not in event_dic.keys():
+                event_dic['event_time'] = time
+            event_path = os.path.join(instance.status_instance_path, file_name)
+            self.write_event(event_path, event_dic)
+
+            complete_events[event_key] = event_dic
+            event_paths[event_key] = event_path
+        instance.complete_events = complete_events
+        instance.event_paths = event_paths
+
+        self.write_exit_value(job_id, exit_status)
+
+        return instance
+
+    @staticmethod
+    def create_rgt_status_line(harness_start, harness_uid, job_id, build_status, submit_status, check_status):
+        return {'harness_start': harness_start, 'harness_uid': harness_uid, 'job_id': job_id,
+                'build_status': build_status, 'submit_status': submit_status, 'check_status': check_status}
+
+    @staticmethod
+    def write_event(path_to_event, event_dic):
+        # Events need 'event_time' and 'run_archive' keys to function correctly.
+        text = ""
+        for key in event_dic.keys():
+            text += "{key}={value} ".format(key=key, value=event_dic[key])
+
+        with open(path_to_event, mode='w+') as f:
+            f.write(text)
+
+    def write_output(self, output_filename, text):
+        with open(os.path.join(self.path_to_output_files, output_filename), "w+") as f:
+            f.write(text)
+
+    @staticmethod
+    def write_rgt_status(path_to_rgt_status, harness_start, harness_uid, job_id, build_status, submit_status, check_status):
+        text = ""
+        mode = "a"
+        if not os.path.exists(path_to_rgt_status):
+            text += "##################################\n" + \
+                    "# Start time   Unique ID   Batch ID    Build Status    Submit Status   Check Status\n" + \
+                    "##################################\n"
+            mode = "w+"
+
+        text += "{harness_start} {harness_uid} {job_id} {build_status} {submit_status} {check_status}\n" \
+            .format(harness_start=harness_start, harness_uid=harness_uid, job_id=job_id,
+                    build_status=build_status, submit_status=submit_status, check_status=check_status)
+
+        with open(path_to_rgt_status, mode=mode) as f:
+            f.write(text)
+
+    @staticmethod
+    def make_directory(directory_path):
+        if not os.path.exists(directory_path):
+            os.mkdir(directory_path)
+
+    def make_directories(self, program_name, test_name, instance_name, path_to_example_tests):
+        program_path = os.path.join(path_to_example_tests, program_name)
+        self.make_directory(program_path)
+
+        test_path = os.path.join(program_path, test_name)
+        self.make_directory(test_path)
+
+        status_path = os.path.join(test_path, 'Status')
+        self.make_directory(status_path)
+        run_archive_path = os.path.join(test_path, 'Run_Archive')
+        self.make_directory(run_archive_path)
+
+        status_instance_path = os.path.join(status_path, instance_name)
+        self.make_directory(status_instance_path)
+        run_archive_instance_path = os.path.join(run_archive_path, instance_name)
+        self.make_directory(run_archive_instance_path)
+
+        return run_archive_instance_path, status_instance_path
+
+    def replacement_lsf_exit_function(self, job_id):
+        file_path = os.path.join(self.path_to_exit_files, str(job_id) + '_exit_status.txt')
+        with open(file_path, mode='r') as f:
+            exit_value = f.read()
+
+        if len(exit_value) == 0:
+            return None
+        else:
+            return int(exit_value)
+
+    def write_exit_value(self, job_id, value):
+        file_path = os.path.join(self.path_to_exit_files, str(job_id) + '_exit_status.txt')
+        with open(file_path, mode='w+') as f:
+            if value is None:
+                f.write('')
+            else:
+                f.write(value)
+
+    @staticmethod
+    def write_rgt_input(path_to_rgt_input, path_to_tests, program_name, test_name):
+        mode = 'a'
+        text = ""
+        if not os.path.exists(path_to_rgt_input):
+            mode = 'w+'
+            text += "path_to_tests = " + path_to_tests + "\n"
+
+        text += "test = " + program_name + " " + test_name + "\n"
+
+        with open(path_to_rgt_input, mode=mode) as f:
+            f.write(text)
+
 class TestUpdateDatabase(unittest.TestCase):
     """
     This class tests that updating the database works correctly.
     """
-    class InstanceCreator:
-        class InstancePaths:
-            def __init__(self):
-                return
-
-        def __init__(self):
-            self.path_to_inputs = os.path.abspath(os.path.join(__file__, '..', '..', 'test_inputs', 'database_inputs'))
-            self.path_to_rgt_input = os.path.join(self.path_to_inputs, 'rgt_input.txt')
-            self.path_to_exit_files = os.path.join(self.path_to_inputs, 'lsf_exit_files')
-            self.path_to_output_files = os.path.join(self.path_to_inputs, 'output_files')
-            self.path_to_example_tests = os.path.join(self.path_to_inputs, 'example_tests_for_database')
-
-        def create_test_instance(self, program_name, test_name, instance_name, time, job_id, build_status, submit_status,
-                                 check_status, outputs, system, events, exit_status):
-            instance = self.InstancePaths()
-            instance.run_archive_instance_path, instance.status_instance_path = \
-                self.make_directories(program_name, test_name, instance_name, self.path_to_example_tests)
-
-            instance.path_to_rgt_status = os.path.join(os.path.dirname(instance.status_instance_path), 'rgt_status.txt')
-            self.write_rgt_status(instance.path_to_rgt_status, time, job_id, build_status, submit_status, check_status)
-
-            self.write_rgt_input(self.path_to_rgt_input, self.path_to_example_tests, program_name, test_name)
-
-            for output_key in outputs.keys():
-                instance.output_path = os.path.join(instance.run_archive_instance_path, 'output_' + output_key + ".txt")
-                self.write_output(instance.output_path, outputs[output_key])
-
-            complete_events = {}
-            event_paths = {}
-            for event_key in events.keys():
-                event_dic = events[event_key]
-                file_name = 'Event_' + str(event_key) + '.txt'
-                if 'app' not in event_dic.keys():
-                    event_dic['app'] = program_name
-                if 'test' not in event_dic.keys():
-                    event_dic['test'] = test_name
-                if 'rgt_system_log_tag' not in event_dic.keys():
-                    event_dic['rgt_system_log_tag'] = system
-                if 'run_archive' not in event_dic.keys():
-                    event_dic['run_archive'] = instance.run_archive_instance_path
-                if 'event_filename' not in event_dic.keys():
-                    event_dic['event_filename'] = file_name
-                if 'event_time' not in event_dic.keys():
-                    event_dic['event_time'] = time
-                event_path = os.path.join(instance.status_instance_path, file_name)
-                self.write_event(event_path, event_dic)
-
-                complete_events[event_key] = event_dic
-                event_paths[event_key] = event_path
-            instance.complete_events = complete_events
-            instance.event_paths = event_paths
-
-            self.write_exit_value(job_id, exit_status)
-
-            return instance
-
-        @staticmethod
-        def create_rgt_status_line(harness_start, harness_uid, job_id, build_status, submit_status, check_status):
-            return {'harness_start': harness_start, 'harness_uid': harness_uid, 'job_id': job_id,
-                    'build_status': build_status, 'submit_status': submit_status, 'check_status': check_status}
-
-        @staticmethod
-        def write_event(path_to_event, event_dic):
-            # Events need 'event_time' and 'run_archive' keys to function correctly.
-            text = ""
-            for key in event_dic.keys():
-                text += "{key}={value} ".format(key=key, value=event_dic[key])
-
-            with open(path_to_event, mode='w+') as f:
-                f.write(text)
-
-        def write_output(self, output_filename, text):
-            with open(os.path.join(self.path_to_output_files, output_filename), "w+") as f:
-                f.write(text)
-
-        @staticmethod
-        def write_rgt_status(path_to_rgt_status, harness_start, harness_uid, job_id, build_status, submit_status, check_status):
-            text = ""
-            mode = "a"
-            if not os.path.exists(path_to_rgt_status):
-                text += "##################################\n" + \
-                        "# Start time   Unique ID   Batch ID    Build Status    Submit Status   Check Status\n" + \
-                        "##################################\n"
-                mode = "w+"
-
-            text += "{harness_start} {harness_uid} {job_id} {build_status} {submit_status} {check_status}\n" \
-                .format(harness_start=harness_start, harness_uid=harness_uid, job_id=job_id,
-                        build_status=build_status, submit_status=submit_status, check_status=check_status)
-
-            with open(path_to_rgt_status, mode=mode) as f:
-                f.write(text)
-
-        @staticmethod
-        def make_directory(directory_path):
-            if not os.path.exists(directory_path):
-                os.mkdir(directory_path)
-
-        def make_directories(self, program_name, test_name, instance_name, path_to_example_tests):
-            program_path = os.path.join(path_to_example_tests, program_name)
-            self.make_directory(program_path)
-
-            test_path = os.path.join(program_path, test_name)
-            self.make_directory(test_path)
-
-            status_path = os.path.join(test_path, 'Status')
-            self.make_directory(status_path)
-            run_archive_path = os.path.join(test_path, 'Run_Archive')
-            self.make_directory(run_archive_path)
-
-            status_instance_path = os.path.join(status_path, instance_name)
-            self.make_directory(status_instance_path)
-            run_archive_instance_path = os.path.join(run_archive_path, instance_name)
-            self.make_directory(run_archive_instance_path)
-
-            return run_archive_instance_path, status_instance_path
-
-        def replacement_lsf_exit_function(self, job_id):
-            file_path = os.path.join(self.path_to_exit_files, str(job_id) + '_exit_status.txt')
-            with open(file_path, mode='r') as f:
-                exit_value = f.read()
-
-            if len(exit_value) == 0:
-                return None
-            else:
-                return int(exit_value)
-
-        def write_exit_value(self, job_id, value):
-            file_path = os.path.join(self.path_to_exit_files, str(job_id) + '_exit_status.txt')
-            with open(file_path, mode='w+') as f:
-                if value is None:
-                    f.write('')
-                else:
-                    f.write(value)
-
-        @staticmethod
-        def write_rgt_input(path_to_rgt_input, path_to_tests, program_name, test_name):
-            mode = 'a'
-            text = ""
-            if not os.path.exists(path_to_rgt_input):
-                mode = 'w+'
-                text += "path_to_tests = " + path_to_tests + "\n"
-
-            text += "test = " + program_name + " " + test_name + "\n"
-
-            with open(path_to_rgt_input, mode=mode) as f:
-                f.write(text)
-
-    def __init__(self):
-        self.test_table = 'test_rgt_test'
-        self.test_event_table = 'test_rgt_event_table'
-        self.event_table = 'test_rgt_event_table'
-        self.IC = self.InstanceCreator()
-
     def init_directories(self):
         self.IC.make_directory(self.IC.path_to_exit_files)
         self.IC.make_directory(self.IC.path_to_output_files)
@@ -185,6 +179,11 @@ class TestUpdateDatabase(unittest.TestCase):
 
         :return:
         """
+        self.test_table = 'test_rgt_test'
+        self.test_event_table = 'test_rgt_event'
+        self.event_table = 'test_rgt_event'
+        self.IC = InstanceCreator()
+
         database_conf = config_functions.get_config()['DATABASE']
         self.connector = connect_database.DatabaseConnector(database_conf)
 
@@ -209,12 +208,15 @@ class TestUpdateDatabase(unittest.TestCase):
                                                  replacement_lsf_exit_function=self.IC.replacement_lsf_exit_function)
 
     def insert_event(self, event_uid, event_name='test'):
+        print("Connecting.")
         db = self.connector.connect()
         cursor = db.cursor()
 
-        sql = "INSERT INTO test_rgt_event (event_uid, event_name) VALUES ({event_uid}, {event_name})" \
-            .format(event_uid=event_uid, event_name=event_name)
+        sql = "INSERT INTO {table} (event_uid, event_name) VALUES ({event_uid}, {event_name})" \
+            .format(table=self.event_table, event_uid=event_uid, event_name=event_name)
+        print("Inserting event.")
         cursor.execute(sql)
+        print("Commiting.")
         db.commit()
         db.close()
 
@@ -243,9 +245,11 @@ class TestUpdateDatabase(unittest.TestCase):
 
     def test_get_event_id(self):
         event_uid = 0
+        print("Inserting event.")
         self.insert_event(event_uid, 'test')
 
         self.init_update_database()
+        print("Getting event id.")
         event_id = self.UD.get_event_id(event_uid)
         self.assertEqual(0, event_id)
 
@@ -832,7 +836,7 @@ class TestUpdateDatabase(unittest.TestCase):
         self.assertFalse(self.in_table(self.test_event_table, **{'event_id': 0}))
 
         self.init_update_database()
-        self.UD.update_test_instances(self.InstanceCreator.path_to_example_tests)
+        self.UD.update_test_instances(self.IC.path_to_example_tests)
 
         self.assertTrue(self.in_table(self.test_table, **{'harness_uid': harness_uids[0], 'build_status': build_status,
                                                           'build_output_text': build_output_text}))
@@ -883,7 +887,7 @@ class TestUpdateDatabase(unittest.TestCase):
         for uid in new_uids:
             self.assertFalse(self.in_table(self.test_table, **{'harness_uid': uid}))
 
-        self.init_update_database(self.InstanceCreator.path_to_rgt_input)
+        self.init_update_database(self.IC.path_to_rgt_input)
 
         for uid in new_uids:
             self.assertTrue(self.in_table(self.test_table, **{'harness_uid': uid}))

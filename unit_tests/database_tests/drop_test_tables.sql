@@ -1,4 +1,4 @@
-USE harmony;
+USE rgt;
 
 DROP TABLE `test_rgt_test_event`;
 

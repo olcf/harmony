@@ -1,38 +1,8 @@
 JOBID   USER       STAT   SLOTS    QUEUE       START_TIME    FINISH_TIME   JOB_NAME                      
-342224  jmsexton   RUN    21       batch       Oct 12 12:00  Oct 12 15:00  /bin/bash                     
-342225  yoonh      RUN    21       batch       Oct 12 12:20  Oct 12 14:20  /bin/bash                     
-342227  maxpkatz   RUN    21       batch       Oct 12 12:42  Oct 12 14:42  /bin/bash                     
-342249  andreas    RUN    21       batch       Oct 12 13:41  Oct 12 15:41  qmcpack_codedev               
-342255  ngawande   RUN    41       batch       Oct 12 13:49  Oct 12 14:49  d2_c                          
-342257  andreas    RUN    21       batch       Oct 12 14:02  Oct 12 16:02  qmcpack_codedev               
-341031  brenaud    PSUSP     -     batch       Oct  8 15:45        -       Some-LJobName                 
-341032  brenaud    PSUSP     -     batch       Oct  8 15:46        -       Bob-L                         
-342111  rsankar    PEND      -     batch             -             -       qnightly                      
-342112  rsankar    PEND      -     batch             -             -       raptorxlf                     
-342232  andreas    DONE   21       batch       Oct 12 12:59  Oct 12 13:05  qmcpack_codedev               
-342233  andreas    DONE   21       batch       Oct 12 13:08  Oct 12 13:14  qmcpack_codedev               
-342113  yoonh      EXIT   21       batch       Oct 12 09:15  Oct 12 13:15  eval                          
-342234  andreas    DONE   21       batch       Oct 12 13:16  Oct 12 13:20  qmcpack_codedev               
-342235  lukebr     DONE   661      batch       Oct 12 13:19  Oct 12 13:20  test                          
-342236  lukebr     DONE   701      batch       Oct 12 13:20  Oct 12 13:22  test                          
-342237  lukebr     DONE   701      batch       Oct 12 13:23  Oct 12 13:24  test                          
-342238  lukebr     DONE   701      batch       Oct 12 13:25  Oct 12 13:29  test                          
-342239  wqzhang    DONE   21       batch       Oct 12 13:25  Oct 12 13:29  amrex                         
-342240  lukebr     DONE   701      batch       Oct 12 13:29  Oct 12 13:30  test                          
-342214  jingoo     EXIT   21       batch       Oct 12 09:30  Oct 12 13:31  /bin/bash                     
-342243  lukebr     DONE   701      batch       Oct 12 13:31  Oct 12 13:32  test                          
-342244  lukebr     DONE   701      batch       Oct 12 13:33  Oct 12 13:34  test                          
-342241  andreas    DONE   21       batch       Oct 12 13:30  Oct 12 13:34  qmcpack_codedev               
-342245  lukebr     DONE   701      batch       Oct 12 13:35  Oct 12 13:36  test                          
-342247  lukebr     DONE   701      batch       Oct 12 13:37  Oct 12 13:38  test                          
-342246  andreas    EXIT   21       batch       Oct 12 13:36  Oct 12 13:40  qmcpack_codedev               
-342242  andreas    EXIT   21       batch       Oct 12 13:30  Oct 12 13:40  qmcpack_codedev               
-342248  lukebr     DONE   701      batch       Oct 12 13:40  Oct 12 13:41  test                          
-342250  lukebr     DONE   701      batch       Oct 12 13:42  Oct 12 13:43  test                          
-342251  lukebr     DONE   701      batch       Oct 12 13:43  Oct 12 13:44  test                          
-342253  andreas    DONE   21       batch       Oct 12 13:46  Oct 12 13:48  qmcpack_codedev               
-342252  lukebr     DONE   701      batch       Oct 12 13:45  Oct 12 13:48  test                          
-342254  lukebr     EXIT   701      batch       Oct 12 13:49  Oct 12 13:52  test                          
-342223  maxpkatz   EXIT   21       batch       Oct 12 11:52  Oct 12 13:52  /bin/bash                     
-342256  lukebr     DONE   701      batch       Oct 12 13:52  Oct 12 13:53  test                          
-342229  yoonh      DONE   21       batch       Oct 12 12:46  Oct 12 14:01  /bin/bash                     
+190290  pfaccept   PEND      -     tested            -             -       amg_opt_n0192                 
+190291  nforr      PEND      -     tested            -             -       Not_Specified                 
+190292  cjzimmer   PEND      -     tested            -             -       Bisection                     
+190293  reubendb   PEND      -     tested            -             -       DDT_n238_ppn168               
+190294  reubendb   PEND      -     tested            -             -       DDT_n952_ppn42                
+190295  reubendb   PEND      -     tested            -             -       DDT_n1024_ppn6                
+190296  reubendb   PEND      -     tested            -             -       DDT_n4096_ppn6                

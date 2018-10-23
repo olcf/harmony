@@ -4,6 +4,8 @@ from unit_tests import test_job_status
 from unit_tests import test_parse_file
 from unit_tests import test_test_status
 from unit_tests.notifications_tests import test_slack_commands
+from unit_tests.database_tests import test_create_database
+from unit_tests.database_tests import test_update_database
 import argparse
 
 
@@ -22,7 +24,9 @@ def main():
     fast_test_list = [test_job_status.TestJobClass, test_job_status.TestJobStatus,
                       test_parse_file.TestErrors, test_parse_file.TestParseJobID, test_parse_file.TestParseRGTInput,
                       test_test_status.TestTestStatus,
-                      test_slack_commands.TestMessageParser, test_slack_commands.TestStaticFunctions]
+                      test_slack_commands.TestMessageParser, test_slack_commands.TestStaticFunctions,
+                      test_create_database.TestCreateDatabase,
+                      test_update_database.TestUpdateDatabase]
 
     slow_test_list = [test_job_monitor.TestJobMonitorClass, test_job_monitor.TestMonitor]
 
@@ -46,7 +50,7 @@ def main():
 
     full_suite = unittest.TestSuite(case_list)
 
-    runner = unittest.TextTestRunner()
+    runner = unittest.TextTestRunner(verbosity=2)
     runner.run(full_suite)
 
 

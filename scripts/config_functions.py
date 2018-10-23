@@ -30,13 +30,13 @@ def write_config(file_path, password=None):
     conf['DATABASE'] = {}
     database = conf['DATABASE']
     database['HOST'] = 'rgtroute-stf006.marble.ccs.ornl.gov'
-    database['PORT'] = 31673
+    database['PORT'] = '31673'
     database['USER'] = 'kuchta'
     if password is not None:
         database['PASSWORD'] = password
     else:
         database['PASSWORD'] = os.environ['DATABASE_PASSWORD']
-    database['DATABASE_NAME'] = 'harmony'
+    database['DATABASE_NAME'] = 'rgt'
     database['TEST_TABLE'] = 'rgt_test'
     database['EVENT_TABLE'] = 'rgt_event'
     database['CHECK_TABLE'] = 'rgt_check'
