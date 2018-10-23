@@ -29,14 +29,27 @@ def write_config(file_path, password=None):
     # DATABASE
     conf['DATABASE'] = {}
     database = conf['DATABASE']
-    database['HOST'] = 'rgtroute-stf006.marble.ccs.ornl.gov'
-    database['PORT'] = '31673'
-    database['USER'] = 'kuchta'
+    try:
+        import pythonlsf
+    except ModuleNotFoundError:
+        on_summit = False
+    else:
+        on_summit = True
+
+    if on_summit:
+        database['HOST'] = 'rgtroute-stf006.marble.ccs.ornl.gov'
+        database['PORT'] = '31673'
+        database['USER'] = 'kuchta'
+        database['DATABASE_NAME'] = 'rgt'
+    else:
+        database['HOST'] = 'localhost'
+        database['USER'] = 'root'
+        database['DATABASE_NAME'] = 'harmony'
+
     if password is not None:
         database['PASSWORD'] = password
     else:
         database['PASSWORD'] = os.environ['DATABASE_PASSWORD']
-    database['DATABASE_NAME'] = 'rgt'
     database['TEST_TABLE'] = 'rgt_test'
     database['EVENT_TABLE'] = 'rgt_event'
     database['CHECK_TABLE'] = 'rgt_check'

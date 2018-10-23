@@ -1,5 +1,4 @@
 # Create example tables for testing the database.
-use rgt;
 
 # Hold different types of events.
 CREATE TABLE IF NOT EXISTS `test_rgt_event`

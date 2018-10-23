@@ -1,4 +1,4 @@
-USE rgt;
+# Drop all tables that have been used for testing.
 
 DROP TABLE `test_rgt_test_event`;
 
