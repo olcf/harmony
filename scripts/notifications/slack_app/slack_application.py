@@ -80,15 +80,7 @@ class SlackApp:
         """
         # Call the slack api to post a message to a specific channel.
         start = time.time()
-        if len(message) >= self.max_sent_message_length:
-            if self.verbose:
-                self.verbose_print("Splitting long message.")
-            num_splits = math.ceil(float(len(message)) / self.max_sent_message_length)
-            split_length = int(len(message) / num_splits)
-            split_message = self.split_message_to_send(message, split_length)
-        else:
-            split_message = [message]
-
+        split_message = self.split_message_to_send(message)
         for i in range(len(split_message)):
             message = split_message[i]
             if self.verbose == 2:
@@ -99,13 +91,37 @@ class SlackApp:
             self.verbose_print("Sent message in " + str(time.time() - start) + " seconds.")
         return
 
-    def split_message_to_send(self, message, split_length):
+    def split_message_to_send(self, message):
+        """
+        Split a message that is too long to send as a single message to slack.
+
+        :param message: Message to split.
+        :return: A list containing the split message parts.
+        """
+        # If the message does not need to be split, just return it as a list.
+        if len(message) <= self.max_sent_message_length:
+            return [message]
+
+        if self.verbose:
+            self.verbose_print("Splitting long message.")
+
+        # Find the number of different pieces the message will be split into.
+        num_parts = math.ceil(float(len(message)) / self.max_sent_message_length)
+        # Get the length of each split to try to split evenly.
+        split_length = int(len(message) / num_parts)
+        # TODO: Split on '\n' if available.
+
+        # Copy the message so the original is not changed.
         changed_message = copy.copy(message)
+        # Set the index of the current split.
         index = split_length
+        # Set the length of the new split if we are splitting in a place where formatting is needed.
         new_split_length = None
+        # Create list for holding split message.
         split_message = []
+        # While we have not yet hit the end, continue.
         while index < len(message):
-            # Check if this string is going to be formatted. If it is, make sure that the formatting is done correctly.
+            # Count the number of occurences of the string that implies formatting.
             before_count = message[:index].count('```')
             after_count = message[index:].count('```')
 
@@ -123,6 +139,9 @@ class SlackApp:
                 changed_message = changed_message[split_length:]
 
             split_message.append(message_part)
+            index += split_length
+
+        split_message.append(changed_message)
 
         return split_message
 

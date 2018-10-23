@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `rgt_test`
   `output_check`      TEXT            NULL,
   `output_report`     TEXT            NULL,
   `system`            VARCHAR (64)    NOT NULL,
-  `next_harness_uid`  CHAR (36)       NOT NULL,
+  `previous_job_id`   CHAR (36)       NOT NULL,
   `done`              BOOLEAN         NOT NULL,
   `timestamp`         TIMESTAMP       ,
   PRIMARY KEY  ( `test_id` ),

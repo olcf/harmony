@@ -2,6 +2,9 @@ import configparser
 import os
 
 
+config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config.ini'))
+
+
 def write_config(file_path):
     conf = configparser.ConfigParser()
 
@@ -25,6 +28,15 @@ def write_config(file_path):
     # DATABASE
     conf['DATABASE'] = {}
     database = conf['DATABASE']
+    database['HOST'] = 'localhost'
+    database['USER'] = 'root'
+    database['PASSWORD'] = os.environ['DATABASE_PASSWORD']
+    database['DATABASE_NAME'] = 'harmony'
+    database['TEST_TABLE'] = 'rgt_test'
+    database['EVENT_TABLE'] = 'rgt_event'
+    database['CHECK_TABLE'] = 'rgt_check'
+    database['TEST_EVENT_TABLE'] = 'rgt_test_event'
+
     # Refresh the database every half hour.
     database['REFRESH_TIME'] = '1800'
 
@@ -44,5 +56,4 @@ def get_config(file_path=os.path.abspath(os.path.join(os.path.dirname(__file__),
 
 
 if __name__ == '__main__':
-    config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config.ini'))
     write_config(config_path)
