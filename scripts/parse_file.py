@@ -47,7 +47,7 @@ class ParseRGTStatus:
         job_dics = []
         # Go through each line and get important values. We use the index method for iteration so that we keep it in
         # order. This speeds up matching the harness_uid when updating the database.
-        for i in len(file_contents):
+        for i in range(len(file_contents)):
             line = file_contents[i]
             # Split the line.
             split = line.split()

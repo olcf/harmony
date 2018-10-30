@@ -95,8 +95,12 @@ def get_test_directories(tests_path, test_list, append_dirs=('Status', 'latest')
     # Initially no paths.
     test_path_list = []
     for dic in test_list:
-        # Join the path_to_tests, the program for the test, the name of the test, Status, and latest.
-        path = os.path.join(tests_path, dic['program'], dic['test'], *append_dirs)
+        if type(append_dirs) is str:
+            # Join the path_to_tests, the program for the test, the name of the test, Status, and latest.
+            path = os.path.join(tests_path, dic['program'], dic['test'], append_dirs)
+        else:
+            # Join the path_to_tests, the program for the test, the name of the test, Status, and latest.
+            path = os.path.join(tests_path, dic['program'], dic['test'], *append_dirs)
         # Add this path to the test list.
         test_path_list.append(path)
     return test_path_list

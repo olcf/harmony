@@ -6,6 +6,24 @@ from scripts import config_functions
 from scripts.database import connect_database
 import shutil
 from random import random
+from contextlib import contextmanager
+import signal
+import copy
+
+
+class TimeoutException(Exception): pass
+
+
+@contextmanager
+def time_limit(seconds):
+    def signal_handler(signum, frame):
+        raise TimeoutException("Timed out.")
+    signal.signal(signal.SIGALRM, signal_handler)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
 
 
 class InstanceCreator:
@@ -38,7 +56,7 @@ class InstanceCreator:
         complete_events = {}
         event_paths = {}
         for event_key in events.keys():
-            event_dic = events[event_key]
+            event_dic = copy.copy(events[event_key])
             file_name = 'Event_' + str(event_key) + '.txt'
             if 'app' not in event_dic.keys():
                 event_dic['app'] = program_name
@@ -52,6 +70,8 @@ class InstanceCreator:
                 event_dic['event_filename'] = file_name
             if 'event_time' not in event_dic.keys():
                 event_dic['event_time'] = time
+            if 'test_id' not in event_dic.keys():
+                event_dic['test_id'] = instance_name
             event_path = os.path.join(instance.status_instance_path, file_name)
             self.write_event(event_path, event_dic)
 
@@ -140,7 +160,7 @@ class InstanceCreator:
             if value is None:
                 f.write('')
             else:
-                f.write(value)
+                f.write(str(value))
 
     @staticmethod
     def write_rgt_input(path_to_rgt_input, path_to_tests, program_name, test_name):
@@ -159,14 +179,54 @@ class TestUpdateDatabase(unittest.TestCase):
     """
     This class tests that updating the database works correctly.
     """
+    def drop_tables(self):
+        if self.verbose:
+            print("Trying to drop every table.")
+        tables = [self.test_event_table, self.test_table, self.event_table]
+        for i in range(len(tables)):
+            self.drop_table(tables[i])
+
+    def drop_table(self, table):
+        if self.verbose:
+            print("Trying to drop " + str(table))
+        db = self.connector.connect()
+        cursor = db.cursor()
+        delete_sql = "DELETE FROM `" + table + "`"
+        drop_sql = "DROP TABLE `" + table + "`"
+        for i in range(2):
+            sql_list = [delete_sql, drop_sql]
+            sql = sql_list[i]
+            try:
+                cursor.execute(sql)
+            except Exception as e:
+                raise type(e)(str(e) + " Error running '" + sql + "'")
+        db.commit()
+        db.close()
+
+    def show_table(self, table):
+        if self.verbose:
+            print("Trying to show " + str(table))
+        db = self.connector.connect()
+        cursor = db.cursor()
+        sql = "SELECT * FROM " + table
+        if self.verbose:
+            print("Running " + sql)
+        try:
+            cursor.execute(sql)
+        except Exception as e:
+            raise type(e)(str(e) + " Error running '" + sql + "'")
+        print(cursor.fetchall())
+        db.commit()
+        db.close()
+
     def init_directories(self):
         self.IC.make_directory(self.IC.path_to_exit_files)
         self.IC.make_directory(self.IC.path_to_output_files)
         self.IC.make_directory(self.IC.path_to_example_tests)
 
     def remove_directories(self):
-        for file in os.listdir(self.IC.path_to_inputs):
-            file_path = os.path.join(self.IC.path_to_inputs, file)
+        for f in os.listdir(self.IC.path_to_inputs):
+            file_path = os.path.join(self.IC.path_to_inputs, f)
 
             if os.path.isfile(file_path):
                 os.unlink(file_path)
@@ -179,8 +239,10 @@ class TestUpdateDatabase(unittest.TestCase):
 
         :return:
         """
+        self.verbose = False
+
         self.test_table = 'test_rgt_test'
-        self.test_event_table = 'test_rgt_event'
+        self.test_event_table = 'test_rgt_test_event'
         self.event_table = 'test_rgt_event'
         self.IC = InstanceCreator()
 
@@ -199,7 +261,14 @@ class TestUpdateDatabase(unittest.TestCase):
         :return:
         """
         drop_tables_path = os.path.join(os.path.dirname(__file__), 'drop_test_tables.sql')
-        create_database.execute_sql_file(self.connector, drop_tables_path)
+        if self.verbose:
+            print("Removing tables.")
+        # Only try running for at most 3 seconds. Any longer and the most likely problem is that a table was locked.
+        try:
+            with time_limit(10):
+                create_database.execute_sql_file(self.connector, drop_tables_path)
+        except TimeoutException as e:
+            print("TIMEOUT: I timed out trying to drop tables. This is most likely because a table was locked.")
         self.remove_directories()
 
     def init_update_database(self, rgt_input_path=''):
@@ -208,21 +277,25 @@ class TestUpdateDatabase(unittest.TestCase):
                                                  replacement_lsf_exit_function=self.IC.replacement_lsf_exit_function)
 
     def insert_event(self, event_uid, event_name='test'):
-        print("Connecting.")
         db = self.connector.connect()
         cursor = db.cursor()
 
-        sql = "INSERT INTO {table} (event_uid, event_name) VALUES ({event_uid}, {event_name})" \
-            .format(table=self.event_table, event_uid=event_uid, event_name=event_name)
-        print("Inserting event.")
-        cursor.execute(sql)
-        print("Commiting.")
-        db.commit()
+        sql = "INSERT INTO {table} (event_uid, event_name) VALUES ({event_uid}, '{event_name}') ON DUPLICATE KEY " \
+              "UPDATE event_name='{event_name}'"
+        sql = sql.format(table=self.event_table, event_uid=event_uid, event_name=event_name)
+        try:
+            cursor.execute(sql)
+        except Exception as e:
+            db.rollback()
+            db.close()
+            raise e
+        else:
+            db.commit()
         db.close()
 
     def in_table(self, table_name, **kwargs):
         sql = "SELECT EXISTS(SELECT 1 FROM {table} WHERE".format(table=table_name)
-        key_list = kwargs.keys()
+        key_list = list(kwargs.keys())
         for i in range(len(kwargs)):
             key = key_list[i]
             val = kwargs[key]
@@ -231,6 +304,8 @@ class TestUpdateDatabase(unittest.TestCase):
                 val_string = str(val)
             elif type(val) is str:
                 val_string = "'" + val + "'"
+            elif type(val) is bool:
+                val_string = str(val).upper()
 
             sql += " " + key + " = " + val_string
             if i < len(kwargs) - 1:
@@ -241,22 +316,21 @@ class TestUpdateDatabase(unittest.TestCase):
         db = self.connector.connect()
         cursor = db.cursor()
         cursor.execute(sql)
+        db.commit()
         return bool(cursor.fetchone()[0])
 
     def test_get_event_id(self):
         event_uid = 0
-        print("Inserting event.")
         self.insert_event(event_uid, 'test')
 
         self.init_update_database()
-        print("Getting event id.")
         event_id = self.UD.get_event_id(event_uid)
-        self.assertEqual(0, event_id)
+        self.assertEqual(1, event_id)
 
         event_uid = 1
         self.insert_event(event_uid, 'test')
         event_id = self.UD.get_event_id(event_uid)
-        self.assertEqual(1, event_id)
+        self.assertEqual(2, event_id)
 
     def test_get_event_uid(self):
         self.insert_event(0)
@@ -278,7 +352,7 @@ class TestUpdateDatabase(unittest.TestCase):
         db = self.connector.connect()
         with db.cursor() as cursor:
             sql = "INSERT INTO test_rgt_test (harness_uid, harness_start, harness_tld, application, testname, system, next_harness_uid, done)" \
-                  " VALUES (2, 0000-00-00, 'path', 'app', 'test', 'sys', 1, FALSE)"
+                  " VALUES ('2', '0000-00-00', 'path', 'app', 'test', 'sys', 1, FALSE)"
             cursor.execute(sql)
         db.commit()
 
@@ -287,11 +361,12 @@ class TestUpdateDatabase(unittest.TestCase):
 
         self.init_update_database()
 
-        self.UD.insert_parsed_event_into_event_table(0, 0, '0000-00-01')
+        self.UD.insert_parsed_event_into_event_table(1, 1, '0000-00-01')
 
         with db.cursor() as cursor:
-            self.assertTrue(self.in_table(self.test_event_table, **{'test_id': 0}))
-            self.assertTrue(self.in_table(self.test_event_table, **{'event_id': 0}))
+            self.assertTrue(self.in_table(self.test_event_table, **{'test_id': 1}))
+            self.assertTrue(self.in_table(self.test_event_table, **{'event_id': 1}))
+        db.commit()
 
     def test_get_exit_status(self):
         job_id_0 = 0
@@ -328,7 +403,7 @@ class TestUpdateDatabase(unittest.TestCase):
     def test_get_update_fields_good_building(self):
         program_name = 'program'
         test_name = 'test'
-        time = '00:00:0000'
+        time = '0000-00-01'
         harness_uid = 'instance'
         job_id = 10
         build_status = '17'
@@ -354,7 +429,8 @@ class TestUpdateDatabase(unittest.TestCase):
         # No submit or check status because they are both not integers.
         # Expect output build and submit because they will both have files.
         expected_result = {'job_id': job_id, 'build_status': int(build_status),
-                           'output_build': build_output_text, 'output_submit': submit_output_text}
+                           'output_build': build_output_text, 'output_submit': submit_output_text,
+                           'done': False}
         for key in expected_result.keys():
             self.assertIn(key, update_fields.keys())
 
@@ -362,12 +438,12 @@ class TestUpdateDatabase(unittest.TestCase):
 
         # Check that there are no keys that should not be in there.
         for key in update_fields.keys():
-            self.assertIn(key in expected_result.keys())
+            self.assertIn(key, expected_result.keys())
 
     def test_get_update_fields_good_exited(self):
         program_name = 'program'
         test_name = 'test'
-        time = '00:00:0000'
+        time = '0000-00-01'
         harness_uid = 'instance'
         job_id = 2
         build_status = '0'
@@ -394,15 +470,15 @@ class TestUpdateDatabase(unittest.TestCase):
         # Expect output build and submit because they will both have files.
         expected_result = {'job_id': job_id, 'build_status': int(build_status), 'submit_status': int(submit_status),
                            'output_build': build_output_text, 'output_submit': submit_output_text,
-                           'lst_exit_status': exit_status, 'done': True}
+                           'lsf_exit_status': exit_status, 'done': True}
         for key in expected_result.keys():
-            self.assertIn(key, update_fields.keys())
+            self.assertIn(key, list(update_fields.keys()))
 
             self.assertEqual(expected_result[key], update_fields[key])
 
         # Check that there are no keys that should not be in there.
         for key in update_fields.keys():
-            self.assertIn(key in expected_result.keys())
+            self.assertIn(key, expected_result.keys())
 
     def test_get_update_sql(self):
         update_fields = {'int_1': 10, 'int_2': 20, 'str_1': 'one', 'str_2': 'two'}
@@ -423,7 +499,7 @@ class TestUpdateDatabase(unittest.TestCase):
     def test_update_test_table(self):
         program_name = 'program'
         test_name = 'test'
-        time = '00:00:0300'
+        time = '0000-00-00'
         harness_uid = 'instance'
         job_id = 11
         build_status = '0'
@@ -443,16 +519,18 @@ class TestUpdateDatabase(unittest.TestCase):
 
         db = self.connector.connect()
         cursor = db.cursor()
-        sql = "INSERT INTO {table} (harness_uid, harness_start, harness_tld, " \
+        sql = "INSERT INTO {table} (harness_uid, harness_start, harness_tld, " + \
               "application, testname, system, next_harness_uid, done) " + \
-              "VALUES ({harness_uid}, {harness_start}, {harness_tld}, " \
-              "{application}, {testname}, {system}, {next_harness_uid}, {done})"\
-              .format(table=self.test_table, harness_uid=harness_uid, harness_start=time, harness_tld='path',
-                      application=program_name, testname=test_name, system=system, next_harness_uid=harness_uid, done=False)
+              "VALUES ('{harness_uid}', '{harness_start}', '{harness_tld}', " + \
+              "'{application}', '{testname}', '{system}', '{next_harness_uid}', {done})"
+
+        sql = sql.format(table=self.test_table, harness_uid=harness_uid, harness_start=time, harness_tld='path',
+                         application=program_name, testname=test_name, system=system, next_harness_uid=harness_uid, done=False)
+
         cursor.execute(sql)
         db.commit()
         self.init_update_database()
-        self.UD.update_test_table(0, instance.event_paths['0']['run_archive'], rgt_line)
+        self.UD.update_test_table(1, instance.complete_events['0']['run_archive'], rgt_line)
 
         expected_vals = {'harness_uid': harness_uid, 'output_build': outputs['build'],
                          'output_submit': outputs['submit'], 'output_check': outputs['check'],
@@ -463,7 +541,7 @@ class TestUpdateDatabase(unittest.TestCase):
     def test_get_add_fields(self):
         program_name = 'program'
         test_name = 'test'
-        time = '00:00:0000'
+        time = '0000-00-01'
         harness_uid = 'instance'
         job_id = 2
         build_status = '0'
@@ -483,7 +561,7 @@ class TestUpdateDatabase(unittest.TestCase):
         self.init_update_database()
 
         job_path = instance.status_instance_path
-        add_fields = self.UD.get_add_fields(rgt_line, instance.complete_events['0'])
+        add_fields = self.UD.get_add_fields(rgt_line, instance.complete_events['0'], job_path)
 
         # There should be keys for all things that can change while a test is running.
         # Expect exit status since it is set.
@@ -499,14 +577,14 @@ class TestUpdateDatabase(unittest.TestCase):
 
         # Check that there are no keys that should not be in there.
         for key in add_fields.keys():
-            self.assertIn(key in expected_result.keys())
+            self.assertIn(key, expected_result.keys())
 
     def test_get_add_sql(self):
         update_fields = {'int_1': 10, 'int_2': 20, 'str_1': 'one', 'str_2': 'two'}
 
         self.init_update_database()
 
-        sql = self.UD.get_add_fields(update_fields)
+        sql = self.UD.get_add_sql(update_fields)
 
         self.assertIn('INSERT INTO test_rgt_test', sql)
         self.assertIn('int_1', sql)
@@ -521,7 +599,7 @@ class TestUpdateDatabase(unittest.TestCase):
     def test_add_to_test_table(self):
         program_name = 'program'
         test_name = 'test'
-        time = '00:00:0300'
+        time = '0000-00-01'
         harness_uid = 'instance'
         job_id = 11
         build_status = '0'
@@ -542,7 +620,7 @@ class TestUpdateDatabase(unittest.TestCase):
         harness_tld = instance.status_instance_path
 
         self.init_update_database()
-        self.UD.add_to_test_table(instance.event_paths['0']['run_archive'], rgt_line, harness_tld)
+        self.UD.add_to_test_table(instance.event_paths['0'], rgt_line, harness_tld)
 
         expected_vals = {'harness_uid': harness_uid, 'output_build': outputs['build'],
                          'output_submit': outputs['submit'], 'output_check': outputs['check'],
@@ -553,7 +631,7 @@ class TestUpdateDatabase(unittest.TestCase):
     def test_in_event_table(self):
         program_name = 'program'
         test_name = 'test'
-        time = '00:00:0300'
+        time = '0000-00-01'
         harness_uid = 'instance'
         job_id = 11
         build_status = '0'
@@ -575,27 +653,29 @@ class TestUpdateDatabase(unittest.TestCase):
         harness_tld = instance.status_instance_path
 
         self.init_update_database()
-        self.UD.add_to_test_table(instance.event_paths['0']['run_archive'], rgt_line, harness_tld)
+        self.UD.add_to_test_table(instance.event_paths['0'], rgt_line, harness_tld)
 
         db = self.connector.connect()
         cursor = db.cursor()
-        sql = "INSERT INTO {table} (event_uid, event_name) VALUES ({event_uid}, {event_name})"\
+        sql = "INSERT INTO {table} (event_uid, event_name) VALUES ({event_uid}, '{event_name}')"\
               .format(table=self.event_table, event_uid=event_uid, event_name='event')
         cursor.execute(sql)
         db.commit()
 
+        self.insert_event(event_uid)
         sql = "INSERT INTO {table} (test_id, event_id, event_time) " \
               "VALUES ({test_id}, {event_id}, {event_time})"\
-              .format(table=self.test_event_table, test_id=0, event_id=event_uid, event_time=time)
+              .format(table=self.test_event_table, test_id=1, event_id=1, event_time=time)
         cursor.execute(sql)
         db.commit()
 
-        self.assertTrue(self.UD.in_event_table(0, int(event_uid)))
+        # Assert that test_instance 1 has an event with id 1. These are NOT the uids.
+        self.assertTrue(self.UD.in_event_table(1, 1))
 
     def test_insert_into_event_table(self):
         program_name = 'program'
         test_name = 'test'
-        time = '00:00:0300'
+        time = '0000-00-01'
         harness_uid = 'instance'
         job_id = 11
         build_status = '0'
@@ -616,24 +696,20 @@ class TestUpdateDatabase(unittest.TestCase):
 
         harness_tld = instance.status_instance_path
 
+        self.insert_event(event_uid)
+
         self.init_update_database()
-        self.UD.add_to_test_table(instance.event_paths['0']['run_archive'], rgt_line, harness_tld)
+        self.UD.add_to_test_table(instance.event_paths['0'], rgt_line, harness_tld)
 
-        db = self.connector.connect()
-        cursor = db.cursor()
-        sql = "INSERT INTO {table} (event_uid, event_name) VALUES ({event_uid}, {event_name})" \
-            .format(table=self.event_table, event_uid=event_uid, event_name='event')
-        cursor.execute(sql)
-        db.commit()
-
-        self.assertFalse(self.UD.in_event_table(0, int(event_uid)))
-        self.UD.insert_into_event_table(0, instance.event_paths['0'])
-        self.assertTrue(self.UD.in_event_table(0, int(event_uid)))
+        self.assertFalse(self.UD.in_event_table(1, 1))
+        self.UD.insert_into_event_table(1, instance.event_paths['0'])
+        
+        self.assertTrue(self.UD.in_event_table(1, 1))
 
     def test_update_test_event_table(self):
         program_name = 'program'
         test_name = 'test'
-        time = '00:00:0300'
+        time = '0000-00-01'
         harness_uid = 'instance'
         job_id = 11
         build_status = '0'
@@ -647,6 +723,9 @@ class TestUpdateDatabase(unittest.TestCase):
         event_uids = ['0', '1']
         events = {event_uids[0]: {}, event_uids[1]: {}}
         exit_status = None
+
+        for uid in event_uids:
+            self.insert_event(uid)
 
         instance = self.IC.create_test_instance(program_name, test_name, harness_uid, time, job_id, build_status,
                                                 submit_status, check_status, outputs, system, events, exit_status)
@@ -667,7 +746,7 @@ class TestUpdateDatabase(unittest.TestCase):
     def test_add_test_instance(self):
         program_name = 'program'
         test_name = 'test'
-        time = '00:00:0300'
+        time = '0000-00-01'
         harness_uid = 'instance'
         job_id = 11
         build_status = '0'
@@ -682,25 +761,23 @@ class TestUpdateDatabase(unittest.TestCase):
         events = {event_uids[0]: {}, event_uids[1]: {}}
         exit_status = None
 
-        db = self.connector.connect()
-        cursor = db.cursor()
-        sql = "INSERT INTO {table} (event_uid, event_name) VALUES ({event_uid}, {event_name})" \
-            .format(table=self.event_table, event_uid=event_uids[0], event_name='event')
-        cursor.execute(sql)
-        db.commit()
-        sql = "INSERT INTO {table} (event_uid, event_name) VALUES ({event_uid}, {event_name})" \
-            .format(table=self.event_table, event_uid=event_uids[1], event_name='event')
-        cursor.execute(sql)
-        db.commit()
+        self.insert_event(event_uids[0])
+        self.insert_event(event_uids[1])
 
+        rgt_line = self.IC.create_rgt_status_line(time, harness_uid, job_id, build_status, submit_status, check_status)
         instance = self.IC.create_test_instance(program_name, test_name, harness_uid, time, job_id, build_status,
                                                 submit_status, check_status, outputs, system, events, exit_status)
 
+        harness_tld = instance.status_instance_path
+
+        self.init_update_database()
+        self.UD.add_test_instance(harness_tld, rgt_line)
+
         expected_vals = {'harness_uid': harness_uid, 'job_id': job_id, 'build_status': build_status,
                          'submit_status': submit_status}
-        self.assertTrue(self.in_table(self.test_table, **expected_vals))
+        self.assertTrue(self.in_table(self.test_table, **expected_vals), msg=str(expected_vals))
 
-        expected_event_vals = {'0': {'event_id': 0}, '1': {'event_id': 1}}
+        expected_event_vals = {'0': {'event_id': 1}, '1': {'event_id': 2}}
 
         self.assertTrue(self.in_table(self.event_table, **expected_event_vals['0']))
         self.assertTrue(self.in_table(self.event_table, **expected_event_vals['1']))
@@ -709,7 +786,7 @@ class TestUpdateDatabase(unittest.TestCase):
     def test_update_test_instance(self):
         program_name = 'program'
         test_name = 'test'
-        time = '00:00:0300'
+        time = '0000-00-01'
         harness_uid = 'instance'
         job_id = 11
         build_status = '0'
@@ -724,35 +801,37 @@ class TestUpdateDatabase(unittest.TestCase):
         events = {event_uids[0]: {}, event_uids[1]: {}}
         exit_status = None
 
-        db = self.connector.connect()
-        cursor = db.cursor()
-        sql = "INSERT INTO {table} (event_uid, event_name) VALUES ({event_uid}, {event_name})" \
-            .format(table=self.event_table, event_uid=event_uids[0], event_name='event')
-        cursor.execute(sql)
-        db.commit()
-        sql = "INSERT INTO {table} (event_uid, event_name) VALUES ({event_uid}, {event_name})" \
-            .format(table=self.event_table, event_uid=event_uids[1], event_name='event')
-        cursor.execute(sql)
-        db.commit()
-
-        sql = "INSERT INTO {table} (harness_uid, harness_start, harness_tld, " \
-              "application, testname, system, next_harness_uid, done) " + \
-              "VALUES ({harness_uid}, {harness_start}, {harness_tld}, " \
-              "{application}, {testname}, {system}, {next_harness_uid}, {done})" \
-                  .format(table=self.test_table, harness_uid=harness_uid, harness_start=time, harness_tld='path',
-                          application=program_name, testname=test_name, system=system, next_harness_uid=harness_uid, done=False)
-        cursor.execute(sql)
-        db.commit()
-
+        for uid in event_uids:
+            self.insert_event(uid)
+        
         rgt_line = self.IC.create_rgt_status_line(time, harness_uid, job_id, build_status, submit_status, check_status)
         instance = self.IC.create_test_instance(program_name, test_name, harness_uid, time, job_id, build_status,
                                                 submit_status, check_status, outputs, system, events, exit_status)
+
+        harness_tld = instance.status_instance_path
+
+        sql = "INSERT INTO {table} (harness_uid, harness_start, harness_tld, " \
+              "application, testname, system, next_harness_uid, done) " + \
+              "VALUES ('{harness_uid}', '{harness_start}', '{harness_tld}', " \
+              "'{application}', '{testname}', '{system}', '{next_harness_uid}', {done})"
+        
+        sql = sql.format(table=self.test_table, harness_uid=harness_uid, harness_start=time, harness_tld='path',
+                         application=program_name, testname=test_name, system=system, next_harness_uid=harness_uid, done=False)
+        db = self.connector.connect()
+        cursor = db.cursor()
+        cursor.execute(sql)
+        db.commit()
+        db.close()
+
+
+        self.init_update_database()
+        self.UD.update_test_instance(1, harness_tld, rgt_line)
 
         expected_vals = {'harness_uid': harness_uid, 'job_id': job_id, 'build_status': build_status,
                          'submit_status': submit_status, 'output_build': build_output_text}
         self.assertTrue(self.in_table(self.test_table, **expected_vals))
 
-        expected_event_vals = {'0': {'event_id': 0}, '1': {'event_id': 1}}
+        expected_event_vals = {'0': {'event_id': 1}, '1': {'event_id': 2}}
 
         self.assertTrue(self.in_table(self.event_table, **expected_event_vals['0']))
         self.assertTrue(self.in_table(self.event_table, **expected_event_vals['1']))
@@ -760,7 +839,7 @@ class TestUpdateDatabase(unittest.TestCase):
     def test_get_job_tuple(self):
         program_name = 'program'
         test_name = 'test'
-        time = '00:00:0300'
+        time = '0000-00-01'
         harness_uid = 'instance'
         job_id = 11
         build_status = '0'
@@ -779,22 +858,24 @@ class TestUpdateDatabase(unittest.TestCase):
         cursor = db.cursor()
         sql = "INSERT INTO {table} (harness_uid, harness_start, harness_tld, " \
               "application, testname, system, next_harness_uid, done) " + \
-              "VALUES ({harness_uid}, {harness_start}, {harness_tld}, " \
-              "{application}, {testname}, {system}, {next_harness_uid}, {done})" \
-                  .format(table=self.test_table, harness_uid=harness_uid, harness_start=time, harness_tld='path',
-                          application=program_name, testname=test_name, system=system, next_harness_uid=harness_uid, done=False)
+              "VALUES ('{harness_uid}', '{harness_start}', '{harness_tld}', " \
+              "'{application}', '{testname}', '{system}', '{next_harness_uid}', {done})" 
+
+        sql = sql.format(table=self.test_table, harness_uid=harness_uid, harness_start=time, harness_tld='path',
+                         application=program_name, testname=test_name, system=system, next_harness_uid=harness_uid, done=False)
         cursor.execute(sql)
         db.commit()
+        db.close()
 
         self.init_update_database()
         job_tuple = self.UD.get_job_tuple(harness_uid)
-        self.assertEqual(job_tuple[0], 0)
+        self.assertEqual(job_tuple[0], 1)
         self.assertEqual(job_tuple[1], False)
 
     def test_update_test_instances(self):
         program_name = 'program'
         test_name = 'test'
-        time = '00:00:0300'
+        time = '0000-00-01'
         harness_uids = ['instance_A', 'instance_B']
         job_id = 11
         build_status = '0'
@@ -814,20 +895,17 @@ class TestUpdateDatabase(unittest.TestCase):
                                                   submit_status, check_status, outputs, system, events, exit_status)
 
         # Try with one already in database and the other just needing to be updated.
-        db = self.connector.connect()
-        cursor = db.cursor()
-        sql = "INSERT INTO {table} (event_uid, event_name) VALUES ({event_uid}, {event_name})" \
-            .format(table=self.event_table, event_uid=0, event_name='event')
-        cursor.execute(sql)
-        db.commit()
+        self.insert_event(0)
 
         sql = "INSERT INTO {table} (harness_uid, harness_start, harness_tld, " \
               "application, testname, system, next_harness_uid, done) " + \
-              "VALUES ({harness_uid}, {harness_start}, {harness_tld}, " \
-              "{application}, {testname}, {system}, {next_harness_uid}, {done})" \
-                  .format(table=self.test_table, harness_uid=harness_uids[0], harness_start=time, harness_tld='path',
-                          application=program_name, testname=test_name, system=system, next_harness_uid=harness_uids[0],
+              "VALUES ('{harness_uid}', '{harness_start}', '{harness_tld}', " \
+              "'{application}', '{testname}', '{system}', '{next_harness_uid}', {done})"
+        sql = sql.format(table=self.test_table, harness_uid=harness_uids[0], harness_start=time, harness_tld='path',
+                         application=program_name, testname=test_name, system=system, next_harness_uid=harness_uids[0],
                           done=False)
+        db = self.connector.connect()
+        cursor = db.cursor()
         cursor.execute(sql)
         db.commit()
 
@@ -836,19 +914,19 @@ class TestUpdateDatabase(unittest.TestCase):
         self.assertFalse(self.in_table(self.test_event_table, **{'event_id': 0}))
 
         self.init_update_database()
-        self.UD.update_test_instances(self.IC.path_to_example_tests)
+        self.UD.update_test_instances(os.path.dirname(instance_A.status_instance_path))
 
         self.assertTrue(self.in_table(self.test_table, **{'harness_uid': harness_uids[0], 'build_status': build_status,
-                                                          'build_output_text': build_output_text}))
+                                                          'output_build': build_output_text}))
         self.assertTrue(self.in_table(self.test_table, **{'harness_uid': harness_uids[1],
-                                                          'build_output_text': build_output_text}))
-        self.assertTrue(self.in_table(self.test_event_table, **{'event_id': 0, 'test_id': 0}))
-        self.assertTrue(self.in_table(self.test_event_table, **{'event_id': 0, 'test_id': 1}))
+                                                          'output_build': build_output_text}))
+        self.assertTrue(self.in_table(self.test_event_table, **{'event_id': 1, 'test_id': 1}))
+        self.assertTrue(self.in_table(self.test_event_table, **{'event_id': 1, 'test_id': 2}))
 
     def test_update_tests(self):
         program_names = ['program_1', 'program_2']
         test_names = ['test_alpha', 'test_beta']
-        time = '00:00:0300'
+        time = '0000-00-01'
         harness_uids = ['instance_A', 'instance_B', 'instance_C']
         job_id = 11
         build_status = '0'
@@ -877,17 +955,14 @@ class TestUpdateDatabase(unittest.TestCase):
                         new_uids.append(new_uid)
 
         # Try with one already in database and the other just needing to be updated.
-        db = self.connector.connect()
-        cursor = db.cursor()
-        sql = "INSERT INTO {table} (event_uid, event_name) VALUES ({event_uid}, {event_name})" \
-            .format(table=self.event_table, event_uid=0, event_name='event')
-        cursor.execute(sql)
-        db.commit()
+        self.insert_event(0)
 
         for uid in new_uids:
             self.assertFalse(self.in_table(self.test_table, **{'harness_uid': uid}))
 
         self.init_update_database(self.IC.path_to_rgt_input)
+        self.UD.update_tests()
 
         for uid in new_uids:
-            self.assertTrue(self.in_table(self.test_table, **{'harness_uid': uid}))
+            self.assertTrue(self.in_table(self.test_table, **{'harness_uid': uid, 'done': False}))
+

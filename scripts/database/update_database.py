@@ -9,13 +9,17 @@ from scripts import parse_file
 from scripts import test_status
 
 
-def get_event_types(database, event_table):
+def get_event_types(connector, event_table):
+    database = connector.connect()
     cursor = database.cursor()
     sql = "SELECT (event_uid) FROM {table}".format(table=event_table)
 
     cursor.execute(sql)
+    database.commit()
+    database.close()
     event_types = cursor.fetchall()
     event_types = [event_type[0] for event_type in event_types]
+
     return event_types
 
 
@@ -24,7 +28,7 @@ class UpdateDatabase:
     This class takes care of running all necessary functions for updating the database. It does not repeat.
     """
     def __init__(self, connector, rgt_input_path, test_table='rgt_test', test_event_table='rgt_test_event',
-                 event_table='rgt_event', verbose=True, replacement_lsf_exit_function=None):
+                 event_table='rgt_event', verbose=False, replacement_lsf_exit_function=None):
         """
         Constructor for updating the database.
 
@@ -37,7 +41,6 @@ class UpdateDatabase:
         """
         # Set the connections to the database.
         self.connector = connector
-        self.db = connector.connect()
 
         # Set the path to where new tests come from.
         self.rgt_input_path = rgt_input_path
@@ -49,7 +52,7 @@ class UpdateDatabase:
         self.event_table = event_table
 
         # Set the types of events we are prepared to handle.
-        self.event_types = get_event_types(self.db, self.event_table)
+        self.event_types = get_event_types(self.connector, self.event_table)
         # The fields within an rgt_status.txt file.
         self.rgt_fields = ['harness_start', 'harness_uid', 'job_id', 'build_status', 'submit_status', 'check_status']
 
@@ -131,10 +134,13 @@ class UpdateDatabase:
                 self.update_test_instance(test_id, harness_tld, rgt_status_line)
 
     def get_job_tuple(self, harness_uid):
-        cursor = self.db.cursor()
-        sql = "SELECT (test_id, done) FROM {table} WHERE harness_uid = {harness_uid}"\
-              .format(table=self.test_table, harness_uid=harness_uid)
+        db = self.connector.connect()
+        cursor = db.cursor()
+        sql = "SELECT test_id, done FROM {table} WHERE harness_uid = '{harness_uid}'"
+        sql = sql.format(table=self.test_table, harness_uid=harness_uid)
         cursor.execute(sql)
+        db.commit()
+        db.close()
         result = cursor.fetchone()
         return result
 
@@ -235,6 +241,11 @@ class UpdateDatabase:
         event_dic = parser.parse_file(event_path)
         # Get the events uid.
         event_uid = self.get_event_uid(event_dic)
+
+        if event_uid is None:
+            warnings.warn("Could not find the event that matches this file. " + event_path)
+            return
+
         # Get the id of the event from the 'rgt_event' table.
         event_id = self.get_event_id(event_uid)
 
@@ -254,17 +265,20 @@ class UpdateDatabase:
         :param event_id: The id of the event to check. Each event_id only happens once.
         :return: Whether the event already existed.
         """
+        db = self.connector.connect()
         # Create a cursor for executing on the database.
-        cursor = self.db.cursor()
+        cursor = db.cursor()
         # Test if the test, event combo exists in the table.
         sql = "SELECT EXISTS(SELECT 1 FROM {table} WHERE test_id = {test_id} AND event_id = {event_id})"\
               .format(table=self.test_event_table, test_id=test_id, event_id=event_id)
 
         # Execute the command.
         cursor.execute(sql)
+        db.commit()
+        db.close()
         # Return whether or not it was in the table.
-        in_table = cursor.fetchone()
-        return bool(in_table)
+        in_table = bool(cursor.fetchone()[0])
+        return in_table
 
     def insert_parsed_event_into_event_table(self, test_id, event_id, event_time):
         """
@@ -275,8 +289,9 @@ class UpdateDatabase:
         :param event_time: When the event occurred.
         :return:
         """
+        db = self.connector.connect()
         # Create cursor for execution of commands.
-        cursor = self.db.cursor()
+        cursor = db.cursor()
         # Insert the necessary info into the table.
         sql = "INSERT INTO {table} (test_id, event_id, event_time) " \
               "VALUES ({test_id}, {event_id}, {event_time})" \
@@ -285,7 +300,8 @@ class UpdateDatabase:
         # Execute the command.
         cursor.execute(sql)
         # Commit it to the database.
-        self.db.commit()
+        db.commit()
+        db.close()
 
     def add_to_test_table(self, event_path, rgt_status_line, harness_tld):
         # Create parser for parsing event file.
@@ -301,13 +317,15 @@ class UpdateDatabase:
 
         # Get the sql code for inserting the values into the table.
         sql = self.get_add_sql(all_fields)
+        db = self.connector.connect()
         # Create cursor for execution on the database.
-        cursor = self.db.cursor()
+        cursor = db.cursor()
 
         # Execute the command.
         cursor.execute(sql)
         # Commit it to the database.
-        self.db.commit()
+        db.commit()
+        db.close()
 
     def get_add_sql(self, add_fields):
         # Insert into table.
@@ -320,10 +338,13 @@ class UpdateDatabase:
         for i in range(len(key_list)):
             # Get the field being updated.
             field = key_list[i]
-            if type(add_fields[field]) is str:
-                value = "'" + field + "'"
-            elif type(add_fields[field]) is int:
-                value = str(field)
+            val = add_fields[field]
+            if type(val) is str:
+                value = "'" + val + "'"
+            elif type(val) is int:
+                value = str(val)
+            elif type(val) is bool:
+                value = str(val).upper()
             # Add the necessary text.
             sql += field
             vals += value
@@ -336,7 +357,7 @@ class UpdateDatabase:
         sql += ") VALUES (" + vals + ")"
 
         if self.verbose:
-            print("Adding: " + sql)
+            print("Adding: " + sql.format(table=self.test_table))
 
         return sql.format(table=self.test_table)
 
@@ -370,13 +391,20 @@ class UpdateDatabase:
 
         # Get the necessary sql for updating the database.
         sql = self.get_update_sql(update_fields, test_id)
+        db = self.connector.connect()
         # Create a cursor for execution of sql on the database.
-        cursor = self.db.cursor()
+        cursor = db.cursor()
 
-        # Execute the command.
-        cursor.execute(sql)
-        # Commit it to the database.
-        self.db.commit()
+        try:
+            # Execute the command.
+            cursor.execute(sql)
+        except Exception as e:
+            warnings.warn(str(e))
+        else:
+            # Commit it to the database.
+            db.commit()
+
+        db.close()
 
     def get_update_sql(self, update_fields, test_id):
         """
@@ -394,10 +422,13 @@ class UpdateDatabase:
         for i in range(len(key_list)):
             # Get the field being updated.
             field = key_list[i]
-            if type(update_fields[field]) is str:
-                value = "'" + field + "'"
-            elif type(update_fields[field]) is int:
-                value = str(field)
+            val = update_fields[field]
+            if type(val) is str:
+                value = "'" + val + "'"
+            elif type(val) is int:
+                value = str(val)
+            elif type(val) is bool:
+                value = str(val).upper()
             # Add the necessary text.
             sql += field + " = " + value
             # If this is not the last key, add a comma.
@@ -441,11 +472,11 @@ class UpdateDatabase:
         # The first and second index of the stat_line contain the start time and unique id, neither of which are needed.
         # The rest contain job_id, build_status, submit_status, and check_status.
         # Each of which are either ints or '***'. Depending on this we may or may not insert it.
-        for i in range(start=2, stop=len(self.rgt_fields)):
+        for i in range(2, len(self.rgt_fields)):
             field = self.rgt_fields[i]
             val = rgt_status_line[field]
             # Test if it is an integer. If so, put it into a field to update.
-            if val.isdigit():
+            if type(val) == int or val.isdigit():
                 update_fields[self.rgt_fields[i]] = int(val)
 
         # Test if it has an exit status. If so, record it and the job is now done.
@@ -460,6 +491,8 @@ class UpdateDatabase:
                     if update_fields[status] not in [0, 17]:
                         update_fields['done'] = True
                         break
+            else:
+                update_fields['done'] = False
 
         if output_path is not None:
             # For each possible output field.
@@ -507,8 +540,9 @@ class UpdateDatabase:
         """
         # TODO: Need to somehow check the exit status if this is a job being built.
         # Test if it is not an int. If not, return.
-        if not job_id.isdigit():
-            return None
+        if type(job_id) != int:
+            if not job_id.isdigit():
+                return None
 
         # Get the job id.
         job_id = int(job_id)
@@ -535,6 +569,8 @@ class UpdateDatabase:
         for possible_event in self.event_types:
             if str(possible_event) in file_name:
                 return possible_event
+        else:
+            return None
 
     def get_event_id(self, event_uid):
         """
@@ -543,23 +579,29 @@ class UpdateDatabase:
         :param event_uid: The uid of the event.
         :return: The id in the table for the event.
         """
+        db = self.connector.connect()
         # Create a cursor for execution of commands.
-        cursor = self.db.cursor()
+        cursor = db.cursor()
         # Select the event_id that corresponds to the event_uid.
         sql = "SELECT event_id FROM {table} WHERE event_uid = {event_uid}"\
               .format(table=self.event_table, event_uid=event_uid)
 
         # Execute the command.
         cursor.execute(sql)
+        db.commit()
         # Fetch the response.
         event_id = cursor.fetchone()
+        db.close()
         return int(event_id[0])
 
     def get_test_id(self, harness_uid):
-        cursor = self.db.cursor()
-        sql = "SELECT test_id FROM {table} WHERE harness_uid = {harness_uid}"\
+        db = self.connector.connect()
+        cursor = db.cursor()
+        sql = "SELECT test_id FROM {table} WHERE harness_uid = '{harness_uid}'"\
               .format(table=self.test_table, harness_uid=harness_uid)
 
         cursor.execute(sql)
+        db.commit()
         harness_uid = cursor.fetchone()[0]
+        db.close()
         return harness_uid
