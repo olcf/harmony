@@ -21,3 +21,8 @@
 
 # All database input files. These filed are changed often for creating test instances for testing commands.
 unit_tests/test_inputs/database_inputs/*
+
+# Slack tokens.
+*/tokens.txt
+
+

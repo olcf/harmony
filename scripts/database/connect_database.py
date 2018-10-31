@@ -7,7 +7,7 @@ class DatabaseConnector:
     Class to hold info on some connection.
     """
 
-    def __init__(self, database_config):
+    def __init__(self, database_config, user=None, password=None):
         """
         Class to easily connect and disconnect some database.
 
@@ -16,8 +16,14 @@ class DatabaseConnector:
 
         # Get important values from the config that will be used when connecting to the database.
         self.host = database_config['host']
-        self.user = database_config['user']
-        self.password = database_config['password']
+        if user is None:
+            self.user = database_config['user']
+        else:
+            self.user = user
+        if password is None:
+            self.password = database_config['password']
+        else:
+            self.password = password
         self.database_name = database_config['database_name']
 
         # The port is not necessarily needed but if it is set, use it.

@@ -13,8 +13,8 @@ def create_parser():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('-r', '--rgt-path', dest='rgt_path', help='Path to the rgt input file.')
-    parser.add_argument('-u', '--user', dest='user', help='User on the database to act as.')
-    parser.add_argument('-p', '--password', dest='password', help='Password for the user.')
+    parser.add_argument('-u', '--user', dest='user', default=None, help='User on the database to act as.')
+    parser.add_argument('-p', '--password', dest='password', default=None, help='Password for the user.')
 
     return parser
 
@@ -27,18 +27,13 @@ def run():
     parser = create_parser()
     args = parser.parse_args()
 
-    # Write the config file.
-    config_functions.write_config(user=args.user, password=args.password)
-
     # Get the written database config.
-    database = config_functions.get_config()
-    print(database.keys())
-    exit()
+    database = config_functions.get_config()['database']
     # Continue updating infinitely.
     while True:
         start = time.time()
         # Create necessary variables.
-        connector = connect_database.DatabaseConnector()
+        connector = connect_database.DatabaseConnector(database, user=args.user, password=args.password)
         rgt_input_path = args.rgt_path
         test_table = database['test_table']
         test_event_table = database['test_event_table']

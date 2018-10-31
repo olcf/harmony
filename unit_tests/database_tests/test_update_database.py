@@ -407,14 +407,29 @@ class TestUpdateDatabase(unittest.TestCase):
 
     def setUp(self):
         """
-        Each time a new test is run. Create new tables to act on.
+        Each time a new test is run. Drop old tables/directories and create new tables to act on.
         """
         self.verbose = False
 
+        # Set the path to the drop tables file.
+        drop_tables_path = os.path.join(os.path.dirname(__file__), 'drop_test_tables.sql')
+        if self.verbose:
+            print("Removing tables.")
+        # Only try running for at most 10 seconds. Any longer and the most likely problem is that a table was locked.
+        try:
+            with time_limit(10):
+                create_database.execute_sql_file(self.connector, drop_tables_path)
+        except TimeoutException as e:
+            print("TIMEOUT: I timed out trying to drop tables. This is most likely because a table was locked.")
+        # Remove all directories created.
+        self.remove_directories()
+
+        # Create the new tables and what not.
         # Set the names of each of the tables.
         self.test_table = 'test_rgt_test'
         self.test_event_table = 'test_rgt_test_event'
         self.event_table = 'test_rgt_event'
+        self.check_table = 'test_rgt_check'
         self.IC = InstanceCreator()
 
         # Get the config for the database.
@@ -430,23 +445,6 @@ class TestUpdateDatabase(unittest.TestCase):
         # Initialize the directories for the test.
         self.init_directories()
 
-    def tearDown(self):
-        """
-        Drop all tables and files made for testing after each test case.
-        """
-        # Set the path to the drop tables file.
-        drop_tables_path = os.path.join(os.path.dirname(__file__), 'drop_test_tables.sql')
-        if self.verbose:
-            print("Removing tables.")
-        # Only try running for at most 10 seconds. Any longer and the most likely problem is that a table was locked.
-        try:
-            with time_limit(10):
-                create_database.execute_sql_file(self.connector, drop_tables_path)
-        except TimeoutException as e:
-            print("TIMEOUT: I timed out trying to drop tables. This is most likely because a table was locked.")
-        # Remove all directories created.
-        self.remove_directories()
-
     def init_update_database(self, rgt_input_path=''):
         """
         Initialize the UpdateDatabase class. Everything should be setup before initializing the class.
@@ -455,6 +453,7 @@ class TestUpdateDatabase(unittest.TestCase):
         """
         self.UD = update_database.UpdateDatabase(self.connector, rgt_input_path, test_table=self.test_table,
                                                  test_event_table=self.test_event_table, event_table=self.event_table,
+                                                 check_table=self.check_table,
                                                  replacement_lsf_exit_function=self.IC.replacement_lsf_exit_function)
 
     def insert_event(self, event_uid, event_name='test'):
