@@ -28,7 +28,8 @@ class UpdateDatabase:
     This class takes care of running all necessary functions for updating the database. It does not repeat.
     """
     def __init__(self, connector, rgt_input_path, test_table='rgt_test', test_event_table='rgt_test_event',
-                 event_table='rgt_event', verbose=False, replacement_lsf_exit_function=None):
+                 event_table='rgt_event', check_table='rgt_check',
+                 verbose=False, replacement_lsf_exit_function=None):
         """
         Constructor for updating the database.
 
@@ -50,6 +51,7 @@ class UpdateDatabase:
         self.test_table = test_table
         self.test_event_table = test_event_table
         self.event_table = event_table
+        self.check_table = check_table
 
         # Set the types of events we are prepared to handle.
         self.event_types = get_event_types(self.connector, self.event_table)
@@ -530,7 +532,13 @@ class UpdateDatabase:
             val = rgt_status_line[field]
             # Test if it is an integer. If so, put it into a field to update.
             if type(val) == int or val.isdigit():
-                update_fields[self.rgt_fields[i]] = int(val)
+                if field == 'check_status':
+                    if self.legal_check_status(val):
+                        update_fields[field] = int(val)
+                    else:
+                        warnings.warn('Skipping check status ' + str(val) + ' since it was not in the check table.')
+                else:
+                    update_fields[field] = int(val)
 
         # Test if it has an exit status. If so, record it and the job is now done.
         if lsf_exit_status is not None:
@@ -563,6 +571,23 @@ class UpdateDatabase:
                         update_fields[key] = output_text
 
         return update_fields
+
+    def legal_check_status(self, check_status):
+        """
+        Find if the check status is in the check table.
+
+        :param check_status: The status to match.
+        :return: Whether it was in the table or not.
+        """
+        sql = "SELECT EXISTS(SELECT 1 FROM {table} WHERE check_uid = {check_status})"\
+              .format(table=self.check_table, check_status=check_status)
+        db = self.connector.connect()
+        cursor = db.cursor()
+        cursor.execute(sql)
+        result = bool(cursor.fetchone()[0])
+        db.commit()
+        db.close()
+        return result
 
     def output_text(self, output_path, output_type):
         """
