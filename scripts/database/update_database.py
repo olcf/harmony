@@ -60,9 +60,9 @@ class UpdateDatabase:
         # The possible output files that we are prepared to handle. They will go like "*_output.txt".
         self.possible_outputs = ['build', 'submit', 'check', 'report']
 
-        # TODO: add verbose statements.
         self.verbose = verbose
 
+        # This is used for testing so that fake jobs can be tested instead of getting stuff from LSF.
         self.lsf_exit_function = None
         if replacement_lsf_exit_function is not None:
             self.lsf_exit_function = replacement_lsf_exit_function
@@ -80,7 +80,6 @@ class UpdateDatabase:
         for test_dir in test_directories:
             self.update_test_instances(test_dir)
 
-    # TODO: Make test
     def get_test_dirs_from_rgt(self):
         """
         Get the directories to each test. Each directory is appended with '/Status/' since we
@@ -126,7 +125,6 @@ class UpdateDatabase:
             # Test if test instance exists in database. The job tuple is none if there was no match.
             if job_tuple is None:
                 # If it does not, add it.
-                # TODO: Make calls to add_test_instance and update_test_instance more similar.
                 self.add_test_instance(harness_tld, rgt_status_line)
             # If in table but not done, update.
             elif not bool(job_tuple[1]):
@@ -134,13 +132,23 @@ class UpdateDatabase:
                 self.update_test_instance(test_id, harness_tld, rgt_status_line)
 
     def get_job_tuple(self, harness_uid):
+        """
+        Get the test id and done status for some test instance.
+
+        :param harness_uid: The uid of the instance to search for.
+        :return: A tuple containing it's id and done status.
+        """
+        # Connect to the database.
         db = self.connector.connect()
         cursor = db.cursor()
+        # Select the test_id and done status from the test table for this test instance..
         sql = "SELECT test_id, done FROM {table} WHERE harness_uid = '{harness_uid}'"
         sql = sql.format(table=self.test_table, harness_uid=harness_uid)
+        # Execute and close the connection.
         cursor.execute(sql)
         db.commit()
         db.close()
+        # Get the result.
         result = cursor.fetchone()
         return result
 
@@ -153,10 +161,12 @@ class UpdateDatabase:
         :param rgt_status_line: The line from the rgt_status file that corresponds to this test.
         :return:
         """
-        # TODO: Check that only doing if a NEW event exists. Still do update for test table, just need event.
+        # Get the paths to all events for this instance.
         event_paths = self.get_event_paths(harness_tld)
+        # Update the test event table with all of these events.
         self.update_test_event_table(event_paths, test_id)
 
+        # If there is at least one event, get the path to where outputs are stored.
         if len(event_paths) != 0:
             event_path = event_paths[0]
 
@@ -169,19 +179,30 @@ class UpdateDatabase:
         self.update_test_table(test_id, output_path, rgt_status_line)
 
     def add_test_instance(self, harness_tld, rgt_status_line):
+        """
+        Add a test instance to the test table.
+
+        :param harness_tld: The path to where this instances events are stored.
+        :param rgt_status_line: The line in the rgt status file that has already been parsed.
+        """
+        # Get all event paths for this instance.
         event_paths = self.get_event_paths(harness_tld)
+        # If there are no events for this test, we do not have enough information to add it.
         if len(event_paths) == 0:
             warnings.warn("I can't find any events for this path and thus I do not have enough information to add\n" +
                           "this test.")
             return
 
+        # Add the instance to the test table.
         event_path = event_paths[0]
         self.add_to_test_table(event_paths[0], rgt_status_line, harness_tld)
 
+        # Parse the first event and get the uid and test_id.
         parser = parse_file.ParseEvent()
         parsed_event = parser.parse_file(event_path)
         harness_uid = parsed_event['test_id']
         test_id = self.get_test_id(harness_uid)
+        # Update the test event table with all the events for this instance so far.
         self.update_test_event_table(event_paths, test_id)
 
     def get_event_paths(self, test_instance_status_path):
@@ -212,6 +233,12 @@ class UpdateDatabase:
         return events
 
     def update_test_event_table(self, event_paths, test_id):
+        """
+        Update the test event table for some test by adding all the new events for it.
+
+        :param event_paths: A list containing all the paths to all of some tests events.
+        :param test_id: The id of the test in the database.
+        """
         # Get a list of all events for this test instance. We sort them so that we can check the last test for the
         # lsf exit status.
         sorted_event_paths = sorted(event_paths)
@@ -219,7 +246,8 @@ class UpdateDatabase:
             if len(sorted_event_paths) == 1:
                 print("Found 1 event. The path is " + str(sorted_event_paths) + ".")
             else:
-                print("Found " + str(len(sorted_event_paths)) + " events. The paths are " + str(sorted_event_paths) + ".")
+                print("Found " + str(len(sorted_event_paths)) + " events."
+                      " The paths are " + str(sorted_event_paths) + ".")
         # If there are events, start updating.
         if len(sorted_event_paths) != 0:
             # For each event, insert it into the event table connected to the correct event.
@@ -304,6 +332,14 @@ class UpdateDatabase:
         db.close()
 
     def add_to_test_table(self, event_path, rgt_status_line, harness_tld):
+        """
+        Add a test to the test table.
+
+        :param event_path: The path to some event for that test. This is needed since not all the necessary information
+        is stored in the rgt_status file.
+        :param rgt_status_line: The parsed line in the rgt status file for this test.
+        :param harness_tld: The path to where this tests events are stored.
+        """
         # Create parser for parsing event file.
         parser = parse_file.ParseEvent()
         # Get dictionary for the event.
@@ -313,6 +349,7 @@ class UpdateDatabase:
         # Get fields to update that are constant once the instance has been created.
         add_fields = self.get_add_fields(rgt_status_line, event_dic, harness_tld)
 
+        # Concatenate the add fields and the update fields.
         all_fields = {**add_fields, **update_fields}
 
         # Get the sql code for inserting the values into the table.
@@ -328,6 +365,12 @@ class UpdateDatabase:
         db.close()
 
     def get_add_sql(self, add_fields):
+        """
+        Get the sql needed to add a test to the test table.
+
+        :param add_fields: The field, value combinations for the test. This is a dictionary.
+        :return: The necessary sql.
+        """
         # Insert into table.
         sql = "INSERT INTO {table} ("
         # Get the keys set.
@@ -339,6 +382,7 @@ class UpdateDatabase:
             # Get the field being updated.
             field = key_list[i]
             val = add_fields[field]
+            # Change how the value should look in the sql depending on it's type.
             if type(val) is str:
                 value = "'" + val + "'"
             elif type(val) is int:
@@ -362,6 +406,15 @@ class UpdateDatabase:
         return sql.format(table=self.test_table)
 
     def get_add_fields(self, rgt_status_line, event_dic, harness_tld):
+        """
+        Get the fields needed for adding a test.
+
+        :param rgt_status_line: The parsed rgt status line for the test.
+        :param event_dic: A parsed event.
+        :param harness_tld: The path to where the events for the test are stored.
+        :return: A dictionary containing the field, value combinations for adding the test.
+        """
+        # Initialize an empty dictionary.
         add_fields = {}
 
         # Add the field, value pairs to the dictionary.
@@ -560,7 +613,7 @@ class UpdateDatabase:
         Get the type of event that some event dictionary represents.
 
         :param event_dic: a dictionary for the event.
-        :return:
+        :return: The uid for the event.
         """
         # Get the file name of the event. This is not the full path, just the name of the file.
         file_name = event_dic['event_filename']
@@ -595,11 +648,20 @@ class UpdateDatabase:
         return int(event_id[0])
 
     def get_test_id(self, harness_uid):
+        """
+        The id of the test instance in the table.
+
+        :param harness_uid: The uid for the test.
+        :return: The id for the test in the database.
+        """
+        # Initialize a connection.
         db = self.connector.connect()
         cursor = db.cursor()
+        # Select the test id that matches with the uid.
         sql = "SELECT test_id FROM {table} WHERE harness_uid = '{harness_uid}'"\
               .format(table=self.test_table, harness_uid=harness_uid)
 
+        # Run the command and close the connection.
         cursor.execute(sql)
         db.commit()
         harness_uid = cursor.fetchone()[0]

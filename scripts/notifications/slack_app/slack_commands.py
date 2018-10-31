@@ -1,7 +1,3 @@
-# Commands needed:
-#   help
-#   my jobs
-#   check tests
 from scripts import job_monitor
 import os
 
@@ -115,7 +111,7 @@ def maximize_col_sizes(tuple_list, col_sizes):
     return new_cols
 
 
-class MessageParser:
+class MessageParser:# Drop all tables that have been used for testing.# Drop all tables that have been used for testing.
     """
     Class to hold the parser for messages.
     """

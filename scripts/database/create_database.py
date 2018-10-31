@@ -51,9 +51,11 @@ def execute_sql_file(connector, file_path, verbose=False):
         except pymysql.MySQLError as e:
             print("Command skipped: ", e.args)
         except Exception as e:
+            database.rollback()
             raise e
         else:
             database.commit()
 
+    # Close the connection.
     database.close()
 

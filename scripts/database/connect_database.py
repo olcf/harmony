@@ -11,16 +11,16 @@ class DatabaseConnector:
         """
         Class to easily connect and disconnect some database.
 
-        :param host: The host for the connection. (ex. 'localhost')
-        :param user: The user trying to connect.
-        :param password: The password for the user.
-        :param database_name: The database targeted.
+        :param database_config: The config section for the database.
         """
 
+        # Get important values from the config that will be used when connecting to the database.
         self.host = database_config['host']
         self.user = database_config['user']
         self.password = database_config['password']
         self.database_name = database_config['database_name']
+
+        # The port is not necessarily needed but if it is set, use it.
         if 'port' in database_config:
             self.port = int(database_config['port'])
         else:
