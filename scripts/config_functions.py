@@ -12,8 +12,8 @@ def write_config(path_to_config=config_path, path_to_slack_tokens=slack_path, pa
     Write the config file for harmony.
 
     :param path_to_config: The path to where the config file will be.
-    :param password: The password to the database.
-    :param user: The user for the database.
+    :param path_to_slack_tokens: The path to where the file that holds the tokens for the slack app are.
+    :param path_to_database_tokens: The path to where the file that holds the tokens for the database are.
     """
     conf = configparser.ConfigParser()
 
@@ -39,6 +39,8 @@ def write_config(path_to_config=config_path, path_to_slack_tokens=slack_path, pa
     slack_app['MAX_MESSAGE_LENGTH'] = '100'
     # Maximum number of keys in that are allowed in a message.
     slack_app['MAX_MESSAGE_KEYS'] = '20'
+    # Maximum length of a message we send. This is because slack splits messages that are too long.
+    slack_app['MAX_SENT_MESSAGE_LENGTH'] = '2000'
 
     # DATABASE
     conf['DATABASE'] = {}

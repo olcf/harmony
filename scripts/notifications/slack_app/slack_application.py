@@ -17,7 +17,7 @@ class SlackApp:
 
     # All times are in unix time.
     def __init__(self, bot_token, app_token, channel, watch_time=5, max_messengers=4, verbose=0, max_reads=100,
-                 max_message_length=100, max_message_keys=20):
+                 max_message_length=100, max_message_keys=20, max_sent_message_length=2000):
         """
         Construct the application.
 
@@ -109,7 +109,6 @@ class SlackApp:
         num_parts = math.ceil(float(len(message)) / self.max_sent_message_length)
         # Get the length of each split to try to split evenly.
         split_length = int(len(message) / num_parts)
-        # TODO: Split on '\n' if available.
 
         # Copy the message so the original is not changed.
         changed_message = copy.copy(message)
