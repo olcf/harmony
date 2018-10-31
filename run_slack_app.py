@@ -24,13 +24,13 @@ def run():
     max_message_length = int(slack_config["max_message_length"])
     # Maximum number of keys allowed in any message from slack.
     max_message_keys = int(slack_config["max_message_keys"])
-    max_split_message_length = int(slack_config["max_split_message_length"])
+    max_sent_message_length = int(slack_config["max_sent_message_length"])
 
     # Pull the bot token from the os environment and create the connector.
     app = slack_application.SlackApp(bot_token=bot_token, app_token=app_token, channel=channel, watch_time=watch_time,
                                      verbose=1, max_messengers=max_messengers, max_reads=max_reads,
                                      max_message_length=max_message_length, max_message_keys=max_message_keys,
-                                     max_split_message_length=max_split_message_length)
+                                     max_sent_message_length=max_sent_message_length)
 
     app.main()
 

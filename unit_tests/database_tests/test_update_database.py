@@ -411,6 +411,17 @@ class TestUpdateDatabase(unittest.TestCase):
         """
         self.verbose = False
 
+        # Get the config for the database.
+        database_conf = config_functions.get_config()['DATABASE']
+        # Initialize a connector to the database.
+        self.connector = connect_database.DatabaseConnector(database_conf)
+        # Set the names of each of the tables.
+        self.test_table = 'test_rgt_test'
+        self.test_event_table = 'test_rgt_test_event'
+        self.event_table = 'test_rgt_event'
+        self.check_table = 'test_rgt_check'
+        self.IC = InstanceCreator()
+
         # Set the path to the drop tables file.
         drop_tables_path = os.path.join(os.path.dirname(__file__), 'drop_test_tables.sql')
         if self.verbose:
@@ -425,18 +436,6 @@ class TestUpdateDatabase(unittest.TestCase):
         self.remove_directories()
 
         # Create the new tables and what not.
-        # Set the names of each of the tables.
-        self.test_table = 'test_rgt_test'
-        self.test_event_table = 'test_rgt_test_event'
-        self.event_table = 'test_rgt_event'
-        self.check_table = 'test_rgt_check'
-        self.IC = InstanceCreator()
-
-        # Get the config for the database.
-        database_conf = config_functions.get_config()['DATABASE']
-        # Initialize a connector to the database.
-        self.connector = connect_database.DatabaseConnector(database_conf)
-
         # Set the path to the file for creating the test tables.
         create_tables_path = os.path.join(os.path.dirname(__file__), 'create_test_tables.sql')
         # Create the tables.

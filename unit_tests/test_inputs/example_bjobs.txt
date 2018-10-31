@@ -1,8 +1,5 @@
 JOBID   USER       STAT   SLOTS    QUEUE       START_TIME    FINISH_TIME   JOB_NAME                      
-209037  pfaccept   RUN    43       tested      Oct 31 13:52  Oct 31 15:22  *s_1_nmnodes_6_mpi_task_per_rs
-207002  pfaccept   RUN    189001   tested      Oct 31 14:18  Oct 31 15:18  HACC_4500n                    
-209044  pfaccept   RUN    4033     tested      Oct 31 14:42  Oct 31 15:12  lulesh_cuda_96node            
-206716  pfaccept   PEND      -     tested            -             -       LSMS_Fe_n4608                 
+206716  pfaccept   RUN    193537   tested      Oct 31 15:00  Oct 31 18:00  LSMS_Fe_n4608                 
 206717  pfaccept   PEND      -     tested            -             -       *ream_test_CUDAStream_4608node
 206728  pfaccept   PEND      -     tested            -             -       *500_nmnodes_6_mpi_task_per_rs
 206745  pfaccept   PEND      -     tested            -             -       *160_nmnodes_6_mpi_task_per_rs
@@ -129,24 +126,17 @@ JOBID   USER       STAT   SLOTS    QUEUE       START_TIME    FINISH_TIME   JOB_N
 209041  pfaccept   PEND      -     tested            -             -       *s_1_nmnodes_6_mpi_task_per_rs
 209042  pfaccept   PEND      -     tested            -             -       GTC4_test_4576node_noio_amgx  
 209043  pfaccept   PEND      -     tested            -             -       *s_1_nmnodes_1_mpi_task_per_rs
-209045  pfaccept   PEND      -     tested            -             -       raytrace_gpu_64node           
 209046  pfaccept   PEND      -     tested            -             -       profugus_gpu_8node            
 209047  pfaccept   PEND      -     tested            -             -       *s_1_nmnodes_1_mpi_task_per_rs
 209048  pfaccept   PEND      -     tested            -             -       raytrace_cpu_64node           
+209049  pfaccept   PEND      -     tested            -             -       lulesh_cuda_96node            
+209050  pfaccept   PEND      -     tested            -             -       *s_1_nmnodes_6_mpi_task_per_rs
+209051  pfaccept   PEND      -     tested            -             -       raytrace_gpu_64node           
+209052  pfaccept   PEND      -     tested            -             -       HACC_4500n                    
 209006  gvh        PEND      -     batch             -             -       OSU_OSHMEM_COLLECT            
-209030  pfaccept   DONE   43       tested      Oct 31 13:25  Oct 31 13:46  *s_1_nmnodes_1_mpi_task_per_rs
-206714  pfaccept   DONE   191521   tested      Oct 31 13:36  Oct 31 13:47  nekbone_opt_n4560             
-209028  pfaccept   DONE   43       tested      Oct 31 13:21  Oct 31 13:48  *s_1_nmnodes_6_mpi_task_per_rs
-206715  pfaccept   DONE   191521   tested      Oct 31 13:48  Oct 31 13:53  nekbone_opt_n4560             
-209021  pfaccept   DONE   43       tested      Oct 31 12:57  Oct 31 13:53  *s_1_nmnodes_6_mpi_task_per_rs
-209033  pfaccept   DONE   337      tested      Oct 31 13:37  Oct 31 13:55  profugus_gpu_8node            
-209038  pfaccept   DONE   337      tested      Oct 31 13:55  Oct 31 14:12  profugus_gpu_8node            
-209035  pfaccept   DONE   43       tested      Oct 31 13:46  Oct 31 14:14  *s_1_nmnodes_1_mpi_task_per_rs
-209036  pfaccept   DONE   43       tested      Oct 31 13:48  Oct 31 14:15  *s_1_nmnodes_6_mpi_task_per_rs
-206720  pfaccept   DONE   192193   tested      Oct 31 13:53  Oct 31 14:18  GTC4_test_4576node_noio_amgx  
-209025  pfaccept   DONE   43       tested      Oct 31 13:13  Oct 31 14:20  *s_1_nmnodes_1_mpi_task_per_rs
-208989  pfaccept   DONE   4033     tested      Oct 31 14:18  Oct 31 14:22  lulesh_cuda_96node            
-209039  pfaccept   DONE   337      tested      Oct 31 14:12  Oct 31 14:32  profugus_gpu_8node            
-209029  pfaccept   DONE   2689     tested      Oct 31 14:22  Oct 31 14:32  raytrace_gpu_64node           
-209034  pfaccept   DONE   43       tested      Oct 31 13:40  Oct 31 14:33  *s_1_nmnodes_1_mpi_task_per_rs
+209053  gvh        PEND      -     batch             -             -       OSU_OSHMEM_COLLECT            
 209031  pfaccept   DONE   2689     tested      Oct 31 14:33  Oct 31 14:42  raytrace_cpu_64node           
+209044  pfaccept   DONE   4033     tested      Oct 31 14:42  Oct 31 14:46  lulesh_cuda_96node            
+209037  pfaccept   DONE   43       tested      Oct 31 13:52  Oct 31 14:46  *s_1_nmnodes_6_mpi_task_per_rs
+209045  pfaccept   DONE   2689     tested      Oct 31 14:47  Oct 31 14:56  raytrace_gpu_64node           
+207002  pfaccept   DONE   189001   tested      Oct 31 14:18  Oct 31 14:59  HACC_4500n                    

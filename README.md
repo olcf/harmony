@@ -81,6 +81,9 @@ to the same database and there is a conflict, does it get corrupted?
 - Run unittests using `python3 -m unit_tests.run_all_tests` while in the harmony directory. 
 Add the `-f` flag to the end to only run fast tests.
 Add the `-d` flag to run only database tests.
+
+#### Create Config
+Run `python3 -m scripts.config_functions` in the harmony directory.
   
 #### Application
 - Run the slack application using `python3 -m run_slack_app` while in the harmony directory.

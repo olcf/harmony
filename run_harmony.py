@@ -4,6 +4,7 @@ import argparse
 import time
 from scripts.database import connect_database
 import traceback
+from scripts.database import create_database
 
 
 def create_parser():
@@ -28,12 +29,15 @@ def run():
     args = parser.parse_args()
 
     # Get the written database config.
-    database = config_functions.get_config()['database']
+    database = config_functions.get_config()['DATABASE']
+
+    connector = connect_database.DatabaseConnector(database, user=args.user, password=args.password)
+    create_database.create_db(connector)
+
     # Continue updating infinitely.
     while True:
         start = time.time()
         # Create necessary variables.
-        connector = connect_database.DatabaseConnector(database, user=args.user, password=args.password)
         rgt_input_path = args.rgt_path
         test_table = database['test_table']
         test_event_table = database['test_event_table']
@@ -52,7 +56,7 @@ def run():
         total_time = time.time() - start
         # Either immediately refresh if the time it took to update took longer than the refresh time
         # or sleep for the remaining refresh period.
-        time.sleep(max(database['refresh_time'] - total_time, 0))
+        time.sleep(max(int(database['refresh_time']) - total_time, 0))
 
 
 if __name__ == '__main__':
