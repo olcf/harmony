@@ -28,16 +28,18 @@ def run():
     args = parser.parse_args()
 
     # Write the config file.
-    config_functions.write_config(user=args['user'], password=args['password'])
+    config_functions.write_config(user=args.user, password=args.password)
 
     # Get the written database config.
-    database = config_functions.get_config()['database']
+    database = config_functions.get_config()
+    print(database.keys())
+    exit()
     # Continue updating infinitely.
     while True:
         start = time.time()
         # Create necessary variables.
         connector = connect_database.DatabaseConnector()
-        rgt_input_path = args['rgt_path']
+        rgt_input_path = args.rgt_path
         test_table = database['test_table']
         test_event_table = database['test_event_table']
         event_table = database['event_table']

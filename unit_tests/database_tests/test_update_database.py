@@ -99,7 +99,7 @@ class InstanceCreator:
         # Write the output files for the test.
         for output_key in outputs.keys():
             output_path = os.path.join(instance.run_archive_instance_path, 'output_' + output_key + ".txt")
-            self.write_output(instance.output_path, outputs[output_key])
+            self.write_output(output_path, outputs[output_key])
 
         # Create a dictionary for holding the fully made events.
         complete_events = {}
