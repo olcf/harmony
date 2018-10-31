@@ -29,6 +29,8 @@ class SlackApp:
         :param verbose: Whether to print out what the app is currently doing. (0, 1, or 2)
         :param max_reads: How many responses from slack to go through each time we loop.
         :param max_message_length: Maximum length of a message that we try to parse.
+        :param max_message_keys: Maximum number of keys allowed in a message.
+        :param max_sent_message_length: Maximum length of a message that we try to send.
         """
         # Set the token for the bot being used.
         # This slack bot token is hidden in the environment so it can not be stolen.
