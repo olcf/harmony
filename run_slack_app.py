@@ -6,6 +6,9 @@ def run():
     """
     Run the slack application.
     """
+    # Write the config function. This will preserve the previous username and password for the table.
+    config_functions.write_config()
+
     # Get the config.
     config = config_functions.get_config()
     slack_config = config['SLACK_APP']

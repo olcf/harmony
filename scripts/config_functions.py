@@ -6,7 +6,26 @@ import sys
 config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config.ini'))
 
 
-def write_config(file_path=config_path, password=None, user=None):
+def previous_database_info(file_path):
+    """
+    Get the previous user and password for the database so that it only needs to be entered once
+    when making the config file.
+
+    :param file_path: Path to the config file.
+    :return: The user and password found in the config file.
+    """
+    previous_conf = get_config(file_path)
+    if len(previous_conf) == 0:
+        return None, None
+    database = previous_conf['DATABASE']
+
+    user = database['user']
+    password = database['password']
+
+    return user, password
+
+
+def write_config(file_path=config_path, user=None, password=None):
     """
     Write the config file for harmony.
 
@@ -36,30 +55,23 @@ def write_config(file_path=config_path, password=None, user=None):
     # DATABASE
     conf['DATABASE'] = {}
     database = conf['DATABASE']
-    try:
-        import pythonlsf
-    except ModuleNotFoundError:
-        on_summit = False
-    else:
-        on_summit = True
 
-    if on_summit:
-        database['HOST'] = 'rgtroute-stf006.marble.ccs.ornl.gov'
-        database['PORT'] = '31673'
-        if user is None:
-            database['USER'] = 'kuchta'
-        else:
-            database['USER'] = user
-        database['DATABASE_NAME'] = 'rgt'
+    database['HOST'] = 'rgtroute-stf006.marble.ccs.ornl.gov'
+    database['PORT'] = '31673'
+    database['DATABASE_NAME'] = 'rgt'
+    # Get the previous username and password so that it is preserved if someone wants to rewrite the config file
+    # without adding the user and password options.
+    prev_user, prev_password = previous_database_info(config_path)
+    if user is None:
+        database['USER'] = prev_user
     else:
-        database['HOST'] = 'localhost'
-        database['USER'] = 'root'
-        database['DATABASE_NAME'] = 'harmony'
+        database['USER'] = user
 
     if password is not None:
-        database['PASSWORD'] = password
+        database['PASSWORD'] = prev_password
     else:
-        database['PASSWORD'] = os.environ['DATABASE_PASSWORD']
+        database['PASSWORD'] = password
+
     database['TEST_TABLE'] = 'rgt_test'
     database['EVENT_TABLE'] = 'rgt_event'
     database['CHECK_TABLE'] = 'rgt_check'

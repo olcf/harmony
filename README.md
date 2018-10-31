@@ -78,8 +78,13 @@ to the same database and there is a conflict, does it get corrupted?
 
 ## Running Stuff
 #### Unit Tests
-- Run unittests using `python3 -m unittest discover unit_tests "test_*.py"` while in the harmony directory. 
+- Run unittests using `python3 -m unit_tests.run_all_tests` while in the harmony directory. 
 Add the `-f` flag to the end to only run fast tests.
+Add the `-d` flag to run only database tests.
   
 #### Application
-- Run the slack application using `python3 -m scripts.notifications.slack_app.slack_application` while in the harmony directory.
+- Run the slack application using `python3 -m run_slack_app` while in the harmony directory.
+
+#### Database
+- Run harmony using `python3 -m run_harmony -u <username> -p <password> -r <rgt_input_path>` 
+while in the harmony directory. The `<username>` and `<password>` are those used for connection to the database.
