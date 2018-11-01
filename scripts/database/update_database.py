@@ -29,7 +29,7 @@ class UpdateDatabase:
     """
     def __init__(self, connector, rgt_input_path, test_table='rgt_test', test_event_table='rgt_test_event',
                  event_table='rgt_event', check_table='rgt_check',
-                 verbose=False, replacement_lsf_exit_function=None):
+                 verbose=False, replacement_lsf_exit_function=None, replacement_in_queue_function=None):
         """
         Constructor for updating the database.
 
@@ -68,6 +68,9 @@ class UpdateDatabase:
         self.lsf_exit_function = None
         if replacement_lsf_exit_function is not None:
             self.lsf_exit_function = replacement_lsf_exit_function
+        self.in_queue_function = None
+        if replacement_in_queue_function is not None:
+            self.in_queue_function = replacement_in_queue_function
 
     def update_tests(self):
         """
@@ -544,16 +547,14 @@ class UpdateDatabase:
         if lsf_exit_status is not None:
             update_fields['lsf_exit_status'] = lsf_exit_status
             update_fields['done'] = True
-        # If the test does not have an exit status but one of it's other stats are non zero and not 17 (running)
-        # then change the done status.
+        elif 'build_status' in update_fields.keys() and update_fields['build_status'] != 0:
+            update_fields['done'] = True
+        elif 'submit_status' in update_fields.keys() and update_fields['submit_status'] != 0:
+            update_fields['done'] = True
+        elif 'job_id' in update_fields.keys() and not self.in_queue(update_fields['job_id']):
+            update_fields['done'] = True
         else:
-            for status in ['build_status', 'submit_status', 'check_status']:
-                if status in update_fields.keys():
-                    if update_fields[status] not in [0, 17]:
-                        update_fields['done'] = True
-                        break
-            else:
-                update_fields['done'] = False
+            update_fields['done'] = False
 
         if output_path is not None:
             # For each possible output field.
@@ -608,6 +609,32 @@ class UpdateDatabase:
         # Read the output file and send it back.
         with open(output_file_path) as f:
             return f.read()
+
+    def in_queue(self, job_id):
+        """
+        Get whether the job exists in LSF.
+
+        :param job_id: The id of the job.
+        :return: Whether it exists.
+        """
+        # Test if it is not an int. If not, return.
+        if type(job_id) != int:
+            if not job_id.isdigit():
+                return None
+
+        # Get the job id.
+        job_id = int(job_id)
+
+        # Test if we are doing a unit test. If so, replace this function with the new one.
+        if self.in_queue_function is not None:
+            return self.in_queue_function(job_id)
+
+        # Get the exit status of the job.
+        JS = job_status.JobStatus()
+        if len(JS.get_jobs(job_id)) == 0:
+            return False
+        else:
+            return True
 
     def get_exit_status(self, job_id):
         """

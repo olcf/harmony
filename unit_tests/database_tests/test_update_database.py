@@ -58,12 +58,12 @@ class InstanceCreator:
         """
         self.path_to_inputs = os.path.abspath(os.path.join(__file__, '..', '..', 'test_inputs', 'database_inputs'))
         self.path_to_rgt_input = os.path.join(self.path_to_inputs, 'rgt_input.txt')
-        self.path_to_exit_files = os.path.join(self.path_to_inputs, 'lsf_exit_files')
+        self.path_to_lsf_files = os.path.join(self.path_to_inputs, 'lsf_files')
         self.path_to_output_files = os.path.join(self.path_to_inputs, 'output_files')
         self.path_to_example_tests = os.path.join(self.path_to_inputs, 'example_tests_for_database')
 
     def create_test_instance(self, program_name, test_name, instance_name, time, job_id, build_status, submit_status,
-                             check_status, outputs, system, events, exit_status):
+                             check_status, outputs, system, events, exit_status, in_queue):
         """
         Create an instance of some test that can be used for testing.
 
@@ -139,6 +139,9 @@ class InstanceCreator:
 
         # Write the file that holds the exit status for the job.
         self.write_exit_value(job_id, exit_status)
+
+        # Write the file that holds whether the job exists in LSF.
+        self.write_in_queue_value(job_id, in_queue)
 
         return instance
 
@@ -270,7 +273,7 @@ class InstanceCreator:
         :return: The value read from some file.
         """
         # Path to where the file is.
-        file_path = os.path.join(self.path_to_exit_files, str(job_id) + '_exit_status.txt')
+        file_path = os.path.join(self.path_to_lsf_files, str(job_id) + '_exit_status.txt')
         # Get the exit value.
         with open(file_path, mode='r') as f:
             exit_value = f.read()
@@ -289,7 +292,42 @@ class InstanceCreator:
         :param value: The value to be written.
         """
         # The path to where the exit value file will be stored.
-        file_path = os.path.join(self.path_to_exit_files, str(job_id) + '_exit_status.txt')
+        file_path = os.path.join(self.path_to_lsf_files, str(job_id) + '_exit_status.txt')
+        # Write the value to the file.
+        with open(file_path, mode='w+') as f:
+            if value is None:
+                f.write('')
+            else:
+                f.write(str(value))
+
+    def replacement_in_queue_function(self, job_id):
+        """
+        A function for replacing how LSF is read. This means there is less reliance on what LSF is doing.
+
+        :param job_id: The id for the test in LSF (or what it would have been).
+        :return: The value read from some file.
+        """
+        # Path to where the file is.
+        file_path = os.path.join(self.path_to_lsf_files, str(job_id) + '_in_queue_status.txt')
+        # Get the exit value.
+        with open(file_path, mode='r') as f:
+            in_queue = f.read()
+
+        # Send it back if there is one and if not, return None.
+        if 'False' in in_queue:
+            return False
+        elif 'True' in in_queue:
+            return True
+
+    def write_in_queue_value(self, job_id, value):
+        """
+        Write the exit value for some test.
+
+        :param job_id: The id of the test in LSF.
+        :param value: The value to be written.
+        """
+        # The path to where the exit value file will be stored.
+        file_path = os.path.join(self.path_to_lsf_files, str(job_id) + '_in_queue_status.txt')
         # Write the value to the file.
         with open(file_path, mode='w+') as f:
             if value is None:
@@ -387,7 +425,7 @@ class TestUpdateDatabase(unittest.TestCase):
         Initialize all directories to where files will be stored.
         :return:
         """
-        self.IC.make_directory(self.IC.path_to_exit_files)
+        self.IC.make_directory(self.IC.path_to_lsf_files)
         self.IC.make_directory(self.IC.path_to_output_files)
         self.IC.make_directory(self.IC.path_to_example_tests)
 
@@ -453,7 +491,8 @@ class TestUpdateDatabase(unittest.TestCase):
         self.UD = update_database.UpdateDatabase(self.connector, rgt_input_path, test_table=self.test_table,
                                                  test_event_table=self.test_event_table, event_table=self.event_table,
                                                  check_table=self.check_table,
-                                                 replacement_lsf_exit_function=self.IC.replacement_lsf_exit_function)
+                                                 replacement_lsf_exit_function=self.IC.replacement_lsf_exit_function,
+                                                 replacement_in_queue_function=self.IC.replacement_in_queue_function)
 
     def insert_event(self, event_uid, event_name='test'):
         """
@@ -650,7 +689,7 @@ class TestUpdateDatabase(unittest.TestCase):
         time = '0000-00-01'
         harness_uid = 'instance'
         job_id = 10
-        build_status = '17'
+        build_status = '0'
         submit_status = '***'
         check_status = '***'
         build_output_text = 'building . . .'
@@ -659,12 +698,13 @@ class TestUpdateDatabase(unittest.TestCase):
         system = 'system'
         events = {'0': {}}
         exit_status = None
+        in_queue = False
 
         # Create a parsed rgt status line.
         rgt_line = self.IC.create_rgt_status_line(time, harness_uid, job_id, build_status, submit_status, check_status)
         # Create a test instance.
         instance = self.IC.create_test_instance(program_name, test_name, harness_uid, time, job_id, build_status,
-                                                submit_status, check_status, outputs, system, events, exit_status)
+                                                submit_status, check_status, outputs, system, events, exit_status, in_queue)
 
         self.init_update_database()
 
@@ -698,7 +738,7 @@ class TestUpdateDatabase(unittest.TestCase):
         harness_uid = 'instance'
         job_id = 2
         build_status = '0'
-        submit_status = '17'
+        submit_status = '0'
         check_status = '***'
         build_output_text = 'building . . . \nAll done'
         submit_output_text = 'submitting . . .\n Submitted'
@@ -706,12 +746,13 @@ class TestUpdateDatabase(unittest.TestCase):
         system = 'system'
         events = {'0': {}}
         exit_status = 140
+        in_queue = False
 
         # Get a parsed rgt status line.
         rgt_line = self.IC.create_rgt_status_line(time, harness_uid, job_id, build_status, submit_status, check_status)
         # Create the test instance.
         instance = self.IC.create_test_instance(program_name, test_name, harness_uid, time, job_id, build_status,
-                                                submit_status, check_status, outputs, system, events, exit_status)
+                                                submit_status, check_status, outputs, system, events, exit_status, in_queue)
 
         self.init_update_database()
 
@@ -775,12 +816,13 @@ class TestUpdateDatabase(unittest.TestCase):
         system = 'system'
         events = {'0': {}}
         exit_status = None
+        in_queue = False
 
         # Create an rgt status line for the test.
         rgt_line = self.IC.create_rgt_status_line(time, harness_uid, job_id, build_status, submit_status, check_status)
         # Initialize a test instance.
         instance = self.IC.create_test_instance(program_name, test_name, harness_uid, time, job_id, build_status,
-                                                submit_status, check_status, outputs, system, events, exit_status)
+                                                submit_status, check_status, outputs, system, events, exit_status, in_queue)
 
         # Initialize a database connection.
         db = self.connector.connect()
@@ -820,7 +862,7 @@ class TestUpdateDatabase(unittest.TestCase):
         harness_uid = 'instance'
         job_id = 2
         build_status = '0'
-        submit_status = '17'
+        submit_status = '0'
         check_status = '***'
         build_output_text = 'building . . . \nAll done'
         submit_output_text = 'submitting . . .\n Submitted'
@@ -828,12 +870,13 @@ class TestUpdateDatabase(unittest.TestCase):
         system = 'system'
         events = {'0': {}}
         exit_status = 140
+        in_queue = False
 
         # Create an rgt status line for the test.
         rgt_line = self.IC.create_rgt_status_line(time, harness_uid, job_id, build_status, submit_status, check_status)
         # Initialize a test instance.
         instance = self.IC.create_test_instance(program_name, test_name, harness_uid, time, job_id, build_status,
-                                                submit_status, check_status, outputs, system, events, exit_status)
+                                                submit_status, check_status, outputs, system, events, exit_status, in_queue)
 
         self.init_update_database()
 
@@ -897,12 +940,13 @@ class TestUpdateDatabase(unittest.TestCase):
         system = 'system'
         events = {'0': {}}
         exit_status = None
+        in_queue = False
 
         # Initialize the rgt line for the test.
         rgt_line = self.IC.create_rgt_status_line(time, harness_uid, job_id, build_status, submit_status, check_status)
         # Initialize the test instance.
         instance = self.IC.create_test_instance(program_name, test_name, harness_uid, time, job_id, build_status,
-                                                submit_status, check_status, outputs, system, events, exit_status)
+                                                submit_status, check_status, outputs, system, events, exit_status, in_queue)
 
         harness_tld = instance.status_instance_path
 
@@ -938,12 +982,13 @@ class TestUpdateDatabase(unittest.TestCase):
         event_uid = '0'
         events = {event_uid: {}}
         exit_status = None
+        in_queue = False
 
         # Initialize the rgt line for the test.
         rgt_line = self.IC.create_rgt_status_line(time, harness_uid, job_id, build_status, submit_status, check_status)
         # Initialize the test instance.
         instance = self.IC.create_test_instance(program_name, test_name, harness_uid, time, job_id, build_status,
-                                                submit_status, check_status, outputs, system, events, exit_status)
+                                                submit_status, check_status, outputs, system, events, exit_status, in_queue)
 
         harness_tld = instance.status_instance_path
 
@@ -987,12 +1032,13 @@ class TestUpdateDatabase(unittest.TestCase):
         event_uid = '0'
         events = {event_uid: {}}
         exit_status = None
+        in_queue = False
 
         # Initialize the rgt line for the test.
         rgt_line = self.IC.create_rgt_status_line(time, harness_uid, job_id, build_status, submit_status, check_status)
         # Initialize the test instance.
         instance = self.IC.create_test_instance(program_name, test_name, harness_uid, time, job_id, build_status,
-                                                submit_status, check_status, outputs, system, events, exit_status)
+                                                submit_status, check_status, outputs, system, events, exit_status, in_queue)
 
         harness_tld = instance.status_instance_path
 
@@ -1031,6 +1077,7 @@ class TestUpdateDatabase(unittest.TestCase):
         event_uids = ['0', '1']
         events = {event_uids[0]: {}, event_uids[1]: {}}
         exit_status = None
+        in_queue = False
 
         # Insert all of the events.
         for uid in event_uids:
@@ -1038,7 +1085,7 @@ class TestUpdateDatabase(unittest.TestCase):
 
         # Initialize the test instance.
         instance = self.IC.create_test_instance(program_name, test_name, harness_uid, time, job_id, build_status,
-                                                submit_status, check_status, outputs, system, events, exit_status)
+                                                submit_status, check_status, outputs, system, events, exit_status, in_queue)
 
         status_path = instance.status_instance_path
 
@@ -1100,6 +1147,7 @@ class TestUpdateDatabase(unittest.TestCase):
         event_uids = ['0', '1']
         events = {event_uids[0]: {}, event_uids[1]: {}}
         exit_status = None
+        in_queue = False
 
         # Insert the events for the test.
         self.insert_event(event_uids[0])
@@ -1109,7 +1157,7 @@ class TestUpdateDatabase(unittest.TestCase):
         rgt_line = self.IC.create_rgt_status_line(time, harness_uid, job_id, build_status, submit_status, check_status)
         # Initialize the test instance.
         instance = self.IC.create_test_instance(program_name, test_name, harness_uid, time, job_id, build_status,
-                                                submit_status, check_status, outputs, system, events, exit_status)
+                                                submit_status, check_status, outputs, system, events, exit_status, in_queue)
 
         harness_tld = instance.status_instance_path
 
@@ -1153,6 +1201,7 @@ class TestUpdateDatabase(unittest.TestCase):
         event_uids = ['0', '1']
         events = {event_uids[0]: {}, event_uids[1]: {}}
         exit_status = None
+        in_queue = False
 
         # Add the events.
         for uid in event_uids:
@@ -1162,7 +1211,7 @@ class TestUpdateDatabase(unittest.TestCase):
         rgt_line = self.IC.create_rgt_status_line(time, harness_uid, job_id, build_status, submit_status, check_status)
         # Initialize the test instance.
         instance = self.IC.create_test_instance(program_name, test_name, harness_uid, time, job_id, build_status,
-                                                submit_status, check_status, outputs, system, events, exit_status)
+                                                submit_status, check_status, outputs, system, events, exit_status, in_queue)
 
         harness_tld = instance.status_instance_path
 
@@ -1220,6 +1269,7 @@ class TestUpdateDatabase(unittest.TestCase):
         event_uids = ['0', '1']
         events = {event_uids[0]: {}, event_uids[1]: {}}
         exit_status = None
+        in_queue = False
 
         # Initialize a database connection.
         db = self.connector.connect()
@@ -1264,13 +1314,14 @@ class TestUpdateDatabase(unittest.TestCase):
         system = 'system'
         events = {'0': {}}
         exit_status = None
+        in_queue = False
 
         # Initialize the test instance.
         instance_A = self.IC.create_test_instance(program_name, test_name, harness_uids[0], time, job_id, build_status,
-                                                  submit_status, check_status, outputs, system, events, exit_status)
+                                                  submit_status, check_status, outputs, system, events, exit_status, in_queue)
         # Initialize the test instance.
         instance_B = self.IC.create_test_instance(program_name, test_name, harness_uids[1], time, job_id, build_status,
-                                                  submit_status, check_status, outputs, system, events, exit_status)
+                                                  submit_status, check_status, outputs, system, events, exit_status, in_queue)
 
         # Try with one already in database and the other just needing to be updated.
         self.insert_event(0)
@@ -1329,6 +1380,7 @@ class TestUpdateDatabase(unittest.TestCase):
         system = 'system'
         events = {'0': {}}
         exit_status = None
+        in_queue = False
 
         # Create many test instances.
         instance_count = 0
@@ -1342,7 +1394,7 @@ class TestUpdateDatabase(unittest.TestCase):
                         # Initialize the test instance.
                         instance = self.IC.create_test_instance(program_name, test_name, new_uid, time, job_id,
                                                                 build_status, submit_status, check_status, outputs,
-                                                                system, events, exit_status)
+                                                                system, events, exit_status, in_queue)
                         instance_count += 1
                         new_uids.append(new_uid)
 
