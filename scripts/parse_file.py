@@ -286,12 +286,18 @@ class ParseRGTInput:
                 if len(vals) < 2:
                     raise SyntaxProblem(message="Need both program name and test name.", line_num=line_num)
                 elif len(vals) > 2:
-                    raise SyntaxProblem(message="Too many values after test. Only need program name and test name.", line_num=line_num)
+                    raise SyntaxProblem(message="Too many values after test. Only need program name and test name.",
+                                        line_num=line_num)
                 # Append a dictionary to the list of tests.
                 test_list.append({"program": vals[0], "test": vals[1]})
+            # Ignore lines like this.
+            elif var.lower() == "harness_task":
+                continue
             # If it is neither of the above then there is a problem.
             else:
-                raise SyntaxProblem(message="Incorrect variable to set. Should be either 'path_to_tests' or 'test'.", line_num=line_num)
+                # TODO: Should these just be warnings instead.
+                raise SyntaxProblem(message="Incorrect variable to set. Should be either 'path_to_tests' or 'test'.",
+                                    line_num=line_num)
 
         # If we did not find a path then there is a problem.
         if path_to_tests is None:
