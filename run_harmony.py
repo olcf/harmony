@@ -31,18 +31,19 @@ def run():
     # Get the written database config.
     database = config_functions.get_config()['DATABASE']
 
+    # Create necessary variables.
     connector = connect_database.DatabaseConnector(database, user=args.user, password=args.password)
+    rgt_input_path = args.rgt_path
+    test_table = database['test_table']
+    test_event_table = database['test_event_table']
+    event_table = database['event_table']
+
     create_database.create_db(connector)
+    create_database.insert_default(connector)
 
     # Continue updating infinitely.
     while True:
         start = time.time()
-        # Create necessary variables.
-        rgt_input_path = args.rgt_path
-        test_table = database['test_table']
-        test_event_table = database['test_event_table']
-        event_table = database['event_table']
-
         # Update the database.
         UD = update_database.UpdateDatabase(connector, rgt_input_path, test_table=test_table,
                                             test_event_table=test_event_table, event_table=event_table)

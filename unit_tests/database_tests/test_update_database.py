@@ -698,7 +698,7 @@ class TestUpdateDatabase(unittest.TestCase):
         system = 'system'
         events = {'0': {}}
         exit_status = None
-        in_queue = False
+        in_queue = True
 
         # Create a parsed rgt status line.
         rgt_line = self.IC.create_rgt_status_line(time, harness_uid, job_id, build_status, submit_status, check_status)
@@ -1303,7 +1303,7 @@ class TestUpdateDatabase(unittest.TestCase):
         test_name = 'test'
         time = '0000-00-01'
         harness_uids = ['instance_A', 'instance_B']
-        job_id = 11
+        job_id = [11, 12]
         build_status = '0'
         submit_status = '0'
         check_status = '***'
@@ -1317,10 +1317,10 @@ class TestUpdateDatabase(unittest.TestCase):
         in_queue = False
 
         # Initialize the test instance.
-        instance_A = self.IC.create_test_instance(program_name, test_name, harness_uids[0], time, job_id, build_status,
+        instance_A = self.IC.create_test_instance(program_name, test_name, harness_uids[0], time, job_id[0], build_status,
                                                   submit_status, check_status, outputs, system, events, exit_status, in_queue)
         # Initialize the test instance.
-        instance_B = self.IC.create_test_instance(program_name, test_name, harness_uids[1], time, job_id, build_status,
+        instance_B = self.IC.create_test_instance(program_name, test_name, harness_uids[1], time, job_id[1], build_status,
                                                   submit_status, check_status, outputs, system, events, exit_status, in_queue)
 
         # Try with one already in database and the other just needing to be updated.
@@ -1392,7 +1392,7 @@ class TestUpdateDatabase(unittest.TestCase):
                         new_uid = program_name + '_' + test_name + '_' + harness_uid
 
                         # Initialize the test instance.
-                        instance = self.IC.create_test_instance(program_name, test_name, new_uid, time, job_id,
+                        instance = self.IC.create_test_instance(program_name, test_name, new_uid, time, job_id + int(random() * 100),
                                                                 build_status, submit_status, check_status, outputs,
                                                                 system, events, exit_status, in_queue)
                         instance_count += 1
@@ -1411,5 +1411,5 @@ class TestUpdateDatabase(unittest.TestCase):
 
         # Check that they are now in the table.
         for uid in new_uids:
-            self.assertTrue(self.in_table(self.test_table, **{'harness_uid': uid, 'done': False}))
+            self.assertTrue(self.in_table(self.test_table, **{'harness_uid': uid, 'done': True}))
 
