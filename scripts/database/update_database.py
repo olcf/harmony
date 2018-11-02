@@ -327,7 +327,7 @@ class UpdateDatabase:
         cursor = db.cursor()
         # Insert the necessary info into the table.
         sql = "INSERT INTO {table} (test_id, event_id, event_time) " \
-              "VALUES ({test_id}, {event_id}, {event_time})" \
+              "VALUES ({test_id}, {event_id}, '{event_time}')" \
             .format(table=self.test_event_table, test_id=test_id, event_id=event_id, event_time=event_time)
 
         # Execute the command.
@@ -430,8 +430,8 @@ class UpdateDatabase:
         add_fields['testname'] = event_dic['test']
         add_fields['system'] = event_dic['rgt_system_log_tag']
 
-        # TODO: Change this to actually put in the correct 'next_harness_uid'.
-        add_fields['next_harness_uid'] = rgt_status_line['harness_uid']
+        # TODO: Change this to actually put in the correct 'previous_job_id'.
+        add_fields['previous_job_id'] = rgt_status_line['harness_uid']
 
         return add_fields
 
@@ -564,6 +564,9 @@ class UpdateDatabase:
                     output_text = self.output_text(output_path, output_field)
                 # If the file does not exist, try to get the next file.
                 except FileNotFoundError:
+                    continue
+                except PermissionError:
+                    warnings.warn("Did not have permission to get output of " + output_path + ".")
                     continue
                 # If it does exist, add it as a field to update.
                 else:

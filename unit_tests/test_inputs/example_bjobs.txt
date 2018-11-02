@@ -1,6 +1,5 @@
 JOBID   USER       STAT   SLOTS    QUEUE       START_TIME    FINISH_TIME   JOB_NAME                      
-55570   leverman   RUN    673      batch       Oct 31 22:12  Nov  1 22:12  IOR_alpine_stability_peak     
-55574   leverman   PEND      -     batch             -             -       IOR_alpine_stability_peak     
+55574   leverman   RUN    673      batch       Nov  1 22:12  Nov  2 22:12  IOR_alpine_stability_peak     
 55575   leverman   PEND      -     batch             -             -       IOR_alpine_stability_peak     
 55576   leverman   PEND      -     batch             -             -       IOR_alpine_stability_peak     
 55577   leverman   PEND      -     batch             -             -       IOR_alpine_stability_peak     
@@ -8,3 +7,6 @@ JOBID   USER       STAT   SLOTS    QUEUE       START_TIME    FINISH_TIME   JOB_N
 55579   leverman   PEND      -     batch             -             -       IOR_alpine_stability_peak     
 55580   leverman   PEND      -     batch             -             -       IOR_alpine_stability_peak     
 55581   leverman   PEND      -     batch             -             -       IOR_alpine_stability_peak     
+55627   div        PEND      -     batch             -             -       Not_Specified                 
+55624   tonyca     EXIT   43       batch       Nov  2 09:45  Nov  2 17:45  Not_Specified                 
+55625   kiran92    DONE   43       batch       Nov  2 17:45  Nov  2 17:48  OMP-COPY                      

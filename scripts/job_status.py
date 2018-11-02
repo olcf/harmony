@@ -94,7 +94,9 @@ class JobStatus:
         jobs = self.get_jobs(jobid=jobid)
         # If no job with this id exists then error.
         if len(jobs) == 0:
-            raise KeyError("There is no job with ID", jobid)
+            if self.verbose:
+                print("There is no job with ID " + str(jobid))
+            return None
         # If multiple jobs with this id exist then error.
         elif len(jobs) > 1:
             raise KeyError("Too many jobs with ID", jobid)
@@ -112,7 +114,9 @@ class JobStatus:
         jobs = self.get_jobs(jobid=jobid)
         # If no job with that id exists, then error.
         if len(jobs) == 0:
-            raise KeyError("There is no job with ID", jobid)
+            if self.verbose:
+                print("There is no job with ID " + str(jobid))
+            return None
         elif len(jobs) > 1:
             raise KeyError("There are too many jobs with ID", jobid)
         # Return the exit status of the job.

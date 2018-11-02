@@ -1,5 +1,6 @@
 from os import path as p
 import pymysql
+import warnings
 
 
 check_path = p.abspath(p.join(p.dirname(__file__), '..', '..', 'db', 'init_rgt_check.sql'))

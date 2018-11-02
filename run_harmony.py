@@ -43,6 +43,7 @@ def run():
 
     # Continue updating infinitely.
     while True:
+        print("Updating database.")
         start = time.time()
         # Update the database.
         UD = update_database.UpdateDatabase(connector, rgt_input_path, test_table=test_table,
@@ -55,6 +56,7 @@ def run():
         del UD
 
         total_time = time.time() - start
+        print("Done updating in " + str(total_time) + " seconds.")
         # Either immediately refresh if the time it took to update took longer than the refresh time
         # or sleep for the remaining refresh period.
         time.sleep(max(int(database['refresh_time']) - total_time, 0))

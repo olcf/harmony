@@ -611,7 +611,7 @@ class TestUpdateDatabase(unittest.TestCase):
         db = self.connector.connect()
         with db.cursor() as cursor:
             sql = "INSERT INTO {table} (harness_uid, harness_start, harness_tld, " \
-                  "application, testname, system, next_harness_uid, done)" \
+                  "application, testname, system, previous_job_id, done)" \
                   " VALUES ('2', '0000-00-00', 'path', 'app', 'test', 'sys', 1, FALSE)"
             sql = sql.format(table=self.test_table)
             cursor.execute(sql)
@@ -829,12 +829,12 @@ class TestUpdateDatabase(unittest.TestCase):
         cursor = db.cursor()
         # Insert the test into the test table.
         sql = "INSERT INTO {table} (harness_uid, harness_start, harness_tld, " + \
-              "application, testname, system, next_harness_uid, done) " + \
+              "application, testname, system, previous_job_id, done) " + \
               "VALUES ('{harness_uid}', '{harness_start}', '{harness_tld}', " + \
-              "'{application}', '{testname}', '{system}', '{next_harness_uid}', {done})"
+              "'{application}', '{testname}', '{system}', '{previous_job_id}', {done})"
 
         sql = sql.format(table=self.test_table, harness_uid=harness_uid, harness_start=time, harness_tld='path',
-                         application=program_name, testname=test_name, system=system, next_harness_uid=harness_uid, done=False)
+                         application=program_name, testname=test_name, system=system, previous_job_id=harness_uid, done=False)
 
         # Execute and close the database.
         cursor.execute(sql)
@@ -887,7 +887,7 @@ class TestUpdateDatabase(unittest.TestCase):
         # There should be keys for all things that can not change while a test is running.
         expected_result = {'harness_uid': harness_uid, 'harness_start': time, 'harness_tld': job_path,
                            'application': program_name, 'testname': test_name, 'system': system,
-                           'next_harness_uid': harness_uid}
+                           'previous_job_id': harness_uid}
         for key in expected_result.keys():
             self.assertIn(key, add_fields.keys())
 
@@ -1107,12 +1107,12 @@ class TestUpdateDatabase(unittest.TestCase):
         cursor = db.cursor()
         # Insert the test into the test table.
         sql = "INSERT INTO {table} (harness_uid, harness_start, harness_tld, " + \
-              "application, testname, system, next_harness_uid, done) " + \
+              "application, testname, system, previous_job_id, done) " + \
               "VALUES ('{harness_uid}', '{harness_start}', '{harness_tld}', " + \
-              "'{application}', '{testname}', '{system}', '{next_harness_uid}', {done})"
+              "'{application}', '{testname}', '{system}', '{previous_job_id}', {done})"
 
         sql = sql.format(table=self.test_table, harness_uid=harness_uid, harness_start=time, harness_tld='path',
-                         application=program_name, testname=test_name, system=system, next_harness_uid=harness_uid, done=False)
+                         application=program_name, testname=test_name, system=system, previous_job_id=harness_uid, done=False)
 
         # Execute and close the database.
         cursor.execute(sql)
@@ -1217,12 +1217,12 @@ class TestUpdateDatabase(unittest.TestCase):
 
         # Insert the test.
         sql = "INSERT INTO {table} (harness_uid, harness_start, harness_tld, " \
-              "application, testname, system, next_harness_uid, done) " + \
+              "application, testname, system, previous_job_id, done) " + \
               "VALUES ('{harness_uid}', '{harness_start}', '{harness_tld}', " \
-              "'{application}', '{testname}', '{system}', '{next_harness_uid}', {done})"
+              "'{application}', '{testname}', '{system}', '{previous_job_id}', {done})"
         
         sql = sql.format(table=self.test_table, harness_uid=harness_uid, harness_start=time, harness_tld='path',
-                         application=program_name, testname=test_name, system=system, next_harness_uid=harness_uid, done=False)
+                         application=program_name, testname=test_name, system=system, previous_job_id=harness_uid, done=False)
         # Initialize a database connection.
         db = self.connector.connect()
         cursor = db.cursor()
@@ -1276,12 +1276,12 @@ class TestUpdateDatabase(unittest.TestCase):
         cursor = db.cursor()
         # Insert the test.
         sql = "INSERT INTO {table} (harness_uid, harness_start, harness_tld, " \
-              "application, testname, system, next_harness_uid, done) " + \
+              "application, testname, system, previous_job_id, done) " + \
               "VALUES ('{harness_uid}', '{harness_start}', '{harness_tld}', " \
-              "'{application}', '{testname}', '{system}', '{next_harness_uid}', {done})" 
+              "'{application}', '{testname}', '{system}', '{previous_job_id}', {done})" 
 
         sql = sql.format(table=self.test_table, harness_uid=harness_uid, harness_start=time, harness_tld='path',
-                         application=program_name, testname=test_name, system=system, next_harness_uid=harness_uid, done=False)
+                         application=program_name, testname=test_name, system=system, previous_job_id=harness_uid, done=False)
         # Execute and close the connection.
         cursor.execute(sql)
         db.commit()
@@ -1328,11 +1328,11 @@ class TestUpdateDatabase(unittest.TestCase):
 
         # Insert one of the instances.
         sql = "INSERT INTO {table} (harness_uid, harness_start, harness_tld, " \
-              "application, testname, system, next_harness_uid, done) " + \
+              "application, testname, system, previous_job_id, done) " + \
               "VALUES ('{harness_uid}', '{harness_start}', '{harness_tld}', " \
-              "'{application}', '{testname}', '{system}', '{next_harness_uid}', {done})"
+              "'{application}', '{testname}', '{system}', '{previous_job_id}', {done})"
         sql = sql.format(table=self.test_table, harness_uid=harness_uids[0], harness_start=time, harness_tld='path',
-                         application=program_name, testname=test_name, system=system, next_harness_uid=harness_uids[0],
+                         application=program_name, testname=test_name, system=system, previous_job_id=harness_uids[0],
                          done=False)
         # Initialize a database connection.
         db = self.connector.connect()
