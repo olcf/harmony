@@ -1,5 +1,5 @@
 
-use harmony;
+use rgt;
 
 # Hold different types of events.
 CREATE TABLE IF NOT EXISTS `rgt_event`
