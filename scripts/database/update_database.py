@@ -547,6 +547,8 @@ class UpdateDatabase:
         if lsf_exit_status is not None:
             update_fields['lsf_exit_status'] = lsf_exit_status
             update_fields['done'] = True
+        # '*_status' keys that are not in the update fields are those that are not integers.
+        # This is matching if there is some integer representation for that status.
         elif 'build_status' in update_fields.keys() and update_fields['build_status'] != 0:
             update_fields['done'] = True
         elif 'submit_status' in update_fields.keys() and update_fields['submit_status'] != 0:
