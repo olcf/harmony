@@ -118,6 +118,8 @@ class InstanceCreator:
                 event_dic['rgt_system_log_tag'] = system
             if 'run_archive' not in event_dic.keys():
                 event_dic['run_archive'] = instance.run_archive_instance_path
+            if 'build_directory' not in event_dic.keys():
+                event_dic['build_directory'] = instance.run_archive_instance_path
             if 'event_filename' not in event_dic.keys():
                 event_dic['event_filename'] = file_name
             if 'event_time' not in event_dic.keys():
@@ -676,7 +678,7 @@ class TestUpdateDatabase(unittest.TestCase):
         bad_rgt_line = {'incorrect': 'length'}
         self.init_update_database()
 
-        fields = self.UD.get_update_fields(bad_rgt_line, {})
+        fields = self.UD.get_update_fields(bad_rgt_line, {}, {})
         self.assertEqual(len(fields.keys()), 0)
 
     def test_get_update_fields_good_building(self):
@@ -709,7 +711,8 @@ class TestUpdateDatabase(unittest.TestCase):
         self.init_update_database()
 
         # Get the fields that would be updated.
-        update_fields = self.UD.get_update_fields(rgt_line, instance.complete_events['0']['run_archive'])
+        update_fields = self.UD.get_update_fields(rgt_line, instance.complete_events['0']['run_archive'],
+                                                  instance.complete_events['0']['run_archive'])
 
         # There should be keys for all things that can change while a test is running.
         # No exit status key because it is set to null and no status problems.
@@ -756,7 +759,8 @@ class TestUpdateDatabase(unittest.TestCase):
 
         self.init_update_database()
 
-        update_fields = self.UD.get_update_fields(rgt_line, instance.complete_events['0']['run_archive'])
+        update_fields = self.UD.get_update_fields(rgt_line, instance.complete_events['0']['run_archive'],
+                                                  instance.complete_events['0']['run_archive'])
 
         # There should be keys for all things that can change while a test is running.
         # Expect exit status since it is set.
@@ -842,7 +846,8 @@ class TestUpdateDatabase(unittest.TestCase):
         db.close()
         # Update the test table with the test instance.
         self.init_update_database()
-        self.UD.update_test_table(1, instance.complete_events['0']['run_archive'], rgt_line)
+        self.UD.update_test_table(1, instance.complete_events['0']['run_archive'],
+                                  instance.complete_events['0']['run_archive'], rgt_line)
 
         # Assert that the expected result is in the test table.
         expected_vals = {'harness_uid': harness_uid, 'output_build': outputs['build'],

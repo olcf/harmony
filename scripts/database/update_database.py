@@ -97,16 +97,16 @@ class UpdateDatabase:
         # Get the path to tests and the list of tests.
         path_to_tests, test_list = parser.parse_file(self.rgt_input_path)
         # Get the test directories.
-        test_directories = test_status.get_test_directories(path_to_tests, test_list, append_dirs=('Status'))
+        test_directories = test_status.get_test_directories(path_to_tests, test_list, append_dirs='Status')
         return test_directories
 
-    def update_test_instances(self, test_path):
+    def update_test_instances(self, test_path, harness_tld):
         """
         Add or update all uids for some test.
 
         :param test_path: Path to test ending in /Status/. This is the path just before
         entering any actual test instance.
-        :return:
+        :param harness_tld: Path in rgt input.
         """
         if not os.path.exists(test_path):
             warnings.warn("Could not find path to this test.\n" + test_path)
@@ -126,15 +126,15 @@ class UpdateDatabase:
 
             job_tuple = self.get_job_tuple(harness_uid)
 
-            harness_tld = os.path.join(test_path, harness_uid)
+            path_to_instance = os.path.join(test_path, harness_uid)
             # Test if test instance exists in database. The job tuple is none if there was no match.
             if job_tuple is None:
                 # If it does not, add it.
-                self.add_test_instance(harness_tld, rgt_status_line)
+                self.add_test_instance(path_to_instance, rgt_status_line, harness_tld)
             # If in table but not done, update.
             elif not bool(job_tuple[1]):
                 test_id = job_tuple[0]
-                self.update_test_instance(test_id, harness_tld, rgt_status_line)
+                self.update_test_instance(test_id, path_to_instance, rgt_status_line)
 
     def get_job_tuple(self, harness_uid):
         """
@@ -157,17 +157,17 @@ class UpdateDatabase:
         result = cursor.fetchone()
         return result
 
-    def update_test_instance(self, test_id, harness_tld, rgt_status_line):
+    def update_test_instance(self, test_id, path_to_instance, rgt_status_line):
         """
         Update a certain job entry.
 
         :param test_id: The id of the test in the database.
-        :param harness_tld: The path to where the test is stored.
+        :param path_to_instance: The path to where the test is stored.
         :param rgt_status_line: The line from the rgt_status file that corresponds to this test.
         :return:
         """
         # Get the paths to all events for this instance.
-        event_paths = self.get_event_paths(harness_tld)
+        event_paths = self.get_event_paths(path_to_instance)
         # Update the test event table with all of these events.
         self.update_test_event_table(event_paths, test_id)
 
@@ -178,20 +178,23 @@ class UpdateDatabase:
             parser = parse_file.ParseEvent()
             parsed_event = parser.parse_file(event_path)
             output_path = parsed_event['run_archive']
+            build_output_path = parsed_event['build_directory']
         else:
             output_path = None
+            build_output_path = None
         # Insert new information into the main table.
-        self.update_test_table(test_id, output_path, rgt_status_line)
+        self.update_test_table(test_id, output_path, build_output_path, rgt_status_line)
 
-    def add_test_instance(self, harness_tld, rgt_status_line):
+    def add_test_instance(self, path_to_instance, rgt_status_line, harness_tld):
         """
         Add a test instance to the test table.
 
-        :param harness_tld: The path to where this instances events are stored.
+        :param path_to_instance: The path to where this instances events are stored.
         :param rgt_status_line: The line in the rgt status file that has already been parsed.
+        :param harness_tld: The path in the rgt input.
         """
         # Get all event paths for this instance.
-        event_paths = self.get_event_paths(harness_tld)
+        event_paths = self.get_event_paths(path_to_instance)
         # If there are no events for this test, we do not have enough information to add it.
         if len(event_paths) == 0:
             warnings.warn("I can't find any events for this path and thus I do not have enough information to add\n" +
@@ -350,7 +353,7 @@ class UpdateDatabase:
         # Get dictionary for the event.
         event_dic = parser.parse_file(event_path)
         # Get some fields to update that change based on time.
-        update_fields = self.get_update_fields(rgt_status_line, event_dic['run_archive'])
+        update_fields = self.get_update_fields(rgt_status_line, event_dic['run_archive'], event_dic['build_directory'])
         # Get fields to update that are constant once the instance has been created.
         add_fields = self.get_add_fields(rgt_status_line, event_dic, harness_tld)
 
@@ -435,17 +438,18 @@ class UpdateDatabase:
 
         return add_fields
 
-    def update_test_table(self, test_id, output_path, rgt_status_line):
+    def update_test_table(self, test_id, output_path, build_output_path, rgt_status_line):
         """
         Update the test set. This looks at the event and all current info in the rgt_status.txt file.
 
         :param test_id: The id of the test that needs to be updated.
         :param output_path: The path to where the outputs for the test instance exist.
+        :param build_output_path: The path to where the build output is located.
         :param rgt_status_line: The line from the rgt_status.txt file that matches this test.
         :return:
         """
         # Get field, value combinations to update.
-        update_fields = self.get_update_fields(rgt_status_line, output_path)
+        update_fields = self.get_update_fields(rgt_status_line, output_path, build_output_path)
 
         # Get the necessary sql for updating the database.
         sql = self.get_update_sql(update_fields, test_id)
@@ -504,12 +508,13 @@ class UpdateDatabase:
 
         return sql
 
-    def get_update_fields(self, rgt_status_line, output_path):
+    def get_update_fields(self, rgt_status_line, output_path, build_output_path):
         """
         Get the new values for each field.
 
         :param rgt_status_line: The line of the rgt_status file that will be used.
         :param output_path: The path to where the outputs exist.
+        :param build_output_path: The path to where the build output exists.
         :return: A dictionary containing the fields and values that need to be updated.
         """
         # If the length of the line and the number of fields we know how to parse are not equal, we may try to insert
@@ -561,14 +566,25 @@ class UpdateDatabase:
         if output_path is not None:
             # For each possible output field.
             for output_field in self.possible_outputs:
+                if output_field == 'build':
+                    path = build_output_path
+                else:
+                    path = output_path
                 # Try to get the text from the file.
                 try:
-                    output_text = self.output_text(output_path, output_field)
+                    output_text = self.output_text(path, output_field)
                 # If the file does not exist, try to get the next file.
                 except FileNotFoundError:
+                    warnings.warn("Did not find file associated with " + output_field + " in " + path + ".")
+                    # If the file has not been written yet, don't change flag to done because it may still be written.
+                    if (output_field + '_status') in update_fields.keys():
+                        update_fields['done'] = False
                     continue
                 except PermissionError:
-                    warnings.warn("Did not have permission to get output of " + output_path + ".")
+                    warnings.warn("Did not have permission to get output of " + path + ".")
+                    # If we do not yet have permission for the file, that may change eventually.
+                    if (output_field + '_status') in update_fields.keys():
+                        update_fields['done'] = False
                     continue
                 # If it does exist, add it as a field to update.
                 else:
