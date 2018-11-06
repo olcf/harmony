@@ -20,9 +20,10 @@
 *.ini
 
 # All database input files. These filed are changed often for creating test instances for testing commands.
-unit_tests/test_inputs/database_inputs/*
+*unit_tests/test_inputs/database_inputs/*
 
-# Slack tokens.
-*/tokens.txt
+# Tokens.
+*tokens.txt
 
-
+# Anything from testing the job monitor.
+*job_monitor.txt

@@ -1,5 +1,6 @@
 import configparser
 import os
+import warnings
 
 
 config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config.ini'))
@@ -25,10 +26,17 @@ def write_config(path_to_config=config_path, path_to_slack_tokens=slack_path, pa
     # It does not necessarily look exactly like that though. Just split via space.
     with open(path_to_slack_tokens, mode='r') as f:
         for line in f:
+            upper_line = line.upper()
             for token in slack_tokens:
-                if line.upper().startswith(token):
+                if upper_line.startswith(token):
                     line = line.split('=')
                     slack_app[token] = line[1].strip()
+                    slack_tokens.remove(token)
+                    break
+
+    if len(slack_tokens) != 0:
+        warnings.warn("Could not find values for " + str(slack_tokens) + " in " + path_to_slack_tokens)
+
     # How often to pull from slack.
     slack_app['WATCH_TIME'] = '1.0'
     # Maximum number of threads open that are trying to message.
@@ -57,10 +65,16 @@ def write_config(path_to_config=config_path, path_to_slack_tokens=slack_path, pa
     database_tokens = ['USER', 'PASSWORD']
     with open(path_to_database_tokens, mode='r') as f:
         for line in f:
+            upper_line = line.upper()
             for token in database_tokens:
-                if line.upper().startswith(token):
+                if upper_line.startswith(token):
                     line = line.split('=')
-                    slack_app[token] = line[1].strip()
+                    database[token] = line[1].strip()
+                    database_tokens.remove(token)
+                    break
+    
+    if len(database_tokens) != 0:
+        warnings.warn("Could not find values for " + str(database_tokens) + " in " + path_to_database_tokens)
 
     # Refresh the database every half hour.
     database['REFRESH_TIME'] = '1800'

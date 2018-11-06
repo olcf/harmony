@@ -37,6 +37,8 @@ class SlackApp:
         self.bot_token = bot_token
         # Same with the user token.
         self.app_token = app_token
+        print(bot_token)
+        print(app_token)
         # Create a slack connector from the bot token
         self.client = SlackClient(self.bot_token)
         # Set the verbosity
@@ -409,6 +411,9 @@ class SlackApp:
             self.verbose_print("auth.test response:")
             dic_print(response)
 
+        if response['ok'] != True:
+            self.verbose_print("Uh oh. Something went wrong with the connection.")
+            print(response)
         # Pull the id of the caller from the auth.test.
         return response['user_id']
 

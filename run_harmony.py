@@ -29,7 +29,7 @@ def run():
     args = parser.parse_args()
 
     # Get the written database config.
-    database = config_functions.get_config()['database']
+    database = config_functions.get_config()['DATABASE']
 
     # Create necessary variables.
     connector = connect_database.DatabaseConnector(database, user=args.user, password=args.password)
@@ -43,6 +43,7 @@ def run():
 
     # Continue updating infinitely.
     while True:
+        print("Updating database.")
         start = time.time()
         # Update the database.
         UD = update_database.UpdateDatabase(connector, rgt_input_path, test_table=test_table,
@@ -55,9 +56,10 @@ def run():
         del UD
 
         total_time = time.time() - start
+        print("Done updating in " + str(total_time) + " seconds.")
         # Either immediately refresh if the time it took to update took longer than the refresh time
         # or sleep for the remaining refresh period.
-        time.sleep(max(database['refresh_time'] - total_time, 0))
+        time.sleep(max(int(database['refresh_time']) - total_time, 0))
 
 
 if __name__ == '__main__':

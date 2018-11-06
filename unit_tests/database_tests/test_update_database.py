@@ -449,6 +449,17 @@ class TestUpdateDatabase(unittest.TestCase):
         """
         self.verbose = False
 
+        # Get the config for the database.
+        database_conf = config_functions.get_config()['DATABASE']
+        # Initialize a connector to the database.
+        self.connector = connect_database.DatabaseConnector(database_conf)
+        # Set the names of each of the tables.
+        self.test_table = 'test_rgt_test'
+        self.test_event_table = 'test_rgt_test_event'
+        self.event_table = 'test_rgt_event'
+        self.check_table = 'test_rgt_check'
+        self.IC = InstanceCreator()
+
         # Set the path to the drop tables file.
         drop_tables_path = os.path.join(os.path.dirname(__file__), 'drop_test_tables.sql')
         if self.verbose:
@@ -463,18 +474,6 @@ class TestUpdateDatabase(unittest.TestCase):
         self.remove_directories()
 
         # Create the new tables and what not.
-        # Set the names of each of the tables.
-        self.test_table = 'test_rgt_test'
-        self.test_event_table = 'test_rgt_test_event'
-        self.event_table = 'test_rgt_event'
-        self.check_table = 'test_rgt_check'
-        self.IC = InstanceCreator()
-
-        # Get the config for the database.
-        database_conf = config_functions.get_config()['DATABASE']
-        # Initialize a connector to the database.
-        self.connector = connect_database.DatabaseConnector(database_conf)
-
         # Set the path to the file for creating the test tables.
         create_tables_path = os.path.join(os.path.dirname(__file__), 'create_test_tables.sql')
         # Create the tables.
@@ -612,7 +611,7 @@ class TestUpdateDatabase(unittest.TestCase):
         db = self.connector.connect()
         with db.cursor() as cursor:
             sql = "INSERT INTO {table} (harness_uid, harness_start, harness_tld, " \
-                  "application, testname, system, next_harness_uid, done)" \
+                  "application, testname, system, previous_job_id, done)" \
                   " VALUES ('2', '0000-00-00', 'path', 'app', 'test', 'sys', 1, FALSE)"
             sql = sql.format(table=self.test_table)
             cursor.execute(sql)
@@ -699,7 +698,7 @@ class TestUpdateDatabase(unittest.TestCase):
         system = 'system'
         events = {'0': {}}
         exit_status = None
-        in_queue = False
+        in_queue = True
 
         # Create a parsed rgt status line.
         rgt_line = self.IC.create_rgt_status_line(time, harness_uid, job_id, build_status, submit_status, check_status)
@@ -830,12 +829,12 @@ class TestUpdateDatabase(unittest.TestCase):
         cursor = db.cursor()
         # Insert the test into the test table.
         sql = "INSERT INTO {table} (harness_uid, harness_start, harness_tld, " + \
-              "application, testname, system, next_harness_uid, done) " + \
+              "application, testname, system, previous_job_id, done) " + \
               "VALUES ('{harness_uid}', '{harness_start}', '{harness_tld}', " + \
-              "'{application}', '{testname}', '{system}', '{next_harness_uid}', {done})"
+              "'{application}', '{testname}', '{system}', '{previous_job_id}', {done})"
 
         sql = sql.format(table=self.test_table, harness_uid=harness_uid, harness_start=time, harness_tld='path',
-                         application=program_name, testname=test_name, system=system, next_harness_uid=harness_uid, done=False)
+                         application=program_name, testname=test_name, system=system, previous_job_id=harness_uid, done=False)
 
         # Execute and close the database.
         cursor.execute(sql)
@@ -888,7 +887,7 @@ class TestUpdateDatabase(unittest.TestCase):
         # There should be keys for all things that can not change while a test is running.
         expected_result = {'harness_uid': harness_uid, 'harness_start': time, 'harness_tld': job_path,
                            'application': program_name, 'testname': test_name, 'system': system,
-                           'next_harness_uid': harness_uid}
+                           'previous_job_id': harness_uid}
         for key in expected_result.keys():
             self.assertIn(key, add_fields.keys())
 
@@ -1108,12 +1107,12 @@ class TestUpdateDatabase(unittest.TestCase):
         cursor = db.cursor()
         # Insert the test into the test table.
         sql = "INSERT INTO {table} (harness_uid, harness_start, harness_tld, " + \
-              "application, testname, system, next_harness_uid, done) " + \
+              "application, testname, system, previous_job_id, done) " + \
               "VALUES ('{harness_uid}', '{harness_start}', '{harness_tld}', " + \
-              "'{application}', '{testname}', '{system}', '{next_harness_uid}', {done})"
+              "'{application}', '{testname}', '{system}', '{previous_job_id}', {done})"
 
         sql = sql.format(table=self.test_table, harness_uid=harness_uid, harness_start=time, harness_tld='path',
-                         application=program_name, testname=test_name, system=system, next_harness_uid=harness_uid, done=False)
+                         application=program_name, testname=test_name, system=system, previous_job_id=harness_uid, done=False)
 
         # Execute and close the database.
         cursor.execute(sql)
@@ -1218,12 +1217,12 @@ class TestUpdateDatabase(unittest.TestCase):
 
         # Insert the test.
         sql = "INSERT INTO {table} (harness_uid, harness_start, harness_tld, " \
-              "application, testname, system, next_harness_uid, done) " + \
+              "application, testname, system, previous_job_id, done) " + \
               "VALUES ('{harness_uid}', '{harness_start}', '{harness_tld}', " \
-              "'{application}', '{testname}', '{system}', '{next_harness_uid}', {done})"
+              "'{application}', '{testname}', '{system}', '{previous_job_id}', {done})"
         
         sql = sql.format(table=self.test_table, harness_uid=harness_uid, harness_start=time, harness_tld='path',
-                         application=program_name, testname=test_name, system=system, next_harness_uid=harness_uid, done=False)
+                         application=program_name, testname=test_name, system=system, previous_job_id=harness_uid, done=False)
         # Initialize a database connection.
         db = self.connector.connect()
         cursor = db.cursor()
@@ -1277,12 +1276,12 @@ class TestUpdateDatabase(unittest.TestCase):
         cursor = db.cursor()
         # Insert the test.
         sql = "INSERT INTO {table} (harness_uid, harness_start, harness_tld, " \
-              "application, testname, system, next_harness_uid, done) " + \
+              "application, testname, system, previous_job_id, done) " + \
               "VALUES ('{harness_uid}', '{harness_start}', '{harness_tld}', " \
-              "'{application}', '{testname}', '{system}', '{next_harness_uid}', {done})" 
+              "'{application}', '{testname}', '{system}', '{previous_job_id}', {done})" 
 
         sql = sql.format(table=self.test_table, harness_uid=harness_uid, harness_start=time, harness_tld='path',
-                         application=program_name, testname=test_name, system=system, next_harness_uid=harness_uid, done=False)
+                         application=program_name, testname=test_name, system=system, previous_job_id=harness_uid, done=False)
         # Execute and close the connection.
         cursor.execute(sql)
         db.commit()
@@ -1304,7 +1303,7 @@ class TestUpdateDatabase(unittest.TestCase):
         test_name = 'test'
         time = '0000-00-01'
         harness_uids = ['instance_A', 'instance_B']
-        job_id = 11
+        job_id = [11, 12]
         build_status = '0'
         submit_status = '0'
         check_status = '***'
@@ -1318,10 +1317,10 @@ class TestUpdateDatabase(unittest.TestCase):
         in_queue = False
 
         # Initialize the test instance.
-        instance_A = self.IC.create_test_instance(program_name, test_name, harness_uids[0], time, job_id, build_status,
+        instance_A = self.IC.create_test_instance(program_name, test_name, harness_uids[0], time, job_id[0], build_status,
                                                   submit_status, check_status, outputs, system, events, exit_status, in_queue)
         # Initialize the test instance.
-        instance_B = self.IC.create_test_instance(program_name, test_name, harness_uids[1], time, job_id, build_status,
+        instance_B = self.IC.create_test_instance(program_name, test_name, harness_uids[1], time, job_id[1], build_status,
                                                   submit_status, check_status, outputs, system, events, exit_status, in_queue)
 
         # Try with one already in database and the other just needing to be updated.
@@ -1329,11 +1328,11 @@ class TestUpdateDatabase(unittest.TestCase):
 
         # Insert one of the instances.
         sql = "INSERT INTO {table} (harness_uid, harness_start, harness_tld, " \
-              "application, testname, system, next_harness_uid, done) " + \
+              "application, testname, system, previous_job_id, done) " + \
               "VALUES ('{harness_uid}', '{harness_start}', '{harness_tld}', " \
-              "'{application}', '{testname}', '{system}', '{next_harness_uid}', {done})"
+              "'{application}', '{testname}', '{system}', '{previous_job_id}', {done})"
         sql = sql.format(table=self.test_table, harness_uid=harness_uids[0], harness_start=time, harness_tld='path',
-                         application=program_name, testname=test_name, system=system, next_harness_uid=harness_uids[0],
+                         application=program_name, testname=test_name, system=system, previous_job_id=harness_uids[0],
                          done=False)
         # Initialize a database connection.
         db = self.connector.connect()
@@ -1393,7 +1392,7 @@ class TestUpdateDatabase(unittest.TestCase):
                         new_uid = program_name + '_' + test_name + '_' + harness_uid
 
                         # Initialize the test instance.
-                        instance = self.IC.create_test_instance(program_name, test_name, new_uid, time, job_id,
+                        instance = self.IC.create_test_instance(program_name, test_name, new_uid, time, job_id + int(random() * 100),
                                                                 build_status, submit_status, check_status, outputs,
                                                                 system, events, exit_status, in_queue)
                         instance_count += 1
@@ -1412,5 +1411,5 @@ class TestUpdateDatabase(unittest.TestCase):
 
         # Check that they are now in the table.
         for uid in new_uids:
-            self.assertTrue(self.in_table(self.test_table, **{'harness_uid': uid, 'done': False}))
+            self.assertTrue(self.in_table(self.test_table, **{'harness_uid': uid, 'done': True}))
 
