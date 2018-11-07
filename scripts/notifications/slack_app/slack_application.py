@@ -471,8 +471,7 @@ def dic_print(dic):
 
 
 if __name__ == '__main__':
-    config = config_functions.get_config()
-    slack_config = config['SLACK_APP']
+    slack_config = config_functions.get_config()['SLACK_APP']
     bot_token = slack_config["slack_bot_token"]
     app_token = slack_config["slack_app_token"]
     # This is the id of the channel.

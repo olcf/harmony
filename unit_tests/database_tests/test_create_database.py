@@ -18,7 +18,7 @@ class TestCreateDatabase(unittest.TestCase):
         self.create_tables_path = os.path.join(os.path.dirname(__file__), 'create_test_tables.sql')
 
         # The config for the database.
-        database_conf = config_functions.get_config()['DATABASE']
+        database_conf = config_functions.get_config()['CLIENT']
         # Initialize a connector.
         self.connector = connect_database.DatabaseConnector(database_conf)
 

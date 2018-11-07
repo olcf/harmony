@@ -452,7 +452,7 @@ class TestUpdateDatabase(unittest.TestCase):
         self.verbose = False
 
         # Get the config for the database.
-        database_conf = config_functions.get_config()['DATABASE']
+        database_conf = config_functions.get_config()['CLIENT']
         # Initialize a connector to the database.
         self.connector = connect_database.DatabaseConnector(database_conf)
         # Set the names of each of the tables.

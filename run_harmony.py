@@ -31,7 +31,7 @@ def run():
     args = parser.parse_args()
 
     # Get the written database config.
-    database = config_functions.get_config()['DATABASE']
+    database = config_functions.get_config()['CLIENT']
 
     # Create necessary variables.
     connector = connect_database.DatabaseConnector(database, user=args.user, password=args.password)

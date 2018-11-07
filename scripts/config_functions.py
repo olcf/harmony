@@ -51,12 +51,26 @@ def write_config(path_to_config=config_path, path_to_slack_tokens=slack_path, pa
     slack_app['MAX_SENT_MESSAGE_LENGTH'] = '2000'
 
     # DATABASE
-    conf['DATABASE'] = {}
-    database = conf['DATABASE']
+    # This is named client so that the website can correctly read the settings.
+    conf['CLIENT'] = {}
+    database = conf['CLIENT']
 
-    database['HOST'] = 'rgtroute-stf006.marble.ccs.ornl.gov'
-    database['PORT'] = '31673'
-    database['DATABASE_NAME'] = 'rgt'
+    try:
+        import pythonlsf
+    except ModuleNotFoundError:
+        on_summit = False
+    else:
+        on_summit = True
+
+    if on_summit:
+        database['HOST'] = 'rgtroute-stf006.marble.ccs.ornl.gov'
+        database['PORT'] = '31673'
+        database['DATABASE'] = 'rgt'
+    else:
+        database['HOST'] = 'localhost'
+        database['PORT'] = '3306'
+        database['DATABASE'] = 'harmony'
+
     database['TEST_TABLE'] = 'rgt_test'
     database['EVENT_TABLE'] = 'rgt_event'
     database['CHECK_TABLE'] = 'rgt_check'

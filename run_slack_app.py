@@ -7,8 +7,7 @@ def run():
     Run the slack application.
     """
     # Get the config.
-    config = config_functions.get_config()
-    slack_config = config['SLACK_APP']
+    slack_config = config_functions.get_config()['SLACK_APP']
     # Get all necessary variables from the config.
     bot_token = slack_config["slack_bot_token"]
     app_token = slack_config["slack_app_token"]
