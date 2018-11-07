@@ -63,7 +63,7 @@ def execute_sql_file(connector, file_path, verbose=False):
         try:
             cursor.execute(command)
         except pymysql.MySQLError as e:
-            print("Command skipped: ", e.args)
+            print("Command skipped: " + command, e.args)
         except Exception as e:
             database.rollback()
             raise e

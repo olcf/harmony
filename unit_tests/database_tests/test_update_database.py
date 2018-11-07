@@ -1164,15 +1164,16 @@ class TestUpdateDatabase(unittest.TestCase):
         instance = self.IC.create_test_instance(program_name, test_name, harness_uid, time, job_id, build_status,
                                                 submit_status, check_status, outputs, system, events, exit_status, in_queue)
 
-        harness_tld = instance.status_instance_path
+        path_to_instance = instance.status_instance_path
+        harness_tld = self.IC.path_to_example_tests
 
         # Add the test.
         self.init_update_database()
-        self.UD.add_test_instance(harness_tld, rgt_line)
+        self.UD.add_test_instance(path_to_instance, rgt_line, harness_tld)
 
         # Make sure the test is in the table.
         expected_vals = {'harness_uid': harness_uid, 'job_id': job_id, 'build_status': build_status,
-                         'submit_status': submit_status}
+                         'submit_status': submit_status, 'harness_tld': harness_tld}
         self.assertTrue(self.in_table(self.test_table, **expected_vals), msg=str(expected_vals))
 
         # Check that the events are in the table.
@@ -1354,7 +1355,7 @@ class TestUpdateDatabase(unittest.TestCase):
 
         # Add the tests.
         self.init_update_database()
-        self.UD.update_test_instances(os.path.dirname(instance_A.status_instance_path))
+        self.UD.update_test_instances(os.path.dirname(instance_A.status_instance_path), self.IC.path_to_example_tests)
 
         # Assert that the full tests are now in the database.
         self.assertTrue(self.in_table(self.test_table, **{'harness_uid': harness_uids[0], 'build_status': build_status,

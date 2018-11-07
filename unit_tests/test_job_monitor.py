@@ -168,7 +168,8 @@ def monitor_to_file(user=None, job_id=None, status=None, new_status=None, path=N
     # If there is an error message we want to record it.
     if error_message is None:
         if user is None or job_id is None or status is None:
-            raise Exception('There was not enough information to create a message.')
+            raise Exception('There was not enough information to create a message.\n' \
+                            'user: {user}\tjob_id: {job_id}\tstatus: {status}'.format(user=user, job_id=job_id, status=status))
 
         # Create the initial message.
         message = "user: " + user + " job_id: " + str(job_id) + " status: " + status
@@ -214,7 +215,7 @@ class TestJobMonitorClass(unittest.TestCase):
     """
     Test if multiple jobs can be monitored at once.
     """
-    def tearDown(self):
+    def setUp(self):
         for f in os.listdir(path_to_monitor_outputs):
             file_path = os.path.join(path_to_monitor_outputs, f)
 
@@ -305,7 +306,7 @@ class TestJobMonitorClass(unittest.TestCase):
                         usable_contents.append(line)
 
             # There should be at least one message in the file.
-            self.assertGreaterEqual(number_of_changes, 0)
+            self.assertGreaterEqual(number_of_changes, 0, msg=contents)
 
             # Everything else is the same tests as the 'test_single_monitor' test found above.
             found_starter = False

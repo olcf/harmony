@@ -117,6 +117,9 @@ def monitor(job_id, watch_time, notifier, num_iterations=None, **kwargs):
         except KeyError as e:
             notifier(**kwargs, job_id=job_id, error_message="Something happened while monitoring my job. It seemed to dissapear!\t" + str(e))
             return
+        if new_status is None:
+            notifier(**kwargs, job_id=job_id, error_message="Something happened while monitoring my job. It seemed to dissapear!\t" + str(e))
+            return
 
         # If the status has changed then notify.
         if new_status != status:

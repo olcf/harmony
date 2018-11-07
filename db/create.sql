@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS `rgt_event`
 CREATE TABLE IF NOT EXISTS `rgt_check`
   (
   `check_id`          INT (6)         AUTO_INCREMENT,
-  `check_uid`         TINYINT         NOT NULL,
+  `check_uid`         SMALLINT        NOT NULL,
   `check_desc`        VARCHAR (1024)  NOT NULL,
   `timestamp`         TIMESTAMP       ,
   PRIMARY KEY ( `check_id` ),
@@ -33,10 +33,10 @@ CREATE TABLE IF NOT EXISTS `rgt_test`
   `application`       VARCHAR (1024)  NOT NULL,
   `testname`          VARCHAR (1024)  NOT NULL,
   `job_id`            CHAR (64)       NULL,
-  `lsf_exit_status`   TINYINT         NULL,
-  `build_status`      TINYINT         NULL,
-  `submit_status`     TINYINT         NULL,
-  `check_status`      TINYINT         NULL,
+  `lsf_exit_status`   SMALLINT        NULL,
+  `build_status`      SMALLINT        NULL,
+  `submit_status`     SMALLINT        NULL,
+  `check_status`      SMALLINT        NULL,
   `output_build`      TEXT            NULL,
   `output_submit`     TEXT            NULL,
   `output_check`      TEXT            NULL,

@@ -23,6 +23,25 @@ def get_event_types(connector, event_table):
     return event_types
 
 
+class PermissionWarning(UserWarning):
+    pass
+
+
+def execute_sql(sql, db):
+    with warnings.catch_warnings():
+        warnings.filterwarnings('error')
+
+        cursor = db.cursor()
+        try:
+            # Execute the command.
+            cursor.execute(sql)
+        except Exception as e:
+            warnings.warn(str(e) + '\n' + repr(sql))
+        else:
+            # Commit it to the database.
+            db.commit()
+
+
 class UpdateDatabase:
     """
     This class takes care of running all necessary functions for updating the database. It does not repeat.
@@ -79,18 +98,18 @@ class UpdateDatabase:
         :return:
         """
         # Get the test directories from the file.
-        test_directories = self.get_test_dirs_from_rgt()
+        test_directories, harness_tld = self.get_test_dirs_from_rgt()
 
         # For each test directory, add any new UIDs from that test.
         for test_dir in test_directories:
-            self.update_test_instances(test_dir)
+            self.update_test_instances(test_dir, harness_tld)
 
     def get_test_dirs_from_rgt(self):
         """
         Get the directories to each test. Each directory is appended with '/Status/' since we
         do not need any info from the directory above.
 
-        :return: A list of test directories.
+        :return: A list of test directories. The path to the tests.
         """
         # Create the parser.
         parser = parse_file.ParseRGTInput()
@@ -98,7 +117,7 @@ class UpdateDatabase:
         path_to_tests, test_list = parser.parse_file(self.rgt_input_path)
         # Get the test directories.
         test_directories = test_status.get_test_directories(path_to_tests, test_list, append_dirs='Status')
-        return test_directories
+        return test_directories, path_to_tests
 
     def update_test_instances(self, test_path, harness_tld):
         """
@@ -113,11 +132,11 @@ class UpdateDatabase:
             return
 
         # Create the path.
-        rgt_status_path = os.path.join(test_path, 'rgt_status.txt')
+        self.rgt_status_path = os.path.join(test_path, 'rgt_status.txt')
         # Create the parser.
         rgt_parser = parse_file.ParseRGTStatus()
         # Get the dictionaries for each line in the status file.
-        rgt_status_lines = rgt_parser.parse_file(rgt_status_path)
+        rgt_status_lines = rgt_parser.parse_file(self.rgt_status_path)
 
         # For each line in the file, add it to the table if it is new.
         for rgt_status_line in rgt_status_lines:
@@ -326,17 +345,13 @@ class UpdateDatabase:
         :return:
         """
         db = self.connector.connect()
-        # Create cursor for execution of commands.
-        cursor = db.cursor()
         # Insert the necessary info into the table.
         sql = "INSERT INTO {table} (test_id, event_id, event_time) " \
               "VALUES ({test_id}, {event_id}, '{event_time}')" \
             .format(table=self.test_event_table, test_id=test_id, event_id=event_id, event_time=event_time)
 
-        # Execute the command.
-        cursor.execute(sql)
-        # Commit it to the database.
-        db.commit()
+        execute_sql(sql, db)
+
         db.close()
 
     def add_to_test_table(self, event_path, rgt_status_line, harness_tld):
@@ -363,13 +378,9 @@ class UpdateDatabase:
         # Get the sql code for inserting the values into the table.
         sql = self.get_add_sql(all_fields)
         db = self.connector.connect()
-        # Create cursor for execution on the database.
-        cursor = db.cursor()
 
-        # Execute the command.
-        cursor.execute(sql)
-        # Commit it to the database.
-        db.commit()
+        execute_sql(sql, db)
+
         db.close()
 
     def get_add_sql(self, add_fields):
@@ -454,17 +465,8 @@ class UpdateDatabase:
         # Get the necessary sql for updating the database.
         sql = self.get_update_sql(update_fields, test_id)
         db = self.connector.connect()
-        # Create a cursor for execution of sql on the database.
-        cursor = db.cursor()
 
-        try:
-            # Execute the command.
-            cursor.execute(sql)
-        except Exception as e:
-            warnings.warn(str(e))
-        else:
-            # Commit it to the database.
-            db.commit()
+        execute_sql(sql, db)
 
         db.close()
 
@@ -544,7 +546,7 @@ class UpdateDatabase:
                     if self.legal_check_status(val):
                         update_fields[field] = int(val)
                     else:
-                        warnings.warn('Skipping check status ' + str(val) + ' since it was not in the check table.')
+                        warnings.warn('Skipping check status ' + str(val) + ' since it was not in the check table.' + self.rgt_status_path + '\n' + str(rgt_status_line))
                 else:
                     update_fields[field] = int(val)
 
@@ -575,13 +577,13 @@ class UpdateDatabase:
                     output_text = self.output_text(path, output_field)
                 # If the file does not exist, try to get the next file.
                 except FileNotFoundError:
-                    warnings.warn("Did not find file associated with " + output_field + " in " + path + ".")
+                    warnings.warn("Did not find file associated with '" + output_field + "' in " + path + ".")
                     # If the file has not been written yet, don't change flag to done because it may still be written.
                     if (output_field + '_status') in update_fields.keys():
                         update_fields['done'] = False
                     continue
                 except PermissionError:
-                    warnings.warn("Did not have permission to get output of " + path + ".")
+                    warnings.warn("Did not have permission to get output of " + path + ".", PermissionWarning)
                     # If we do not yet have permission for the file, that may change eventually.
                     if (output_field + '_status') in update_fields.keys():
                         update_fields['done'] = False
