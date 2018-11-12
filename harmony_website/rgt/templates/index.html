@@ -1,0 +1,14 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <h1>Harmony Home</h1>
+    <p>Welcome to Harmony!</p>
+    <h2>Dynamic content</h2>
+    <p>Harmony has the following record counts:</p>
+    <ul>
+        <li><strong>Tests:</strong> {{ num_tests }}</li>
+        <li><strong>Test Events:</strong> {{ num_test_events }}</li>
+        <li><strong>ACME Tests:</strong> {{ num_ACME_tests }}</li>
+        <li><strong>Event types:</strong> {{ num_event_types }}</li>
+    </ul>
+{% endblock %}

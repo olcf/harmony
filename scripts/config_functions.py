@@ -3,6 +3,7 @@ import os
 import warnings
 
 
+# TODO: Somehow get this into harmony_website/harmony_website/settings.py
 config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config.ini'))
 slack_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'slack_tokens.txt'))
 database_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'database_tokens.txt'))

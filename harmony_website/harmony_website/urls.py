@@ -15,7 +15,24 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.urls import include
+from django.views.generic import RedirectView
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 ]
+
+# Use include() to add paths from the catalog application.
+urlpatterns += [
+    path('rgt/', include('rgt.urls')),
+]
+
+# Add url maps to redirect base URL to the catalog app.
+urlpatterns += [
+    path('', RedirectView.as_view(url='/rgt/', permanent=True)),
+]
+
+# Use static() to add url mappings to serve static files during development.
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

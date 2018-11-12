@@ -24,7 +24,7 @@ class DatabaseConnector:
             self.password = database_config['password']
         else:
             self.password = password
-        self.database_name = database_config['database_name']
+        self.database_name = database_config['database']
 
         # The port is not necessarily needed but if it is set, use it.
         if 'port' in database_config:
@@ -46,9 +46,9 @@ class DatabaseConnector:
 
 
 if __name__ == '__main__':
-    conf = config_functions.get_config()
+    conf = config_functions.get_config()['CLIENT']
 
-    DC = DatabaseConnector(conf['host'], conf['user'], conf['password'], conf['database_name'])
+    DC = DatabaseConnector(conf['host'], conf['user'], conf['password'], conf['database'])
     db = DC.connect()
     cursor = db.cursor()
     sql = "SELECT * FROM testing_table"
