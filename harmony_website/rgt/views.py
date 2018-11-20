@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rgt.models import RgtCheck, RgtEvent, RgtTest, RgtTestEvent
 from rgt.filters import TestFilter
 from django.views import generic
+from rgt.filter_mixin import ListFilteredMixin
 
 # Create your views here.
 
@@ -35,15 +36,10 @@ def index(request):
     return render(request, 'index.html', context=context)
 
 
-def test_search(request):
-    test_list = RgtTest.objects.all()
-    test_filter = TestFilter(request.GET, queryset=test_list)
-    return render(request, 'rgt/test_list.html', {'filter': test_filter})
-
-
-class TestListView(generic.ListView):
+class TestListView(generic.ListView, ListFilteredMixin):
     model = RgtTest
     context_object_name = 'test_list'
+    filter_set = TestFilter
     template_name = 'rgt/test_list.html'
 
 

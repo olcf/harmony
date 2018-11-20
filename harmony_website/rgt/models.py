@@ -40,6 +40,19 @@ class RgtEvent(models.Model):
         ordering = ['event_uid']
 
 
+class RgtFailure(models.Model):
+    failure_id = models.AutoField(primary_key=True)
+    failure_label = models.CharField(max_length=256)
+    failure_desc = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.failure_id} {self.failure_label}'
+
+    class Meta:
+        db_table = 'rgt_failure'
+        ordering = ['failure_id']
+
+
 class RgtTest(models.Model):
     test_id = models.AutoField(primary_key=True)
     harness_uid = models.CharField(unique=True, max_length=36)
@@ -120,6 +133,20 @@ class RgtTestEvent(models.Model):
         db_table = 'rgt_test_event'
         unique_together = (('test_id', 'event_id'),)
         ordering = ['test_id', 'event_id']
+
+
+class RgtTestFailure(models.Model):
+    id = models.AutoField('id', primary_key=True)
+    test_id = models.OneToOneField(RgtTest, models.DO_NOTHING, db_column='test_id')
+    failure_id = models.ForeignKey(RgtFailure, models.DO_NOTHING, db_column='failure_id')
+    failure_details = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.test_id} {self.failure_id} ({self.failure_details})'
+
+    class Meta:
+        db_table = 'rgt_test_failure'
+        ordering = ['test_id', 'failure_id']
 
 
 class TestRgtCheck(models.Model):

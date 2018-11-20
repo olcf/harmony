@@ -3,7 +3,7 @@ from rgt import views
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('tests/', views.test_search, name='tests'),
+    path('tests/', views.TestListView.as_view(), name='tests'),
     # Only match harness uids that consist of numbers
     # TODO: Think about changing this from harness uid to application/testname/testinstance.
     # TODO: Not sure if necessary though.

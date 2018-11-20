@@ -1,32 +1,11 @@
-{% extends "base_generic.html" %}
+{% extends "list_generic.html" %}
 
-{% block content %}
-    <!-- TODO: Make generic table. Not sure how to pass in query set yet though. -->
+{% block header %}
     <h1>Test List</h1>
+{% endblock %}
 
-    <form method="get">
-        {{ filter.form.as_p }}
-        <button type="submit">Search</button>
-    </form>
-    <hr>
-    <style>
-        table, th, td {
-            border: 1px solid black;
-        }
-    </style>
-
-    <table style="width: 100%;">
-        <tr>
-            <th>Application</th>
-            <th>Testname</th>
-            <th>Harness UID</th>
-        </tr>
-        {% for test in filter.qs %}
-            <tr>
-                <td> <a href="{{ test.get_app_url }}"> {{ test.application }} </a></td>
-                <td> <a href="{{ test.get_testname_url }}"> {{ test.testname }} </a> </td>
-                <td> <a href="{{ test.get_test_url }}">{{ test.harness_uid }}</a> </td>
-            </tr>
-        {% endfor %}
-    </table>
+{% block values_wrapper %}
+    {% with list=test_list %}
+        {{ block.super }}
+    {% endwith %}
 {% endblock %}

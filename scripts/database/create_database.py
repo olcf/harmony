@@ -5,17 +5,22 @@ import warnings
 
 check_path = p.abspath(p.join(p.dirname(__file__), '..', '..', 'db', 'init_rgt_check.sql'))
 event_path = p.abspath(p.join(p.dirname(__file__), '..', '..', 'db', 'init_rgt_event.sql'))
+failure_path = p.abspath(p.join(p.dirname(__file__), '..', '..', 'db', 'init_rgt_failure.sql'))
 
 
-def insert_default(connector, default_check_path=check_path, default_event_path=event_path):
+def insert_default(connector, default_check_path=check_path,
+                   default_event_path=event_path, default_failure_path=failure_path):
     """
     Set the initial values for the various tables.
 
     :param connector: A DatabaseConnector for access to the database.
-    :param default_check_path: The path to the create file.
+    :param default_check_path: The path to the default check values.
+    :param default_event_path: The path to the default event values.
+    :param default_failure_path: The path to the default failure values.
     """
     execute_sql_file(connector, default_check_path)
     execute_sql_file(connector, default_event_path)
+    execute_sql_file(connector, default_failure_path)
 
 
 def create_db(connector, file_path=p.abspath(p.join(p.dirname(__file__), '..', '..', 'db', 'create.sql'))):
