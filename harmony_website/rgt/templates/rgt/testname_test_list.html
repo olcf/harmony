@@ -1,0 +1,33 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    {% with testname_test_list.all|first as first_test %}
+        <h1>Application: {{ first_test.application }}</h1>
+        <h1>Testname: {{ first_test.testname }}</h1>
+    {% endwith %}
+
+    {% if testname_test_list %}
+        <style>
+            table, th, td {
+                border: 1px solid black;
+            }
+        </style>
+        <table style="width: 100%;">
+            <tr>
+                <th>Application</th>
+                <th>Testname</th>
+                <th>Harness UID</th>
+            </tr>
+            {% for test in testname_test_list %}
+            <tr>
+                <td> <a href="{{ test.get_app_url }}"> {{ test.application }} </a></td>
+                <td> <a href="{{ test.get_testname_url }}"> {{ test.testname }} </a> </td>
+                <td> <a href="{{ test.get_test_url }}">{{ test.harness_uid }}</a> </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>There are no tests in the database.</p>
+    {% endif %}
+
+{% endblock %}
