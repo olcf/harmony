@@ -416,14 +416,14 @@ class UpdateDatabase:
             val = add_fields[field]
             # Change how the value should look in the sql depending on it's type.
             if type(val) is str:
-                value = "'" + val + "'"
+                value = self.connector.connect().escape(val)
             elif type(val) is int:
                 value = str(val)
             elif type(val) is bool:
                 value = str(val).upper()
             # Add the necessary text.
             sql += field
-            vals += self.connector.connect().escape(value)
+            vals += value
             # If this is not the last key, add a comma.
             if i < len(key_list) - 1:
                 sql += ", "
@@ -501,13 +501,13 @@ class UpdateDatabase:
             field = key_list[i]
             val = update_fields[field]
             if type(val) is str:
-                value = "'" + val + "'"
+                value = self.connector.connect().escape(val)
             elif type(val) is int:
                 value = str(val)
             elif type(val) is bool:
                 value = str(val).upper()
             # Add the necessary text.
-            sql += field + " = " + self.connector.connect().escape(value)
+            sql += field + " = " + value
             # If this is not the last key, add a comma.
             if i < len(key_list) - 1:
                 sql += ","
