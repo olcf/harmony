@@ -423,7 +423,7 @@ class UpdateDatabase:
                 value = str(val).upper()
             # Add the necessary text.
             sql += field
-            vals += self.connector.escape(value)
+            vals += self.connector.connect().escape(value)
             # If this is not the last key, add a comma.
             if i < len(key_list) - 1:
                 sql += ", "
@@ -507,7 +507,7 @@ class UpdateDatabase:
             elif type(val) is bool:
                 value = str(val).upper()
             # Add the necessary text.
-            sql += field + " = " + self.connector.escape(value)
+            sql += field + " = " + self.connector.connect().escape(value)
             # If this is not the last key, add a comma.
             if i < len(key_list) - 1:
                 sql += ","
