@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block values_wrapper %}
-    {% with list=test_list %}
+    {% with filter.qs as test_list %}
         {{ block.super }}
     {% endwith %}
 {% endblock %}

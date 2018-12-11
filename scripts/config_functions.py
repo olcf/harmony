@@ -38,6 +38,8 @@ def write_config(path_to_config=config_path, path_to_slack_tokens=slack_path, pa
     if len(slack_tokens) != 0:
         warnings.warn("Could not find values for " + str(slack_tokens) + " in " + path_to_slack_tokens)
 
+    slack_app['SLACK_BOT_NAME'] = "Botty McBotterson"
+
     # How often to pull from slack.
     slack_app['WATCH_TIME'] = '1.0'
     # Maximum number of threads open that are trying to message.

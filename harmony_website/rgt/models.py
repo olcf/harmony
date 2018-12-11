@@ -46,7 +46,7 @@ class RgtFailure(models.Model):
     failure_desc = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f'{self.failure_id} {self.failure_label}'
+        return f'{self.failure_label}'
 
     class Meta:
         db_table = 'rgt_failure'
@@ -77,6 +77,17 @@ class RgtTest(models.Model):
 
     def __str__(self):
         return f'{self.application} {self.testname} {self.harness_uid}'
+
+    def failure(self):
+        """
+        Get the failure object for this test.
+
+        :return: RgtTestFailure object.
+        """
+        try:
+            return RgtTestFailure.objects.get(test_id=self.test_id)
+        except RgtTestFailure.DoesNotExist:
+            return None
 
     def test_path(self):
         """
@@ -110,10 +121,26 @@ class RgtTest(models.Model):
         """
         return reverse('test-detail', args=[str(self.application), str(self.testname), str(self.harness_uid)])
 
+    def get_failure_create_url(self):
+        """
+        Get the url to change the failure.
+
+        :return: The url for the failure.
+        """
+        return reverse('failure-create', args=[str(self.application), str(self.testname), str(self.harness_uid)])
+
+    def get_failure_delete_url(self):
+        """
+        Get the url to delete the failure.
+
+        :return: The url for the failure.
+        """
+        return reverse('failure-delete', args=[str(self.application), str(self.testname), str(self.harness_uid)])
+
     class Meta:
         managed = False
         db_table = 'rgt_test'
-        ordering = ['application', 'testname', 'harness_uid']
+        ordering = ['application', 'testname', '-harness_start']
 
 
 class RgtTestEvent(models.Model):

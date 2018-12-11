@@ -7,6 +7,8 @@ check_path = p.abspath(p.join(p.dirname(__file__), '..', '..', 'db', 'init_rgt_c
 event_path = p.abspath(p.join(p.dirname(__file__), '..', '..', 'db', 'init_rgt_event.sql'))
 failure_path = p.abspath(p.join(p.dirname(__file__), '..', '..', 'db', 'init_rgt_failure.sql'))
 
+create_path = p.abspath(p.join(p.dirname(__file__), '..', '..', 'db', 'create.sql'))
+
 
 def insert_default(connector, default_check_path=check_path,
                    default_event_path=event_path, default_failure_path=failure_path):
@@ -23,7 +25,7 @@ def insert_default(connector, default_check_path=check_path,
     execute_sql_file(connector, default_failure_path)
 
 
-def create_db(connector, file_path=p.abspath(p.join(p.dirname(__file__), '..', '..', 'db', 'create.sql'))):
+def create_db(connector, file_path=create_path):
     """
     Create the initial tables in the database.
 

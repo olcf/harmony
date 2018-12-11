@@ -1,8 +1,7 @@
 from django import forms
-from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
-from rgt.models import RgtTest
+from rgt.models import RgtTest, RgtTestFailure
 from django.db.models import Count
+from bootstrap_modal_forms.mixins import PopRequestMixin, CreateUpdateAjaxMixin
 
 
 class ApplicationSelectForm(forms.Form):
@@ -20,3 +19,16 @@ class ApplicationSelectForm(forms.Form):
         choices=APP_CHOICES,
         initial=[c for c in APP_CHOICES]
     )
+
+
+class TestFailureForm(PopRequestMixin, CreateUpdateAjaxMixin, forms.ModelForm):
+    class Meta:
+        model = RgtTestFailure
+        fields = ['failure_id', 'failure_details']
+
+    def save(self, test=None, commit=True):
+        test_failure = super(TestFailureForm, self).save(commit=False)
+        test_failure.test_id = test
+        if commit:
+            test_failure.save()
+        return test_failure

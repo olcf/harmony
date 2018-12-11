@@ -9,22 +9,62 @@
     <!-- Add additional CSS in static file. -->
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
+    {% block scripts %}
+        {% load static %}
+        <script src="{% static 'assets/js/jquery-3.3.1.js' %}"></script>
+        <script src="{% static 'assets/js/popper.min.js' %}"></script>
+        <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/jquery.bootstrap.modal.forms.min.js' %}"></script>
+    {% endblock %}
+
+    {% include "_modal.html" %}
+
     <div class="container-fluid">
         <div class="row">
             <div class="col-sm-1">
             {% block sidebar %}
                 <ul class="sidebar-nav">
-                    <li><a href="{% url 'index' %}">Home</a></li>
-                    <li><a href="{% url 'tests' %}">All tests</a></li>
+{#                    <li><a href="{% url 'index' %}">Home</a></li>#}
+                    <li>
+                        <a href="{% url 'index' %}">
+                            <img width="120px" height="auto" src="{% static 'media/harmony_logo.png' %}" alt="Harmony logo">
+                        </a>
+                    </li>
+                    <li>
+                        <div class="text-center">
+                            <a href="{% url 'test-list' %}">
+                                <button class="btn btn-primary btn-block">All Tests</button>
+                            </a>
+                        </div>
+                    </li>
                 </ul>
             {% endblock %}
             </div>
             <div class="col-sm-11">
-            {% block content %}{% endblock %}
+            {% block header %}{% endblock %}
             </div>
         </div>
     </div>
+    {% block content %}{% endblock %}
+
+    {% block extrascripts %}
+        <script type="text/javascript">
+            $(function () {
+                $(".failure-create-btn").each(function () {
+                    $(this).modalForm({
+                        formURL: $(this).data("id")
+                    });
+                });
+                $(".failure-delete-btn").each(function () {
+                    $(this).modalForm({
+                        formURL: $(this).data("id")
+                    });
+                });
+            });
+        </script>
+    {% endblock %}
 </body>
 </html>

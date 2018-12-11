@@ -43,14 +43,3 @@ class DatabaseConnector:
             return pymysql.connect(self.host, self.user, self.password, self.database_name, port=self.port)
         else:
             return pymysql.connect(self.host, self.user, self.password, self.database_name)
-
-
-if __name__ == '__main__':
-    conf = config_functions.get_config()['CLIENT']
-
-    DC = DatabaseConnector(conf['host'], conf['user'], conf['password'], conf['database'])
-    db = DC.connect()
-    cursor = db.cursor()
-    sql = "SELECT * FROM testing_table"
-    cursor.execute(sql)
-    print(cursor.fetchall())

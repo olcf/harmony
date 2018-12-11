@@ -94,7 +94,10 @@ def monitor(job_id, watch_time, notifier, num_iterations=None, **kwargs):
     # Remove class since we will have many of these threads and we want to relieve memory and not store this class.
     del JS
 
-    if status in ['Complete', 'Killed', 'Walltimed']:
+    done_stats = ['complete', 'killed', 'walltimed']
+    done_stats = [job_status.Job.possible_status[stat] for stat in done_stats]
+
+    if status in done_stats:
         done_status = True
     else:
         done_status = False
@@ -106,7 +109,7 @@ def monitor(job_id, watch_time, notifier, num_iterations=None, **kwargs):
     # Create an iteration counter.
     iteration = 0
     # While the job has not been completed, keep watching.
-    while status not in ['Complete', 'Killed', 'Walltimed']:
+    while status not in done_stats:
         # Sleep the desired time.
         time.sleep(watch_time)
 
@@ -115,10 +118,12 @@ def monitor(job_id, watch_time, notifier, num_iterations=None, **kwargs):
         try:
             new_status = JS.get_job_status(job_id)
         except KeyError as e:
-            notifier(**kwargs, job_id=job_id, error_message="Something happened while monitoring my job. It seemed to dissapear!\t" + str(e))
+            notifier(**kwargs, job_id=job_id,
+                     error_message="Something happened while monitoring my job. It seemed to disappear!\t" + str(e))
             return
         if new_status is None:
-            notifier(**kwargs, job_id=job_id, error_message="Something happened while monitoring my job. It seemed to dissapear!\t" + str(e))
+            notifier(**kwargs, job_id=job_id,
+                     error_message="Something happened while monitoring my job. It seemed to disappear!\t" + str(e))
             return
 
         # If the status has changed then notify.
@@ -137,7 +142,7 @@ def monitor(job_id, watch_time, notifier, num_iterations=None, **kwargs):
         del new_status
         del JS
 
-    if status in ['Complete', 'Killed', 'Walltimed']:
+    if status in done_stats:
         done_status = True
     else:
         done_status = False

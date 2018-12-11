@@ -10,6 +10,13 @@ from scripts import test_status
 
 
 def get_event_types(connector, event_table):
+    """
+    Get all the types of events that a test instance can output.
+
+    :param connector: The connector to the database.
+    :param event_table: The name of the event table.
+    :return: A list of tuples corresponding to the event types.
+    """
     database = connector.connect()
     cursor = database.cursor()
     sql = "SELECT (event_uid) FROM {table}".format(table=event_table)
@@ -28,6 +35,12 @@ class PermissionWarning(UserWarning):
 
 
 def execute_sql(sql, db):
+    """
+    Execute some sql on the database. Only works when not expecting a response.
+
+    :param sql: SQL to execute.
+    :param db: Database to execute on.
+    """
     with warnings.catch_warnings():
         warnings.filterwarnings('error')
 
@@ -36,6 +49,7 @@ def execute_sql(sql, db):
             # Execute the command.
             cursor.execute(sql)
         except Exception as e:
+            # Throw a nice warning if there was a problem.
             warnings.warn(str(e) + '\n' + repr(sql))
         else:
             # Commit it to the database.
@@ -77,7 +91,6 @@ class UpdateDatabase:
         # The fields within an rgt_status.txt file.
         self.rgt_fields = ['harness_start', 'harness_uid', 'job_id', 'build_status', 'submit_status', 'check_status']
 
-        # TODO: Should these output types be taken from the table?
         # The possible output files that we are prepared to handle. They will go like "*_output.txt".
         self.possible_outputs = ['build', 'submit', 'check', 'report']
 
@@ -391,7 +404,7 @@ class UpdateDatabase:
         :return: The necessary sql.
         """
         # Insert into table.
-        sql = "INSERT INTO {table} ("
+        sql = "INSERT INTO " + str(self.test_table) + " ("
         # Get the keys set.
         key_list = list(add_fields.keys())
         # Variable for holding values.
@@ -420,9 +433,9 @@ class UpdateDatabase:
         sql += ") VALUES (" + vals + ")"
 
         if self.verbose:
-            print("Adding: " + sql.format(table=self.test_table))
+            print("Adding: " + sql)
 
-        return sql.format(table=self.test_table)
+        return sql
 
     def get_add_fields(self, rgt_status_line, event_dic, harness_tld):
         """

@@ -8,6 +8,8 @@ import re
 from scripts import config_functions
 import math
 import copy
+import signal
+from contextlib import contextmanager
 
 
 class SlackApp:
@@ -37,8 +39,6 @@ class SlackApp:
         self.bot_token = bot_token
         # Same with the user token.
         self.app_token = app_token
-        print(bot_token)
-        print(app_token)
         # Create a slack connector from the bot token
         self.client = SlackClient(self.bot_token)
         # Set the verbosity
@@ -123,6 +123,7 @@ class SlackApp:
         # Create list for holding split message.
         split_message = []
         # While we have not yet hit the end, continue.
+        # TODO: Split message preferably on new line. (Get index of last occurrence of \n and split there)
         while index < len(message):
             # Count the number of occurences of the string that implies formatting.
             before_count = message[:index].count('```')
@@ -175,7 +176,8 @@ class SlackApp:
                 matching_messages.append(message)
 
         if self.verbose:
-            self.verbose_print('[' + str(len(matching_messages)) + '/' + str(len(messages)) + ']' + ' matching messages.')
+            self.verbose_print('[' + str(len(matching_messages)) + '/' + str(len(messages)) + ']'
+                               + ' matching messages.')
 
         if self.verbose == 2:
             if len(responses) == 0:
@@ -334,6 +336,7 @@ class SlackApp:
         :param message: Message from rtm_read.
         :return: Whether the message was deemed suitable.
         """
+        # TODO: Add memory size constraint.
         def match(string, search=re.compile(r'[^a-z0-9<>@_ ]', re.IGNORECASE).search):
             """
             Test if a string only contains certain characters. This is nice and safe since it is a simple regex.
@@ -411,7 +414,7 @@ class SlackApp:
             self.verbose_print("auth.test response:")
             dic_print(response)
 
-        if response['ok'] != True:
+        if not response['ok']:
             self.verbose_print("Uh oh. Something went wrong with the connection.")
             print(response)
         # Pull the id of the caller from the auth.test.
@@ -426,8 +429,42 @@ class SlackApp:
 
         # Rounded time since last print.
         time_since = round(time.time() - self.previous_print, 3)
-        print(time.ctime() + ' [ +' + str(time_since) + '] ' + message)
+        try:
+            # Limit the amount of time a print can take. Makes sure huge prints do not occur.
+            with time_limit(1):
+                print(time.ctime() + ' [ +' + str(time_since) + '] ' + message)
+        except:
+            print("ERROR: An error occurred while trying to print.")
         self.previous_print = time.time()
+
+
+class TimeoutException(Exception): pass
+
+
+@contextmanager
+def time_limit(seconds):
+    """
+    Limit the amount of time some command can take.
+
+    :param seconds: The number of seconds allowed for the command.
+    """
+    def signal_handler(signum, frame):
+        """
+        Raise an exception when called.
+
+        :param signum: The signal type.
+        :param frame: The handler for the signals.
+        """
+        raise TimeoutException("Timed out.")
+    # Initialize a signal.
+    signal.signal(signal.SIGALRM, signal_handler)
+    # Set the alarm.
+    signal.alarm(seconds)
+    # Let the wrapped command run. If it has not finished in time, alarm.
+    try:
+        yield
+    finally:
+        signal.alarm(0)
 
 
 def recursive_print_dic(dic, indent=0):

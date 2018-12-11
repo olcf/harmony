@@ -84,7 +84,7 @@ class ParseRGTStatus:
         new_contents = []
         # Go through each line and check if it is in the header or contains nothing. If it is a usable line, add it.
         for line in file_contents:
-            if len(line.lstrip()) !=0 and line.lstrip()[0] != '#':
+            if len(line.lstrip()) != 0 and line.lstrip()[0] != '#':
                 new_contents.append(line)
 
         return new_contents
@@ -127,7 +127,6 @@ class ParseJobID:
             raise SyntaxException("Negative jobid found in " + file_path)
 
 
-# Class to parse the rgt master input file.
 class ParseRGTInput:
     """
     Parse the master rgt input file and get necessary information.
@@ -175,7 +174,6 @@ class ParseRGTInput:
         # Return the path to the tests and the list of dictionaries that contain test info.
         return path_to_tests, test_list
 
-    # Remove all lines from the file that start with a '#'.
     def remove_commented(self, file_contents):
         """
         Remove all useless lines from an enumerated file.

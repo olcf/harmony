@@ -1,14 +1,55 @@
 \relax 
-\@writefile{toc}{\contentsline {section}{\numberline {1}sample\_inputs}{1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}\texttt  {rgt.input.master}}{1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}\texttt  {sample\_run/GTC4/test\_0001node/}}{1}}
-\@writefile{toc}{\contentsline {section}{\numberline {2}scripts}{1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}\texttt  {connect.py}}{1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}\texttt  {job\_status.py}}{2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}\texttt  {parse\_file.py}}{2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}\texttt  {test\_status.py}}{2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}notifications}{2}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.5.1}\texttt  {email/email\_send.py}}{2}}
-\@writefile{toc}{\contentsline {section}{\numberline {3}Slack}{2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Flask}{3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Running}{3}}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Monitoring Tests}{1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}\texttt  {scripts/connect.py}}{1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}\texttt  {scripts/job\char `_status.py}}{2}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.1}\texttt  {Job}}{2}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.2}\texttt  {JobStatus}}{2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}\texttt  {scripts/job\char `_monitor.py}}{2}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.3.1}\texttt  {JobMonitor}}{2}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.3.2}\leavevmode {\color  {red}\texthl  {\texttt  {remove\char `_dead\char `_threads}}}}{2}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.3.3}\leavevmode {\color  {red}\texthl  {\texttt  {monitor}}}}{2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}\texttt  {scripts/parse\char `_file.py}}{2}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.4.1}\texttt  {ParseEvent}}{2}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.4.2}\texttt  {ParseRGTStatus}}{3}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.4.3}\texttt  {ParseJobID}}{3}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.4.4}\texttt  {ParseRGTInput}}{3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}\texttt  {scripts/test\char `_status.py}}{3}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.5.1}\texttt  {slack\char `_notify}}{3}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.5.2}\texttt  {get\char `_test\char `_directories}}{3}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.5.3}\texttt  {check\char `_tests}}{4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.6}\texttt  {scripts/notifications/slack\char `_app/slack\char `_application.py}}{4}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.6.1}\texttt  {SlackApp}}{4}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {2.6.1.1}\texttt  {get\char `_my\char `_mention\char `_token}}{4}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {2.6.1.2}\texttt  {get\char `_my\char `_mentions}}{4}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {2.6.1.3}\texttt  {allowable\char `_message}}{4}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {2.6.1.4}\texttt  {search\char `_messages}}{4}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {2.6.1.5}\texttt  {remove\char `_dead\char `_messengers}}{4}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {2.6.1.6}\texttt  {message\char `_responder}}{5}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {2.6.1.7}\texttt  {send\char `_message}}{5}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {2.6.1.8}\texttt  {split\char `_message\char `_to\char `_send}}{5}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {2.6.1.9}\texttt  {main}}{5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.7}\texttt  {scripts/notifications/slack\char `_app/slack\char `_commands.py}}{5}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.7.1}\texttt  {docstring\char `_parameter}}{5}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.7.2}\texttt  {is\char `_command}}{5}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.7.3}\texttt  {get\char `_functions}}{5}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.7.4}\texttt  {make\char `_columns}}{6}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.7.5}\texttt  {MessageParser}}{6}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {2.7.5.1}\texttt  {parse\char `_message}}{6}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {2.7.5.2}\texttt  {slack\char `_help}}{6}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {2.7.5.3}\texttt  {my\char `_jobs}}{6}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {2.7.5.4}\texttt  {check\char `_tests}}{6}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {2.7.5.5}\texttt  {monitor\char `_job}}{6}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {2.7.5.6}\texttt  {all\char `_jobs}}{6}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Recording Results}{6}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}\texttt  {scripts/database/connect\char `_database.py}}{7}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.1}\texttt  {DatabaseConnector}}{7}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {3.1.1.1}\texttt  {connect}}{7}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}\texttt  {scripts/database/create\char `_database.py}}{7}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}\texttt  {execute\char `_sql\char `_file}}{7}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}\texttt  {insert\char `_default}}{7}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}\texttt  {scripts/database/update\char `_database.py}}{7}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.1}\texttt  {get\char `_event\char `_types}}{7}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.2}\texttt  {execute\char `_sql}}{7}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.3}\texttt  {UpdateDatabase}}{8}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {3.3.3.1}\texttt  {get\char `_test\char `_dirs\char `_from\char `_rgt}}{8}}

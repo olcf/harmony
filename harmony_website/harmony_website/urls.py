@@ -29,7 +29,7 @@ urlpatterns += [
     path('rgt/', include('rgt.urls')),
 ]
 
-# Add url maps to redirect base URL to the catalog app.
+# Add url maps to redirect base URL to the rgt app.
 urlpatterns += [
     path('', RedirectView.as_view(url='/rgt/', permanent=True)),
 ]

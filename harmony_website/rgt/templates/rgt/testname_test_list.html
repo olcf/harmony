@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block values_wrapper %}
-    {% with list=testname_test_list %}
+    {% with testname_test_list as test_list %}
         {{ block.super }}
     {% endwith %}
 {% endblock %}

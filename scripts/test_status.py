@@ -1,5 +1,5 @@
 from scripts.job_status import JobStatus
-from scripts import parse_file
+from scripts import parse_file, config_functions
 from scripts.notifications.slack_app import slack_application
 import os
 import sys
@@ -78,8 +78,11 @@ def slack_notify(message):
     :param message: (str) Message to send.
     :return:
     """
-    app = slack_application.SlackApp(os.environ["SLACK_BOT_TOKEN"])
-    channel = "CCRA1Q41J"
+    conf = config_functions.get_config()
+    app = slack_application.SlackApp(conf['slack_app']['slack_bot_token'],
+                                     conf['slack_app']['slack_app_token'],
+                                     conf['slack_app']['slack_harmony_channel'])
+    channel = conf['slack_app']['slack_harmony_channel']
     app.send_message(channel=channel, message=message)
 
 

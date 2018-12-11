@@ -1,101 +1,251 @@
 \documentclass{article}
 
+\usepackage{xcolor, soul, titlesec}
+
+\definecolor{light-gray}{gray}{0.85}
+
 \newcommand{\example}[1]{
 \begin{tabular}{ l p{\textwidth} }
 	\textbf{Example:} & \texttt{#1}
 \end{tabular}
 }
-\newcommand{\un}[0]{\_}
+\newcommand{\un}[0]{\char`_}
+\newcommand{\code}[1]{\textcolor{red}{\hl{\texttt{#1}}}}
+
+\setcounter{secnumdepth}{4}
+
+\titleformat{\paragraph}
+{\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
+\titlespacing*{\paragraph}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
 
 \title{Harmony Documentation}
+\author{Cameron Kuchta}
 
 \begin{document}
+\sethlcolor{light-gray}
+
 \maketitle
 
-\section{sample\un inputs}
+\section{Introduction}
 
-\subsection{\texttt{rgt.input.master}}
+Summit, the newest supercomputer at Oak Ridge National Laboratory, is currently being readied for users. In order to deploy the computer successfuly, it must undergo testing when running many different programs. These programs need to output the correct result and have good performance and finish reasonably quickly. To run these tests, a test harness has already been created that also records information from the test outputs. This harness requires users to manually get information from each test instance separately or they need to create a temporary database each time. To ease the analysis of each of these tests, we have setup a system for monitoring tests while running, recording results to a continuous database, and reporting them to the user.
 
-This file contains an example input file for starting tests. Harmony parses this file to get:
+\section{Monitoring Tests}
 
-\begin{itemize}
-	\item \texttt{path\un to\un tests}: The path to where tests are stored.
+We decide which tests to monitor according to an input file. To assert that each test is running, we read a status file found within each test directory. This file contains information on all of the test instances for it. We then check that each test has an instance that is currently in queue to be run or is running. New test instances should automatically be created after one instance is finished but if this does not occur, it is important to notify the user. When alerting the user, we use Slack and send messages to the OLCF System Test group.
 
-	\example{path\un to\un tests = /usr/guest/home/sample\un run}
+The following are descriptions of each of the files used for monitoring tests.
 
-	\item \texttt{test}: A test containing the program name and the test name.
+\subsection{\texttt{scripts/connect.py}}
 
-	\example{test = GTC4 test\un 0001node}
-\end{itemize}
+This file contains a single function that connects to LSF. There should be no reason to change this. When initiating the connection, there should be a queue with the correct name on LSF. To find a list of all queues on the machine, run \code{bqueues}. Choose one of these queues from the list and input it into the connection.
 
-\subsection{\texttt{sample\un run/GTC4/test\un 0001node/}}
+\subsection{\texttt{scripts/job\un status.py}}
 
-Directory containing example code for what a test might look like.\\ \texttt{/Run\un Archive/123456789.0123/stdout.txt} contains the output from the test while running. The numbers are unique identifiers pertaining to that specific job. \texttt{Scripts/} contains files necessary for running the test. \texttt{Status/rgt\un status.txt} contains start time, uniqueID, jobID, and the status for building, submitting, and running. Subdirectories of the \texttt{Status/} directory contain information pertaining to how the job is running. \texttt{job\un id.txt} contains the job's id on LSF and \texttt{job\un status.txt} contains the jobs current status. 
+\subsubsection{\texttt{Job}}
 
-\section{scripts}
+This class contains the information for a single job that exists in LSF. The \mbox{\code{possible\un status}} variable holds the keys that lead to the name of each status. If another status is needed, put it in that file. During initialization of the class, the status is assigned to the class. If a new status is needed, this will also need to be changed. If new information needs to be stored for a job, put it in this class.
 
-\subsection{\texttt{connect.py}}
+\subsubsection{\texttt{JobStatus}}
 
-Contains method for connecting to lsf.
+This class deals with queries on LSF. The \code{in\un queue} function tests that a job is in the queue so if a new status is added that represents a job in the queue, change this function.
 
-\example{from connect import connect \newline
-		 connect.connect()}
+\subsection{\texttt{scripts/job\un monitor.py}}
 
-\subsection{\texttt{job\un status.py}}
+\subsubsection{\texttt{JobMonitor}}
 
-Check the status of any set of jobs.
+This class takes care of initializing monitors. It automatically limits the maximum number of jobs that are allowed to be monitored.
 
-\example{from job\un status import JobStatus \newline
-		 js = JobStatus(queue='batch') \newline
-		 jobs = js.get\un jobs(user="guest", job\un status=["pending", "running"])}
+\subsubsection{\code{remove\un dead\un threads}}
 
-\subsection{\texttt{parse\un file.py}}
+This function removes all dead monitors so that new monitors can get started.
 
-This file parses text files. Wow. Not self explanatory at all! It can parse the \texttt{job\un id.txt} file from a test directory and can also parse an \texttt{rgt.input} file with some nice error throwing.
+\subsubsection{\code{monitor}}
 
-\example{from parse\un file import ParseJobID \newline
-		 id = ParseJobID.pars\un file("/usr/guest/home/sample\un run/GTC4/\newline
-		 test\un 0001node/Status/latest/job\un id.txt") \newline
-		 \newline
-		 from parse\un file import ParseRGTInput \newline
-		 path\un to\un tests, test\un list = ParseRGTInput.parse\un file(\newline
-		 "/usr/guest/home/rgt.input.master")
-		 }
+This function acts as a monitor for a single job on LSF. Once started, it will first notify the user that it has begun. It will then checks on the job after some interval depending on what is set in the config file. The monitor quits once the job enters one of the possible done status'. If a new status is added to the possible status' and it is an exit status, make sure to put it in here. The monitor automatically takes care of cleaning up after it wakes up to notify so that it does not take up much memory while sleeping.
 
-\subsection{\texttt{test\un status.py}}
+\subsection{\texttt{scripts/parse\un file.py}}
 
-This file checks whether each test from an \texttt{rgt.input} file is running and will return a string for notification.
+This file takes care of parsing all files needed for this set of programs. If a new file needs to be parsed, this is probably the best place to put it.
 
-\example{from test\un status import check\un tests \newline
-		 error = check\un tests("/path/to/rgt.input")}
+\subsubsection{\texttt{ParseEvent}}
 
-\subsection{notifications}
+This parser takes in event files that are created by a test instance. Each event file is created so that each key value pair is connected with an equals sign and each pair is separated by a space.
 
-\subsubsection{\texttt{email/email\un send.py}}
+\example{field1=val1 field2=val2 field3=val3}
 
-This method will send an email using SMTP through the localhost.
+\subsubsection{\texttt{ParseRGTStatus}}
 
-\example{from email\un send import send\un message \newline
-		 send\un message(text\un doc="/path/to/email.txt", \newline
-		 subject="Notification", sender="OLCF-notice", \newline
-		 reciever="guest\makeatletter @\makeatother example.com")}
+This parser parses the \code{rgt\un status.txt} file that contains the information for each test instance for some test. The \code{remove\un header} function removes all lines that start with either \texttt{\#} or are empty. When parsing the file, the expected columns are \texttt{harness\un start}, \texttt{harness\un uid}, \texttt{job\un id}, \texttt{build\un status}, \texttt{submit\un status}, and \texttt{check\un status} in that order. If the order changes or if there are new columns, make sure to add them here.
 
-\section{Slack}
+\subsubsection{\texttt{ParseJobID}}
 
-We can use either email or slack to notify people. When using Slack there are a couple ways to run such an application.
+The job id parser reads the LSF id from the file that the test instance creates. It expects that the first number is the id for the test instance.
 
-\subsection{Flask}
+\subsubsection{\texttt{ParseRGTInput}}
 
-Flask a very simple web framework usable through python. It is a "Non Full-Stack" framework meaning that it is nice and simple to use but does not have all the capabilities that a full-stack framework like Django might have. A full-stack framework contains everything from the data storage up to the user interface. Since Slack is our interface, a nice simple library like Flask does the trick!
+This parses the input file that the harness uses. All comments are removed from the file. If the comment begins in the middle of the line, the beginning of the line is preserved. Each line is then parsed to get the field and values from the line. If the line is incorrectly formatted, an error is thrown. We then assert that there exists a \code{path\un to\un tests} variable for finding where tests are located. The input file should also contain all tests that should be monitored. Any misspellings on the \code{path\un to\un tests} and \code{test} or lines that are not understood are thrown as errors. If a new line is needed in the input file, this function will need to be changed.
 
-\subsection{Running}
+\begin{tabular}{ l p{\textwidth} }
+	\textbf{Example:} & \texttt{path\un to\un tests = /foo/bar/} \\
+	& \texttt{test = app name}
+\end{tabular}
 
-At the moment, the server is started as a process and sits open continuously. We can offload this to a server but trying to interface with Summit from a separate server while authenticating through Slack seems like trouble indeed. An example of this might be running it on AWS. The server needs to be continuously up so that it can recieve and initiate requests whenever. I have no clue about how to secure any such beast. Currently it appears as though the server must always be up and running to use the application and unless we get a permanent host address, the app will need to be reinstalled whenever the server restarts.
+\subsection{\texttt{scripts/test\un status.py}}
 
-It can be run using the following command with the correct ids.
+This file deals with checking that all tests that should be in the queue are. It can be run by itself to automatically send messages to Slack on which tests do not exist.
 
-\example{SLACK\un VERIFICATION\un TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxx SLACK\un TEAM\un ID=xxxxxxxx FLASK\un APP=path/to/flask\un app.py flask run}
+\subsubsection{\texttt{slack\un notify}}
 
-To watch the server and make sure it is doing ok just use \texttt{ngrok http port\un num} where \texttt{port\un num} is the what port the server is running from (default: 5000).
+This is the notifier that the monitors use. It pulls all information from the config file and uses the slack app.
+
+\subsubsection{\texttt{get\un test\un directories}}
+
+This function gets the paths to all tests found in an input file. The application should be located in the \code{path\un to\un tests} directory. Under this should be the test name and then \code{Status/latest} which leads to the latest instance. If this path changes, this will also need to change.
+
+\subsubsection{\texttt{check\un tests}}
+
+This function first parses the input file to get the tests to check. It then gets the paths to the most recent instance for each test. The path to the \code{job\un id.txt} is expected to be \code{path\un to\un tests/app/testname/Status/latest/job\un id.txt}. It then gets the job id for the most recent instances and checks that it is in the queue or is currently running. If the test is not in the queue or something in the file path does not exist, a message is sent to Slack with this information. If this message needs to be changed, this is where to do so.
+
+\subsection{\texttt{scripts/notifications/slack\un app/slack\un application.py}}
+
+This file takes care of running everything for the Slack application. It does not deal with the commands that the application uses.
+
+\subsubsection{\texttt{SlackApp}}
+
+The application should be initialized off of the config file.
+
+\paragraph{\texttt{get\un my\un mention\un token}}
+
+This function gets the token that our app looks for when people are mentioning the app's bot. In essence, it pings Slack and pulls from the \code{user\un id} from the response. If the response from the server changes, this will also need to change.
+
+\paragraph{\texttt{get\un my\un mentions}}
+
+We pull messages from Slack by using \code{rtm\un read()}. The client holds messages as a queue and when pulling, only one message is read. We limit the total number of times we pull according to the \code{max\un reads} variable found in the configuration file.
+
+\paragraph{\texttt{allowable\un message}}
+
+Each message pulled is sent through a validation process to make sure that it does not contain malicious data. If there are further safety checks for a mention to undergo, put it here.
+
+\paragraph{\texttt{search\un messages}}
+
+Messages are then checked that they are messages. If so, we check that the mention token exists in the message and if so, prepare to respond.
+
+\paragraph{\texttt{remove\un dead\un messengers}}
+
+Messages are sent via separate threads so that they do not block up the application if connection is slow. We also want to limit the maximum number of messengers we have open and thus need to check on and remove dead ones. The upper limit on the number of possible messengers is set by \code{max\un messengers}.
+
+\paragraph{\texttt{message\un responder}}
+
+If this function, we first parse the message to find the command that was called and return the requisit message. When sending messages, a new thread is started using the \texttt{send\un message} function.
+
+\paragraph{\texttt{send\un message}}
+
+Messages are sent using the \code{slackclient} package. Each message is first split and then sent separately to the channel of choice. 
+
+\paragraph{\texttt{split\un message\un to\un send}}
+
+When sending messages to Slack, there is an upper limit to the message size. Thus, messages are automatically split if they are too large. The split length is set by \code{max\un message\un length}.
+
+\paragraph{\texttt{main}}
+
+This function starts and runs the application. Once connected to Slack, the messages are checked periodically depending on \code{watch\un time} and responds when valid messages with commands are recieved.
+
+\subsection{\texttt{scripts/notifications/slack\un app/slack\un commands.py}}
+
+This file contains all the commands that the application can respond to. If new commands are needed, this is where to put them. Remember to preserve security and only allow commands that do reads on Summit.
+
+\subsubsection{\texttt{docstring\un parameter}}
+
+This function acts as a property on other functions and lets variables be entered into their docstrings before being shown. Commands are shown to the user as that functions docstring so passing variables is important for descriptions.
+
+\subsubsection{\texttt{is\un command}}
+
+This function is also a property and labels functions so that they are presented to the Slack user as commands. Both of these properties are needed when creating a new command.
+
+\subsubsection{\texttt{get\un functions}}
+
+This gets all functions in a class that are labeled \code{is\un command}.
+
+\subsubsection{\texttt{make\un columns}}
+
+This takes in a list of tuples and formats them as columns so that messeages sent to Slack are formatted nicely. To change the sizes of these columns, change the values wherever \code{make\un columns} is called.
+
+\subsubsection{\texttt{MessageParser}}
+
+The \code{MessageParser} class takes care of parsing any message sent to our app from Slack.
+
+\paragraph{\texttt{parse\un message}}
+
+This takes care of parsing what command the user wants to run. If a new command is added, make sure to add how it should be called here.
+
+\paragraph{\texttt{slack\un help}}
+
+Get a message with information about all of the commands that the app can run.
+
+\paragraph{\texttt{my\un jobs}}
+
+Get a message containing all jobs that a user currently has in LSF.
+
+\paragraph{\texttt{check\un tests}}
+
+Check that all tests in some \code{rgt\un input.txt} are in the queue or are running.
+
+\paragraph{\texttt{monitor\un job}}
+
+Start monitoring a job and get notified whenever it's status changes.
+
+\paragraph{\texttt{all\un jobs}}
+
+Get all jobs in LSF whether they are in the queue, currently running, or are already done. LSF removes old jobs after \code{CLEAN\un PERIOD} with is found in the \texttt{lsb.params} file. This is the file that contains the parameters for LSF and is found in the machine, not our code.
+
+\section{Recording Results}
+
+Test instances are recorded in a database for easy access. The input to start the database is the input file for which tests to check. We then periodically check on these tests and update the database with new information. 
+
+\subsection{\texttt{scripts/database/connect\un database.py}}
+
+This file takes care of connecting to the database when new information needs to be added.
+
+\subsubsection{\texttt{DatabaseConnector}}
+
+This class holds the information needed for connecting to the database. It currently holds the \texttt{host}, \texttt{user}, \texttt{password}, \texttt{database} name, and the \texttt{port}. If new information is needed to connect to a database, it should be added here.
+
+\paragraph{\texttt{connect}}
+
+Whenever something is needed from the database, a new connection is established to run the code and then disconnected. This is so that the database does not get blocked up.
+
+\subsection{\texttt{scripts/database/create\un database.py}}
+
+There are some tables into the database that are initialized and never change. To initiate these we have created input MySQL files that can be run to set the initial values. These are located in the \texttt{db} directory. To initialize other tables with values, enter the new MySQL files there. When starting the database we also need to run some sql to do so.
+
+\subsubsection{\texttt{execute\un sql\un file}}
+
+This function runs an sql file on whichever database is specified. All other functions just run this one while pointing to a specific file.
+
+\subsubsection{\texttt{insert\un default}}
+
+If you are adding a new table that needs initial values, make sure to add that file to this function.
+
+\subsection{\texttt{scripts/database/update\un database.py}}
+
+The \texttt{update\un database.py} file takes care of updating the database whenever called.
+
+\subsubsection{\texttt{get\un event\un types}}
+
+This function gets all the different event types that a test instance might output.
+
+\subsubsection{\texttt{execute\un sql}}
+
+This function takes care of writing sql to the database. This is a good example of how to write querries so if you are changing this file, write the sql update similar to this one.
+
+\subsubsection{\texttt{UpdateDatabase}}
+
+This class takes care of updating the database from the file system. It does not automatically repeat itself and needs to be called from elsewhere. This class should be initialized by values in the config file. The expected fields found in the \texttt{rgt\un status.txt} are \texttt{harness\un start}, \texttt{harness\un uid}, \texttt{job\un id}, \texttt{build\un status}, \texttt{submit\un status}, and \texttt{check\un status} in that order. Changing order or adding more fields should be taken care of here. When initializing the class, we all set which types of output files we allow, namely \texttt{build}, \texttt{submit}, \texttt{check}, and \texttt{report}.
+
+\paragraph{\texttt{get\un test\un dirs\un from\un rgt}}
+
+
 
 \end{document}

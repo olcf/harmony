@@ -5,6 +5,7 @@ from scripts import connect
 import sys
 from collections import Counter
 
+
 class JobStatus:
     """
     Get the status of a set of jobs in LSF according to some property they share.
@@ -25,8 +26,9 @@ class JobStatus:
         :return: (boolean) Whether the job is in queue.
         """
         # Get all the jobs that match that jobID and are either eligible, current, or blocked.
-        # Not sure if blocked is ok but whatever.
-        jobs = self.get_jobs(jobid=jobID, status=['Eligible', 'Running', 'Blocked'])
+        queue_stats = ['eligible', 'running', 'blocked']
+        queue_stats = [Job.possible_status[stat] for stat in queue_stats]
+        jobs = self.get_jobs(jobid=jobID, status=queue_stats)
         # If that job exists then all good.
         if len(jobs) != 0:
             return True

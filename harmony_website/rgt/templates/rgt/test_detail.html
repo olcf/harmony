@@ -1,7 +1,10 @@
 {% extends "base_generic.html" %}
 
-{% block content %}
+{% block header %}
     <h1>Harness UID: {{ test.harness_uid }}</h1>
+{% endblock %}
+
+{% block content %}
 
     <p><strong>Application:</strong> <a href="{{ test.get_app_url }}">{{ test.application }}</a></p>
     <p><strong>Testname:</strong> <a href="{{ test.get_testname_url }}">{{ test.testname }}</a> </p>
@@ -20,74 +23,119 @@
         {% else %}
             <em>No job id.</em>
         {% endif %}</a></p>
+    {% load widget_tweaks %}
+    <p><strong>Failure:</strong>
+        {% with test.failure as failure %}
+            {% if failure != None %}
+                {{ failure.failure_id.failure_label }}
+                <button type="button" class="failure-delete-btn btn btn-sm btn-danger"
+                        data-id="{{ test.get_failure_delete_url }}?next={{ test.get_test_url|urlencode }}"
+                        id="delete_failure">
+                    <span class="fa fa-trash"></span>
+                </button>
+                <br>
+                {% if failure.failure_id.failure_desc %}
+                    {{ failure.failure_id.failure_desc }}
+                {% else %}
+                    <em>No failure description.</em>
+                {% endif %}
+                <br>
+                {% if failure.failure_details %}
+                    {{ failure.failure_details }}
+                {% else %}
+                    <em>No details for this tests failure.</em>
+                {% endif %}
+            {% else %}
+                <!-- TODO: Change to elif and only show if a failure code is needed. -->
+                <button type="button" class="failure-create-btn btn btn-primary"
+                        data-id="{{ test.get_failure_create_url }}?next={{ test.get_test_url|urlencode }}"
+                        id="create_failure">
+                    <span class="fa fa-plus mr-2"></span>Create Failure
+                </button>
+            {% endif %}
+        {% endwith %}
+    </p>
     <!-- TODO: Add more details in here. Maybe for the stats, make it so they just show the num but can be opened -->
 
-    <div class="row">
-        <div class="column">
-            <div style="margin-left: 20px; margin-top: 20px;">
-                <h4>Events:</h4>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <div style="margin-left: 20px; margin-top: 20px;">
+                    <h4>Events:</h4>
 
-                {% for event in test.rgttestevent_set.all %}
-                    <!-- TODO: Make it easy to see if a test does not have all of it's events. -->
-                    <p>(<code>{{ event.event_id.event_uid }}</code>) {{ event.event_id.event_name }} </p>
-                {% endfor %}
+                    {% for event in test.rgttestevent_set.all %}
+                        <!-- TODO: Make it easy to see if a test does not have all of it's events. -->
+                        <p>
+                            (<code>{{ event.event_id.event_uid }}</code>) {{ event.event_id.event_name }}
+                            <br>{{ event.event_time }}
+                        </p>
+                    {% endfor %}
+                </div>
             </div>
-        </div>
-        <div class="column">
-            <div style="margin-left: 40px; margin-top: 20px;">
-                <h4>Outputs:</h4>
+            <div class="col">
+                <div style="margin-left: 40px; margin-top: 20px;">
+                    <h4>Outputs:</h4>
 
-                <p>
-                    <strong>Build:</strong>
-                    {% if test.build_status %}
-                        <code>{{ test.build_status }}</code>
-                    {% else %}
-                        <em>No build status.</em>
-                    {% endif %}
-                    <br>
-                    {% if test.output_build %}
-                        {{ test.output_build }}
-                    {% else %}
-                        <em>No build output.</em>
-                    {% endif %}
-                </p>
-                <p>
-                    <strong>Submit:</strong>
-                    {% if test.submit_status %}
-                        <code>{{ test.submit_status }}</code>
-                    {% else %}
-                        <em>No submit status.</em>
-                    {% endif %}
-                    <br>
-                    {% if test.output_submit %}
-                        {{ test.output_submit  }}
-                    {% else %}
-                        <em>No submit output.</em>
-                    {% endif %}
-                </p>
-                <p>
-                    <strong>Check:</strong>
-                    {% if test.check_status %}
-                        (<code>{{ test.check_status.check_uid }}</code>) {{ test.check_status.check_desc }}
-                    {% else %}
-                        <em>No check status.</em>
-                    {% endif %}
-                    <br>
-                    {% if test.output_check %}
-                        {{ test.output_check }}
-                    {% else %}
-                        <em>No check output.</em>
-                    {% endif %}
-                </p>
-                <p>
-                    <strong>Report:</strong>
-                    <br>
-                    {% if test.output_report %}
-                        {{ test.output_report }}
-                    {% else %}
-                        <em>No report.</em>
-                    {% endif %}
-                </p>
+                    <p>
+                        <strong>Build:</strong>
+                        {% if test.build_status != None %}
+                            <code>{{ test.build_status }}</code>
+                        {% else %}
+                            <em>No build status.</em>
+                        {% endif %}
+                        <br>
+                        {% if test.output_build %}
+                            <ul class="status">
+                                {{ test.output_build }}
+                            </ul>
+                        {% else %}
+                            <em>No build output.</em>
+                        {% endif %}
+                    </p>
+                    <p>
+                        <strong>Submit:</strong>
+                        {% if test.submit_status != None %}
+                            <code>{{ test.submit_status }}</code>
+                        {% else %}
+                            <em>No submit status.</em>
+                        {% endif %}
+                        <br>
+                        {% if test.output_submit %}
+                            <ul class="status">
+                                {{ test.output_submit }}
+                            </ul>
+                        {% else %}
+                            <em>No submit output.</em>
+                        {% endif %}
+                    </p>
+                    <p>
+                        <strong>Check:</strong>
+                        {% if test.check_status != None %}
+                            (<code>{{ test.check_status.check_uid }}</code>) {{ test.check_status.check_desc }}
+                        {% else %}
+                            <em>No check status.</em>
+                        {% endif %}
+                        <br>
+                        {% if test.output_check %}
+                            <ul class="status">
+                                {{ test.output_check }}
+                            </ul>
+                        {% else %}
+                            <em>No check output.</em>
+                        {% endif %}
+                    </p>
+                    <p>
+                        <strong>Report:</strong>
+                        <br>
+                        {% if test.output_report %}
+                            <ul class="status">
+                                {{ test.output_report }}
+                            </ul>
+                        {% else %}
+                            <em>No report.</em>
+                        {% endif %}
+                    </p>
+                </div>
             </div>
         </div>
     </div>

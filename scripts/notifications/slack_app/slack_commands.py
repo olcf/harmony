@@ -1,5 +1,5 @@
 from scripts import job_monitor
-import os
+from scripts import config_functions
 
 
 class docstring_parameter:
@@ -62,7 +62,7 @@ def make_columns(tuple_list, col_sizes=[10, 20, 20]):
     # Check that there are the correct number of columns to values.
     if len(tuple_list[0]) != len(col_sizes):
         raise ValueError("Invalid column sizes. Cannot understand " + str(len(col_sizes)) +
-                         " defining " + str(len(tuple_list[0])) + " columns.")
+                         " column widths defining " + str(len(tuple_list[0])) + " columns.")
 
     # Change list of tuples into list of tuples only containing strings.
     tuple_list = [tuple([str(val) for val in tup]) for tup in tuple_list]
@@ -111,14 +111,15 @@ def maximize_col_sizes(tuple_list, col_sizes):
     return new_cols
 
 
-class MessageParser:# Drop all tables that have been used for testing.# Drop all tables that have been used for testing.
+class MessageParser:
     """
     Class to hold the parser for messages.
     """
 
-    # Get the name of the bot from the environment. This is needed so that the documentation on methods is nice
+    # Get the name of the bot from the config. This is needed so that the documentation on methods is nice
     # when printed to slack.
-    bot_name = os.environ["SLACK_BOT_NAME"]
+    conf = config_functions.get_config()
+    bot_name = conf['slack_app']['slack_bot_name']
 
     def __init__(self, watch_time=600):
         # Get all the slack functions in this class.
@@ -265,7 +266,7 @@ class MessageParser:# Drop all tables that have been used for testing.# Drop all
         tuple_list = [(job.jobId, job.jobName, job.status) for job in jobs]
         tuple_list.insert(0, ("JOBID", "JOBNAME", "STATUS"))
         # Make columns and add '```' so that it is correctly formatted.
-        response += "```" + make_columns(tuple_list) + "```"
+        response += "```" + make_columns(tuple_list, col_sizes=[10, 20, 20]) + "```"
 
         return response
 
