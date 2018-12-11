@@ -119,7 +119,7 @@ class MessageParser:
     # Get the name of the bot from the config. This is needed so that the documentation on methods is nice
     # when printed to slack.
     conf = config_functions.get_config()
-    bot_name = conf['slack_app']['slack_bot_name']
+    bot_name = conf['SLACK_APP']['slack_bot_name']
 
     def __init__(self, watch_time=600):
         # Get all the slack functions in this class.
