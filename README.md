@@ -91,3 +91,9 @@ Run `python3 -m scripts.config_functions` in the harmony directory.
 #### Database
 - Run harmony using `python3 -m run_harmony -u <username> -p <password> -r <rgt_input_path>` 
 while in the harmony directory. The `<username>` and `<password>` are those used for connection to the database.
+
+## Contact Information
+Cameron Kuchta <kuchtact@beloit.edu>
+Reuben Budiardja <budiardjard@ornl.gov>
+Verónica G. Vergara Larrea <vergaravg@ornl.gov>
+
