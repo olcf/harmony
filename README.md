@@ -94,6 +94,8 @@ while in the harmony directory. The `<username>` and `<password>` are those used
 
 ## Contact Information
 Cameron Kuchta <kuchtact@beloit.edu>
+
 Reuben Budiardja <budiardjard@ornl.gov>
+
 Verónica G. Vergara Larrea <vergaravg@ornl.gov>
 
